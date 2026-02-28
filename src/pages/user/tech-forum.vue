@@ -21,6 +21,8 @@
           class="article-item" 
           v-for="item in articleList" 
           :key="item.id"
+          style="cursor: pointer"
+          @click="router.push('/user/forum-detail/' + item.id)"
         >
           <div class="article-header">
             <span class="author">{{ item.author }}</span>
@@ -67,6 +69,9 @@
 
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 // 分类标签数据
 const categoryList = ref([

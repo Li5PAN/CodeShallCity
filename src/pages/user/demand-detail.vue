@@ -44,6 +44,9 @@
           <div class="action-row">
             <a-button type="primary" size="large" class="join-btn" ghost>参与此需求</a-button>
             <a-button size="large" class="similar-btn">发布类似需求</a-button>
+            <a-button v-if="!fromFavorites" size="large" :type="collected ? 'primary' : 'default'" @click="collected = !collected">
+              <HeartOutlined /> {{ collected ? '已收藏' : '收藏' }}
+            </a-button>
           </div>
 
           <!-- 查看更多 -->
@@ -98,9 +101,12 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { CheckCircleOutlined, SafetyOutlined, MoneyCollectOutlined, AuditOutlined } from '@ant-design/icons-vue'
+import { CheckCircleOutlined, SafetyOutlined, MoneyCollectOutlined, AuditOutlined, HeartOutlined } from '@ant-design/icons-vue'
+
+const collected = ref(false)
 
 const route = useRoute()
+const fromFavorites = computed(() => route.query.from === 'favorites')
 const demandId = computed(() => Number(route.params.id) || 1)
 
 const demandMap = {

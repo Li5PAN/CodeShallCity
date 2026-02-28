@@ -59,6 +59,9 @@
         <div class="action-buttons">
           <a-button type="primary" size="large" danger class="buy-btn"><ShoppingCartOutlined /> 立即购买</a-button>
           <a-button size="large" class="chat-btn"><MessageOutlined /> 在线咨询</a-button>
+          <a-button v-if="!fromFavorites" size="large" :type="collected ? 'primary' : 'default'" @click="collected = !collected">
+            <HeartOutlined /> {{ collected ? '已收藏' : '收藏' }}
+          </a-button>
         </div>
       </div>
     </div>
@@ -112,9 +115,12 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { CheckCircleOutlined, ShoppingCartOutlined, MessageOutlined, LikeOutlined } from '@ant-design/icons-vue'
+import { CheckCircleOutlined, ShoppingCartOutlined, MessageOutlined, HeartOutlined, LikeOutlined } from '@ant-design/icons-vue'
+
+const collected = ref(false)
 
 const route = useRoute()
+const fromFavorites = computed(() => route.query.from === 'favorites')
 const serviceId = computed(() => Number(route.params.id) || 1)
 const currentImage = ref(0)
 const activeTab = ref('detail')
