@@ -11,7 +11,7 @@
             class="fav-item"
             v-for="item in serviceItems"
             :key="item.id"
-            @click="$router.push({ path: '/user/service-detail/' + item.id, query: { from: 'favorites' } })"
+            @click="openDetail('service', { id: item.id, from: 'favorites' })"
           >
             <img :src="item.cover" class="fav-cover" />
             <div class="fav-info">
@@ -29,7 +29,7 @@
         </div>
       </a-tab-pane>
 
-      <!-- 需求悬赏 -->
+      <!-- 需求悬�?-->
       <a-tab-pane key="demand" tab="需求悬赏">
         <div class="fav-list">
           <div v-if="demandItems.length === 0" class="empty-state">暂无收藏的需求</div>
@@ -37,7 +37,7 @@
             class="fav-item"
             v-for="item in demandItems"
             :key="item.id"
-            @click="$router.push({ path: '/user/demand-detail/' + item.id, query: { from: 'favorites' } })"
+            @click="openDetail('demand', { id: item.id, from: 'favorites' })"
           >
             <div class="fav-info">
               <div class="fav-title">{{ item.title }}</div>
@@ -55,7 +55,7 @@
         </div>
       </a-tab-pane>
 
-      <!-- 技术论坛 -->
+      <!-- 技术伦塔-->
       <a-tab-pane key="forum" tab="技术论坛">
         <div class="fav-list">
           <div v-if="forumItems.length === 0" class="empty-state">暂无收藏的文章</div>
@@ -63,7 +63,7 @@
             class="fav-item"
             v-for="item in forumItems"
             :key="item.id"
-            @click="$router.push({ path: '/user/forum-detail/' + item.id, query: { from: 'favorites' } })"
+            @click="openDetail('forum', { id: item.id, from: 'favorites' })"
           >
             <div class="fav-info">
               <div class="fav-author-row">
@@ -90,24 +90,26 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, inject } from 'vue'
 import { EyeOutlined, LikeOutlined } from '@ant-design/icons-vue'
+
+const openDetail = inject('openDetail')
 
 const activeTab = ref('service')
 
 const serviceItems = ref([
-  { id: 1, title: 'Java大厂面试题 一套搞定offer', desc: '覆盖Java基础、JVM、并发、分布式等核心考点，配套面试模拟', price: 399, cover: 'https://via.placeholder.com/80x60/FFD700/000000?text=Java', tags: ['平台保障', '商家认证'] },
-  { id: 3, title: '颠覆你认知的八股盛宴', desc: '打破传统八股文，结合实战场景讲解，让面试官眼前一亮', price: 399, cover: 'https://via.placeholder.com/80x60/FF4444/FFFFFF?text=八股文', tags: ['平台保障', '一对一辅导'] }
+  { id: 1, title: 'Java大厂面试�?一套搞定offer', desc: '覆盖Java基础、JVM、并发、分布式等核心考点，配套面试模', price: 399, cover: 'https://placehold.co/80x60/FFD700/000000?text=Java', tags: ['平台保障', '商家认证'] },
+  { id: 3, title: '颠覆你认知的八股盛宴', desc: '打破传统八股文，结合实战场景讲解，让面试官眼前一', price: 399, cover: 'https://placehold.co/80x60/FF4444/FFFFFF?text=八股', tags: ['平台保障', '一对一辅导'] }
 ])
 
 const demandItems = ref([
-  { id: 1, title: 'MiniMax-M2.1: MiniMax-AI开源大模型，赋能高效智能应用开发', desc: '需要基于MiniMax大模型开发一套智能客服系统，支持多轮对话、意图识别', budget: '3800.00', type: '人工智能', publishTime: '2026-03-03' },
-  { id: 2, title: 'PaddleOCR-VL: 开源视觉语言OCR工具，多模态识别提升文档处理效率', desc: '基于PaddleOCR开发文档智能识别系统，支持表格、印章、手写体等多种场景', budget: '3800.00', type: 'Python', publishTime: '2026-03-02' }
+  { id: 1, title: 'MiniMax-M2.1: MiniMax-AI开源大模型，赋能高效智能应用开', desc: '需要基于MiniMax大模型开发一套智能客服系统，支持多轮对话、意图识', budget: '3800.00', type: '人工智能', publishTime: '2026-03-03' },
+  { id: 2, title: 'PaddleOCR-VL: 开源视觉语言OCR工具，多模态识别提升文档处理效', desc: '基于PaddleOCR开发文档智能识别系统，支持表格、印章、手写体等多种场', budget: '3800.00', type: 'Python', publishTime: '2026-03-02' }
 ])
 
 const forumItems = ref([
   { id: 1, author: 'bkspiderx', authorColor: '#1890ff', title: '深入解析CPU调度：操作系统的核心资源分配机制', desc: '本文系统解析了CPU调度机制，分析其必要性、核心目标和经典算法...', category: '操作系统', publishTime: '2026-02-27', readCount: '1.5k', likeCount: 34 },
-  { id: 3, author: 'Agent学习路线', authorColor: '#52c41a', title: 'AI大模型大师秘籍：2025AI技术全景揭秘，从入门到精通的完整学习指南！', desc: '本文系统介绍了AI大模型的学习路径，分为四个阶段...', category: '人工智能', publishTime: '2026-02-25', readCount: '2.1k', likeCount: 47 }
+  { id: 3, author: 'Agent学习路线', authorColor: '#52c41a', title: 'AI大模型大师秘籍：2025AI技术全景揭秘，从入门到精通的完整学习指南', desc: '本文系统介绍了AI大模型的学习路径，分为四个阶..', category: '人工智能', publishTime: '2026-02-25', readCount: '2.1k', likeCount: 47 }
 ])
 
 const removeItem = (list, id) => {

@@ -119,6 +119,18 @@ export default [
           title: '创作中心',
           icon: 'EditOutlined'
         }
+      },
+      {
+        path: 'write-article',
+        name: 'WriteArticle',
+        component: () => import('../../pages/user/write-article.vue'),
+        meta: { title: '写文章', icon: 'EditOutlined' }
+      },
+      {
+        path: 'my-services',
+        name: 'MyServices',
+        component: () => import('../../pages/user/my-services.vue'),
+        meta: { title: '我的服务', icon: 'ShopOutlined' }
       }
     ]
   }

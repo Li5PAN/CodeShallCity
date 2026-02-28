@@ -9,18 +9,18 @@
       class="category-tabs"
     >
       <a-tab-pane key="all" tab="全部" />
-      <a-tab-pane key="big-data" tab="大数据/云计算" />
-      <a-tab-pane key="algorithm" tab="算法与数据结构" />
+      <a-tab-pane key="big-data" tab="大数云计"/>
+      <a-tab-pane key="algorithm" tab="算法与数据" />
       <a-tab-pane key="data-science" tab="数据科学" />
       <a-tab-pane key="iot" tab="物联网" />
-      <a-tab-pane key="project-management" tab="项目管理与协作工具" />
-      <a-tab-pane key="blockchain" tab="区块链技术" />
+      <a-tab-pane key="project-management" tab="项目管理与协作工" />
+      <a-tab-pane key="blockchain" tab="区块链技" />
       <a-tab-pane key="ai" tab="人工智能" />
       <a-tab-pane key="more" tab="更多 >" />
     </a-tabs>
     <a-row :gutter="[16, 16]" class="service-list">
       <a-col :xs="24" :sm="12" :md="6" v-for="item in serviceList" :key="item.id">
-        <a-card :bordered="false" class="service-card" @click="router.push('/user/service-detail/' + item.id)" style="cursor: pointer">
+        <a-card :bordered="false" class="service-card" @click="openDetail('service', { id: item.id })" style="cursor: pointer">
           <div class="card-cover" :style="{ backgroundImage: `url(${item.cover})` }"></div>
           <div class="card-content">
             <h4 class="card-title">{{ item.title }}</h4>
@@ -30,7 +30,7 @@
             </div>
             <div class="card-footer">
               <span class="price">¥ {{ item.price }}</span>
-              <span class="stats">好评率100% 成交量:1000+</span>
+              <span class="stats">好评�?00% 成交�?1000+</span>
             </div>
           </div>
         </a-card>
@@ -51,27 +51,26 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, reactive, inject } from 'vue'
 import { CheckCircleOutlined, SafetyOutlined, AuditOutlined, MoneyCollectOutlined } from '@ant-design/icons-vue'
 
-const router = useRouter()
+const openDetail = inject('openDetail')
 
 const activeCategory = ref('all')
 const serviceList = reactive([
-  { id: 1, title: 'Java大厂面试题 一套搞定offer', desc: '覆盖Java基础、JVM、并发、分布式等核心考点，配套面试模拟', price: 399, cover: 'https://via.placeholder.com/240x120/FFD700/000000?text=Java', tags: ['平台保障', '商家认证', '7天无理由'] },
-  { id: 2, title: '10天精通MySQL 讲的特别深入的那种', desc: '从底层原理到实战优化，涵盖索引、事务、锁机制、分库分表', price: 399, cover: 'https://via.placeholder.com/240x120/FF6600/FFFFFF?text=MySQL', tags: ['平台保障', '官方认证', '售后答疑'] },
-  { id: 3, title: '颠覆你认知的八股盛宴', desc: '打破传统八股文，结合实战场景讲解，让面试官眼前一亮', price: 399, cover: 'https://via.placeholder.com/240x120/FF4444/FFFFFF?text=八股文', tags: ['平台保障', '一对一辅导', '终身更新'] },
-  { id: 4, title: 'RabbitMQ 2天入门到实战', desc: '从安装部署到高可用架构，结合电商场景实现消息队列实战', price: 399, cover: 'https://via.placeholder.com/240x120/0099FF/FFFFFF?text=RabbitMQ', tags: ['平台保障', '项目实战', '源码解析'] }
+  { id: 1, title: 'Java大厂面试�?一套搞定offer', desc: '覆盖Java基础、JVM、并发、分布式等核心考点，配套面试模', price: 399, cover: 'https://placehold.co/240x120/FFD700/000000?text=Java', tags: ['平台保障', '商家认证', '7天无理由'] },
+  { id: 2, title: '10天精通MySQL 讲的特别深入的那', desc: '从底层原理到实战优化，涵盖索引、事务、锁机制、分库分', price: 399, cover: 'https://placehold.co/240x120/FF6600/FFFFFF?text=MySQL', tags: ['平台保障', '官方认证', '售后答疑'] },
+  { id: 3, title: '颠覆你认知的八股盛宴', desc: '打破传统八股文，结合实战场景讲解，让面试官眼前一', price: 399, cover: 'https://via.placeholder.com/240x120/FF4444/FFFFFF?text=八股', tags: ['平台保障', '一对一辅导', '终身更新'] },
+  { id: 4, title: 'RabbitMQ 2天入门到实战', desc: '从安装部署到高可用架构，结合电商场景实现消息队列实战', price: 399, cover: 'https://placehold.co/240x120/0099FF/FFFFFF?text=RabbitMQ', tags: ['平台保障', '项目实战', '源码解析'] }
 ])
 const guaranteeList = reactive([
   { key: 'platform', title: '平台保障', desc: '爽约必赔', icon: CheckCircleOutlined, color: '#52c41a' },
-  { key: 'merchant', title: '商家认证', desc: '服务近100%实名认证', icon: SafetyOutlined, color: '#1890ff' },
-  { key: 'standard', title: '服务有标准', desc: '资料验收 交付有保障', icon: AuditOutlined, color: '#faad14' },
-  { key: 'fund', title: '资金更安全', desc: '平台担保交易 验收后付款', icon: MoneyCollectOutlined, color: '#fa8c16' },
-  { key: 'compensation', title: '爽约必有赔', desc: '交付/离席/爽约有保障', icon: CheckCircleOutlined, color: '#eb2f96' }
+  { key: 'merchant', title: '商家认证', desc: '服务�?00%实名认证', icon: SafetyOutlined, color: '#1890ff' },
+  { key: 'standard', title: '服务有标', desc: '资料验收 交付有保', icon: AuditOutlined, color: '#faad14' },
+  { key: 'fund', title: '资金更安', desc: '平台担保交易 验收后付', icon: MoneyCollectOutlined, color: '#fa8c16' },
+  { key: 'compensation', title: '爽约必有', desc: '交付/离席/爽约有保', icon: CheckCircleOutlined, color: '#eb2f96' }
 ])
-const handleCategoryChange = (key) => { console.log('切换到分类:', key) }
+const handleCategoryChange = (key) => { console.log('切换到分�?', key) }
 </script>
 
 <style scoped>

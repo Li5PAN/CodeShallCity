@@ -32,7 +32,7 @@
           <div class="order-right">
             <div class="order-price">¥ {{ order.price }}</div>
             <div class="order-qty">x {{ order.quantity }}</div>
-            <div class="order-total">合计：<span>¥ {{ (order.price * order.quantity).toFixed(2) }}</span></div>
+            <div class="order-total">合计<span>¥ {{ (order.price * order.quantity).toFixed(2) }}</span></div>
           </div>
         </div>
       </div>
@@ -59,18 +59,18 @@ import { InboxOutlined, StarOutlined } from '@ant-design/icons-vue'
 const orders = ref([
   {
     id: 5, orderNo: 'SVC20260210005', createTime: '2026-02-10 11:20:00',
-    serviceName: 'Java大厂面试题 一套搞定offer',
-    serviceDesc: '覆盖Java基础、JVM、并发、分布式等核心考点，配套面试模拟',
-    cover: 'https://via.placeholder.com/80x60/FFD700/000000?text=Java',
+    serviceName: 'Java大厂面试�?一套搞定offer',
+    serviceDesc: '覆盖Java基础、JVM、并发、分布式等核心考点，配套面试模',
+    cover: 'https://placehold.co/80x60/FFD700/000000?text=Java',
     tags: ['平台保障', '商家认证'], seller: '码上拿offer', sellerColor: '#1890ff',
     price: 399, quantity: 1
   },
   {
     id: 6, orderNo: 'SVC20260205006', createTime: '2026-02-05 08:55:00',
-    serviceName: '10天精通MySQL 讲的特别深入的那种',
-    serviceDesc: '从底层原理到实战优化，涵盖索引、事务、锁机制、分库分表',
-    cover: 'https://via.placeholder.com/80x60/FF6600/FFFFFF?text=MySQL',
-    tags: ['平台保障', '官方认证'], seller: 'DB技术专家', sellerColor: '#52c41a',
+    serviceName: '10天精通MySQL 讲的特别深入的那',
+    serviceDesc: '从底层原理到实战优化，涵盖索引、事务、锁机制、分库分',
+    cover: 'https://placehold.co/80x60/FF6600/FFFFFF?text=MySQL',
+    tags: ['平台保障', '官方认证'], seller: 'DB技术专', sellerColor: '#52c41a',
     price: 399, quantity: 1
   }
 ])
@@ -81,7 +81,7 @@ const totalSpent = computed(() =>
   orders.value.reduce((sum, o) => sum + o.price * o.quantity, 0).toFixed(2)
 )
 
-const handleReview = (order) => message.info(`评价订单：${order.orderNo}`)
+const handleReview = (order) => message.info(`评价订单�?{order.orderNo}`)
 </script>
 
 <style scoped>

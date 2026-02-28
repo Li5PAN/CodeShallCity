@@ -2,7 +2,7 @@
   <div class="demand-detail-page">
     <!-- 面包屑 -->
     <a-breadcrumb class="breadcrumb">
-      <a-breadcrumb-item><a @click="$router.push('/user/demand-bounty')">需求悬赏</a></a-breadcrumb-item>
+      <a-breadcrumb-item><a @click="closeDetail">需求悬赏</a></a-breadcrumb-item>
       <a-breadcrumb-item>订单号：{{ demand.orderNo }}</a-breadcrumb-item>
     </a-breadcrumb>
 
@@ -99,15 +99,15 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, computed, inject } from 'vue'
 import { CheckCircleOutlined, SafetyOutlined, MoneyCollectOutlined, AuditOutlined, HeartOutlined } from '@ant-design/icons-vue'
 
-const collected = ref(false)
+const props = defineProps({ id: { type: Number, default: 1 }, from: { type: String, default: '' } })
+const closeDetail = inject('closeDetail', () => {})
 
-const route = useRoute()
-const fromFavorites = computed(() => route.query.from === 'favorites')
-const demandId = computed(() => Number(route.params.id) || 1)
+const collected = ref(false)
+const fromFavorites = computed(() => props.from === 'favorites')
+const demandId = computed(() => props.id || 1)
 
 const demandMap = {
   1: {

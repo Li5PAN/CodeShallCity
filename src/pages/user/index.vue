@@ -119,8 +119,8 @@
                   <div class="create-popup-title">创作下拉框</div>
                   <div class="create-box">
                     <div class="create-box-icons">
-                      <div class="create-box-item" @click="createPopoverVisible = false"><EditOutlined class="create-box-icon" /><span>写文章</span></div>
-                      <div class="create-box-item" @click="createPopoverVisible = false"><CodeOutlined class="create-box-icon" /><span>我的服务</span></div>
+                      <div class="create-box-item" @click="createPopoverVisible = false; router.push('/user/write-article')"><EditOutlined class="create-box-icon" /><span>写文章</span></div>
+                      <div class="create-box-item" @click="createPopoverVisible = false; router.push('/user/my-services')"><CodeOutlined class="create-box-icon" /><span>我的服务</span></div>
                       <div class="create-box-item" @click="createPopoverVisible = false"><FileTextOutlined class="create-box-icon" /><span>我的悬赏</span></div>
                       <div class="create-box-item" @click="createPopoverVisible = false"><CommentOutlined class="create-box-icon" /><span>我的论坛</span></div>
                       <div class="create-box-item" @click="createPopoverVisible = false"><LockOutlined class="create-box-icon" /><span>订单管理</span></div>
@@ -142,19 +142,32 @@
         </a-layout-content>
       </a-layout>
     </a-layout>
+
+    <!-- 详情全屏覆盖层 -->
+    <div v-if="detailVisible" class="detail-overlay">
+      <div class="detail-overlay-header">
+        <CloseOutlined class="detail-close-btn" @click="closeDetail" />
+      </div>
+      <div class="detail-overlay-body">
+        <component :is="detailComponent" v-bind="detailProps" />
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, provide, shallowRef } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import {
   HomeOutlined, ShopOutlined, MoneyCollectOutlined, CommentOutlined,
   QuestionCircleOutlined, ShoppingCartOutlined, StarOutlined, HeartOutlined,
   HistoryOutlined, UserOutlined, EditOutlined, PlusOutlined,
   LogoutOutlined, SettingOutlined, WalletOutlined, SkinOutlined, FileTextOutlined,
-  MenuOutlined, CodeOutlined, LockOutlined, BulbOutlined
+  MenuOutlined, CodeOutlined, LockOutlined, BulbOutlined, CloseOutlined
 } from '@ant-design/icons-vue'
+import ServiceDetail from './service-detail.vue'
+import DemandDetail from './demand-detail.vue'
+import ForumDetail from './forum-detail.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -164,6 +177,26 @@ const searchType = ref('article')
 const selectedKeys = ref(['home'])
 const createPopoverVisible = ref(false)
 const username = ref('')
+
+// 详情覆盖层
+const detailVisible = ref(false)
+const detailComponent = shallowRef(null)
+const detailProps = ref({})
+
+const openDetail = (type, props = {}) => {
+  const map = { service: ServiceDetail, demand: DemandDetail, forum: ForumDetail }
+  detailComponent.value = map[type]
+  detailProps.value = props
+  detailVisible.value = true
+}
+const closeDetail = () => {
+  detailVisible.value = false
+  detailComponent.value = null
+  detailProps.value = {}
+}
+
+provide('openDetail', openDetail)
+provide('closeDetail', closeDetail)
 
 // 根据当前路由设置选中菜单
 const routeKeyMap = {
@@ -299,5 +332,44 @@ const handleLogout = () => {
   padding: 16px;
   overflow-y: auto;
   height: calc(100% - 56px);
+}
+
+.detail-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #f5f5f5;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+
+.detail-overlay-header {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  height: 48px;
+  padding: 0 24px;
+  background: #fff;
+  border-bottom: 1px solid #f0f0f0;
+  flex-shrink: 0;
+}
+
+.detail-close-btn {
+  font-size: 20px;
+  cursor: pointer;
+  color: #666;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+.detail-close-btn:hover { color: #333; background: #f0f0f0; }
+
+.detail-overlay-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 24px;
 }
 </style>

@@ -110,16 +110,16 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { useRoute } from 'vue-router'
 import { EyeOutlined, LikeOutlined, StarOutlined, MessageOutlined, ShareAltOutlined } from '@ant-design/icons-vue'
 
-const route = useRoute()
-const articleId = computed(() => Number(route.params.id) || 1)
+const props = defineProps({ id: { type: Number, default: 1 }, from: { type: String, default: '' } })
+
+const articleId = computed(() => props.id || 1)
 const liked = ref(false)
 const collected = ref(false)
 const commentText = ref('')
-const isFollowing = ref(route.query.from === 'following')
-const fromFavorites = computed(() => route.query.from === 'favorites')
+const isFollowing = ref(props.from === 'following')
+const fromFavorites = computed(() => props.from === 'favorites')
 
 const articleMap = {
   1: {

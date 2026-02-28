@@ -1,7 +1,7 @@
 <template>
   <div class="service-detail-page">
     <a-breadcrumb class="breadcrumb">
-      <a-breadcrumb-item><a @click="$router.push('/user/service-market')">服务市场</a></a-breadcrumb-item>
+      <a-breadcrumb-item><a @click="closeDetail">服务市场</a></a-breadcrumb-item>
       <a-breadcrumb-item>{{ service.title }}</a-breadcrumb-item>
     </a-breadcrumb>
     <div class="product-section">
@@ -113,15 +113,15 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { ref, computed, inject } from 'vue'
 import { CheckCircleOutlined, ShoppingCartOutlined, MessageOutlined, HeartOutlined, LikeOutlined } from '@ant-design/icons-vue'
 
-const collected = ref(false)
+const props = defineProps({ id: { type: Number, default: 1 }, from: { type: String, default: '' } })
+const closeDetail = inject('closeDetail', () => {})
 
-const route = useRoute()
-const fromFavorites = computed(() => route.query.from === 'favorites')
-const serviceId = computed(() => Number(route.params.id) || 1)
+const collected = ref(false)
+const fromFavorites = computed(() => props.from === 'favorites')
+const serviceId = computed(() => props.id || 1)
 const currentImage = ref(0)
 const activeTab = ref('detail')
 const quantity = ref(1)
@@ -132,48 +132,59 @@ const serviceMap = {
     desc: '覆盖Java基础、JVM、并发、分布式等核心考点，配套面试模拟，助你轻松拿下大厂offer',
     price: 399, originalPrice: 699, sales: 1200, rating: 98,
     tags: ['平台保障', '商家认证', '7天无理由', '售后答疑'],
-    images: ['https://via.placeholder.com/480x360/FFD700/000000?text=Java+面试题', 'https://via.placeholder.com/480x360/FF8C00/FFFFFF?text=课程大纲', 'https://via.placeholder.com/480x360/32CD32/FFFFFF?text=学员反馈', 'https://via.placeholder.com/480x360/4169E1/FFFFFF?text=讲师介绍'],
+    images: [
+      'https://placehold.co/480x360/FFD700/000000?text=Java',
+      'https://placehold.co/480x360/FF8C00/FFFFFF?text=课程大纲',
+      'https://placehold.co/480x360/32CD32/FFFFFF?text=学员反馈',
+      'https://placehold.co/480x360/4169E1/FFFFFF?text=讲师介绍'
+    ],
     seller: { name: '码上拿offer', star: 4.5, orders: 3200 },
-    detailIntro: '本服务由资深Java架构师团队打造，覆盖Java基础、JVM调优、多线程并发、Spring全家桶、分布式架构、微服务、消息队列、数据库优化等大厂高频面试考点。配套一对一模拟面试，针对性辅导。',
+    detailIntro: '本服务由资深Java架构师团队打造，覆盖Java基础、JVM调优、多线程并发、Spring全家桶、分布式架构、微服务、消息队列、数据库优化等大厂高频面试考点。',
     detailItems: ['Java核心基础与JVM深度解析', 'Spring/SpringBoot/SpringCloud全套面试题', '分布式系统设计与微服务架构', 'MySQL索引优化与分库分表方案', 'Redis缓存策略与高可用方案', '消息队列(Kafka/RabbitMQ)实战', '一对一模拟面试(3次)', '简历优化与面试技巧指导'],
-    deliveryStandard: '购买后24小时内开通课程权限，模拟面试需提前预约。课程资料永久有效，模拟面试在购买后30天内完成。',
-    flowSteps: ['下单购买', '开通课程', '系统学习', '预约模拟面试', '面试辅导', '拿到offer']
+    deliveryStandard: '购买后24小时内开通课程权限，模拟面试需提前预约。课程资料永久有效，模拟面试在购买后30天内完成。'
   },
   2: {
     title: '10天精通MySQL 讲的特别深入的那种',
     desc: '从底层原理到实战优化，涵盖索引、事务、锁机制、分库分表',
     price: 399, originalPrice: 599, sales: 860, rating: 99,
     tags: ['平台保障', '官方认证', '售后答疑', '终身更新'],
-    images: ['https://via.placeholder.com/480x360/FF6600/FFFFFF?text=MySQL+精通', 'https://via.placeholder.com/480x360/1E90FF/FFFFFF?text=索引原理', 'https://via.placeholder.com/480x360/FF4500/FFFFFF?text=锁机制'],
+    images: [
+      'https://placehold.co/480x360/FF6600/FFFFFF?text=MySQL',
+      'https://placehold.co/480x360/1E90FF/FFFFFF?text=索引原理',
+      'https://placehold.co/480x360/FF4500/FFFFFF?text=锁机制'
+    ],
     seller: { name: 'DB技术专家', star: 5, orders: 1800 },
     detailIntro: '深入MySQL底层原理，从B+树索引结构到MVCC多版本并发控制，从锁机制到分库分表方案，10天带你从入门到精通。',
     detailItems: ['MySQL架构与存储引擎深度解析', 'B+树索引原理与优化实战', '事务隔离级别与MVCC机制', '锁机制：行锁、表锁、间隙锁', '慢SQL分析与执行计划优化', '分库分表方案设计与实战'],
-    deliveryStandard: '购买后立即开通，课程内容持续更新，配套练习题和实战项目。',
-    flowSteps: ['下单购买', '开通课程', '跟练实操', '项目实战', '答疑辅导', '精通MySQL']
+    deliveryStandard: '购买后立即开通，课程内容持续更新，配套练习题和实战项目。'
   },
   3: {
     title: '颠覆你认知的八股盛宴',
     desc: '打破传统八股文，结合实战场景讲解，让面试官眼前一亮',
     price: 399, originalPrice: 799, sales: 650, rating: 97,
     tags: ['平台保障', '一对一辅导', '终身更新'],
-    images: ['https://via.placeholder.com/480x360/FF4444/FFFFFF?text=八股盛宴', 'https://via.placeholder.com/480x360/9932CC/FFFFFF?text=面试技巧'],
+    images: [
+      'https://placehold.co/480x360/FF4444/FFFFFF?text=八股盛宴',
+      'https://placehold.co/480x360/9932CC/FFFFFF?text=面试技巧'
+    ],
     seller: { name: '面试达人', star: 4.5, orders: 2100 },
     detailIntro: '告别死记硬背，用实战场景理解八股文背后的原理。结合真实项目案例，让你在面试中答出深度。',
     detailItems: ['操作系统核心原理与面试高频题', '计算机网络TCP/IP深度解析', 'JVM内存模型与GC调优', '并发编程与线程安全', '设计模式在实战中的应用'],
-    deliveryStandard: '购买后即时开通，一对一辅导需预约，课程终身有效。',
-    flowSteps: ['下单购买', '基础学习', '专题突破', '模拟面试', '查漏补缺', '面试通关']
+    deliveryStandard: '购买后即时开通，一对一辅导需预约，课程终身有效。'
   },
   4: {
     title: 'RabbitMQ 2天入门到实战',
     desc: '从安装部署到高可用架构，结合电商场景实现消息队列实战',
     price: 399, originalPrice: 499, sales: 430, rating: 96,
     tags: ['平台保障', '项目实战', '源码解析'],
-    images: ['https://via.placeholder.com/480x360/0099FF/FFFFFF?text=RabbitMQ', 'https://via.placeholder.com/480x360/00CED1/FFFFFF?text=消息队列'],
+    images: [
+      'https://placehold.co/480x360/0099FF/FFFFFF?text=RabbitMQ',
+      'https://placehold.co/480x360/00CED1/FFFFFF?text=消息队列'
+    ],
     seller: { name: '中间件专家', star: 4.5, orders: 960 },
     detailIntro: '2天快速掌握RabbitMQ，从基础概念到高可用集群部署，结合电商秒杀、订单系统等真实场景进行实战演练。',
     detailItems: ['RabbitMQ核心概念与安装部署', '交换机类型与路由策略', '消息确认与持久化机制', '死信队列与延迟队列', '电商秒杀场景实战', '高可用集群搭建'],
-    deliveryStandard: '购买后立即开通课程，配套源码和部署文档，永久有效。',
-    flowSteps: ['下单购买', '环境搭建', '基础学习', '场景实战', '集群部署', '项目上线']
+    deliveryStandard: '购买后立即开通课程，配套源码和部署文档，永久有效。'
   }
 }
 
@@ -185,10 +196,10 @@ const reviewTags = ref([
 ])
 
 const reviews = ref([
-  { id: 1, user: '张同学', star: 5, date: '2025-12-15', content: '非常好的课程，讲解很深入，跟着学完之后面试信心大增，已经拿到了心仪的offer。', images: ['https://via.placeholder.com/80x80/52c41a/FFFFFF?text=好评'], likes: 56 },
+  { id: 1, user: '张同学', star: 5, date: '2025-12-15', content: '非常好的课程，讲解很深入，跟着学完之后面试信心大增，已经拿到了心仪的offer。', images: ['https://placehold.co/80x80/52c41a/FFFFFF?text=好评'], likes: 56 },
   { id: 2, user: '李工程师', star: 5, date: '2025-11-28', content: '内容覆盖面很广，从基础到高级都有涉及，特别是分布式和微服务部分讲得很透彻。', images: [], likes: 42 },
   { id: 3, user: '王开发', star: 4, date: '2025-11-10', content: '整体质量不错，知识点讲解到位。希望后续能增加更多实战项目的内容。', images: [], likes: 28 },
-  { id: 4, user: '赵同学', star: 5, date: '2025-10-22', content: '跟着课程学了两周，面试的时候明显感觉有底气了。特别是JVM和并发那部分，强烈推荐！', images: ['https://via.placeholder.com/80x80/1890ff/FFFFFF?text=截图1', 'https://via.placeholder.com/80x80/faad14/FFFFFF?text=截图2'], likes: 35 }
+  { id: 4, user: '赵同学', star: 5, date: '2025-10-22', content: '跟着课程学了两周，面试的时候明显感觉有底气了。特别是JVM和并发那部分，强烈推荐！', images: ['https://placehold.co/80x80/1890ff/FFFFFF?text=截图1', 'https://placehold.co/80x80/faad14/FFFFFF?text=截图2'], likes: 35 }
 ])
 </script>
 
@@ -220,12 +231,12 @@ const reviews = ref([
 .seller-detail { flex: 1; }
 .seller-name { font-size: 15px; font-weight: 600; color: #333; margin-bottom: 4px; }
 .seller-meta { display: flex; align-items: center; gap: 12px; font-size: 12px; color: #999; }
-.action-buttons { display: flex; gap: 12px; align-items: center; }
 .quantity-row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
 .quantity-control { display: flex; align-items: center; }
 .quantity-control .quantity-input { width: 60px; text-align: center; }
 .quantity-control :deep(.ant-input-number-handler-wrap) { display: none; }
 .quantity-control :deep(.ant-input-number-input) { text-align: center; }
+.action-buttons { display: flex; gap: 12px; align-items: center; }
 .buy-btn { min-width: 160px; height: 48px; font-size: 16px; }
 .chat-btn { min-width: 120px; height: 48px; font-size: 16px; color: #1890ff; border-color: #1890ff; }
 .detail-body { width: 100%; }
@@ -235,12 +246,6 @@ const reviews = ref([
 .detail-content p { font-size: 14px; color: #666; line-height: 1.8; margin: 0 0 12px 0; }
 .detail-content ul { padding-left: 20px; margin: 0 0 16px 0; }
 .detail-content li { font-size: 14px; color: #666; line-height: 2; }
-.flow-steps { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 12px; }
-.flow-step { display: flex; align-items: center; gap: 8px; }
-.flow-step::after { content: '→'; color: #ccc; font-size: 16px; margin-left: 8px; }
-.flow-step:last-child::after { content: ''; }
-.step-num { width: 24px; height: 24px; border-radius: 50%; background: #1890ff; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; }
-.step-text { font-size: 13px; color: #333; }
 .review-summary { display: flex; align-items: center; gap: 24px; padding: 16px 0; border-bottom: 1px solid #f0f0f0; margin-bottom: 16px; }
 .review-score { text-align: center; }
 .score-num { font-size: 32px; font-weight: 700; color: #52c41a; display: block; }
