@@ -131,6 +131,24 @@ export default [
         name: 'MyServices',
         component: () => import('../../pages/user/my-services.vue'),
         meta: { title: '我的服务', icon: 'ShopOutlined' }
+      },
+      {
+        path: 'my-demands',
+        name: 'MyDemands',
+        component: () => import('../../pages/user/my-demands.vue'),
+        meta: { title: '我的悬赏', icon: 'TrophyOutlined' }
+      },
+      {
+        path: 'my-forum',
+        name: 'MyForum',
+        component: () => import('../../pages/user/my-forum.vue'),
+        meta: { title: '我的论坛', icon: 'CommentOutlined' }
+      },
+      {
+        path: 'order-manage',
+        name: 'OrderManage',
+        component: () => import('../../pages/user/order-manage.vue'),
+        meta: { title: '订单管理', icon: 'ShoppingCartOutlined' }
       }
     ]
   }

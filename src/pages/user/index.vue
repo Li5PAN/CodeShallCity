@@ -121,9 +121,9 @@
                     <div class="create-box-icons">
                       <div class="create-box-item" @click="createPopoverVisible = false; router.push('/user/write-article')"><EditOutlined class="create-box-icon" /><span>写文章</span></div>
                       <div class="create-box-item" @click="createPopoverVisible = false; router.push('/user/my-services')"><CodeOutlined class="create-box-icon" /><span>我的服务</span></div>
-                      <div class="create-box-item" @click="createPopoverVisible = false"><FileTextOutlined class="create-box-icon" /><span>我的悬赏</span></div>
-                      <div class="create-box-item" @click="createPopoverVisible = false"><CommentOutlined class="create-box-icon" /><span>我的论坛</span></div>
-                      <div class="create-box-item" @click="createPopoverVisible = false"><LockOutlined class="create-box-icon" /><span>订单管理</span></div>
+                      <div class="create-box-item" @click="createPopoverVisible = false; router.push('/user/my-demands')"><FileTextOutlined class="create-box-icon" /><span>我的悬赏</span></div>
+                      <div class="create-box-item" @click="createPopoverVisible = false; router.push('/user/my-forum')"><CommentOutlined class="create-box-icon" /><span>我的论坛</span></div>
+                      <div class="create-box-item" @click="createPopoverVisible = false; router.push('/user/order-manage')"><LockOutlined class="create-box-icon" /><span>订单管理</span></div>
                     </div>
                     <div class="create-box-footer" @click="createPopoverVisible = false; onMenuClick('creator-center', 'create')">
                       <BulbOutlined /> 进入创作中心 >

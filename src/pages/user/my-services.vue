@@ -167,9 +167,12 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, nextTick } from 'vue'
+import { ref, reactive, computed, nextTick, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { PlusOutlined, ShopOutlined, PictureOutlined } from '@ant-design/icons-vue'
+
+const route = useRoute()
 
 const statusFilter = ref('all')
 const searchKeyword = ref('')
@@ -270,6 +273,8 @@ const confirmTag = () => {
   tagInputValue.value = ''
 }
 const removeTag = (tag) => { form.tags = form.tags.filter(t => t !== tag) }
+
+onMounted(() => { if (route.query.action === 'create') openPublishDrawer() })
 
 const onCoverChange = (e) => {
   const file = e.target.files[0]
