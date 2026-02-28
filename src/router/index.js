@@ -1,0 +1,60 @@
+import { createRouter, createWebHistory } from 'vue-router'
+import authRoutes from './modules/auth'
+import userRoutes from './modules/user'
+import adminRoutes from './modules/admin'
+import providerRoutes from './modules/provider'
+
+const routes = [
+  {
+    path: '/',
+    redirect: '/login'
+  },
+  ...authRoutes,
+  ...userRoutes,
+  ...adminRoutes,
+  ...providerRoutes
+]
+
+const router = createRouter({
+  history: createWebHistory(),
+  routes
+})
+
+// 路由守卫
+router.beforeEach((to, from, next) => {
+  const token = localStorage.getItem('token')
+  const userRole = localStorage.getItem('userRole')
+  
+  // 如果访问的是需要认证的页面
+  if (to.meta.requiresAuth) {
+    // 检查是否登录
+    if (!token) {
+      next('/login')
+      return
+    }
+    
+    // 检查角色权限
+    if (to.meta.role && to.meta.role !== userRole) {
+      next('/login')
+      return
+    }
+  }
+  
+  // 如果已登录，访问登录页，则重定向到对应的首页
+  if (to.path === '/login' && token) {
+    if (userRole === 'user') {
+      next('/user/home')
+    } else if (userRole === 'provider') {
+      next('/provider')
+    } else if (userRole === 'admin') {
+      next('/admin')
+    } else {
+      next()
+    }
+    return
+  }
+  
+  next()
+})
+
+export default router
