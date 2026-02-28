@@ -100,9 +100,9 @@ const forumList = ref([
 </script>
 
 <style scoped>
-.content-wrapper { display: flex; gap: 20px; max-width: 1400px; margin: 0 auto; }
+.content-wrapper { display: flex; gap: 20px; width: 100%; }
 .content-left { flex: 1; min-width: 0; }
-.content-right { width: 300px; flex-shrink: 0; }
+.content-right { width: 280px; flex-shrink: 0; }
 
 .banner { background: linear-gradient(135deg, #52c41a 0%, #389e0d 100%); color: #fff; padding: 40px 32px; border-radius: 8px; margin-bottom: 20px; }
 .banner h1 { font-size: 28px; margin: 0 0 12px 0; color: #fff; font-weight: 700; }

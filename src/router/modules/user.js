@@ -28,6 +28,21 @@ export default [
         }
       },
       {
+        path: 'service-detail/:id',
+        name: 'ServiceDetail',
+        component: () => import('../../pages/user/service-detail.vue'),
+        meta: {
+          title: '服务详情',
+          icon: 'ShopOutlined'
+        }
+      },
+      {
+        path: 'demand-detail/:id',
+        name: 'DemandDetail',
+        component: () => import('../../pages/user/demand-detail.vue'),
+        meta: { title: '需求详情' }
+      },
+      {
         path: 'demand-bounty',
         name: 'DemandBounty',
         component: () => import('../../pages/user/demand-bounty.vue'),

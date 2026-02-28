@@ -70,16 +70,13 @@
             <a-input-search
               v-model:value="searchValue"
               placeholder="小李想知道最新下载"
-              style="width: 360px"
-            >
-              <template #addonBefore>
-                <a-select v-model:value="searchType" style="width: 100px">
-                  <a-select-option value="article">搜索文章</a-select-option>
-                  <a-select-option value="service">搜索服务</a-select-option>
-                  <a-select-option value="task">发布任务</a-select-option>
-                </a-select>
-              </template>
-            </a-input-search>
+              style="width: 300px"
+            />
+            <div class="search-tags">
+              <a-button :type="searchType === 'article' ? 'primary' : 'default'" size="small" @click="searchType = 'article'">搜索文章</a-button>
+              <a-button :type="searchType === 'service' ? 'primary' : 'default'" size="small" @click="searchType = 'service'">搜索服务</a-button>
+              <a-button :type="searchType === 'task' ? 'primary' : 'default'" size="small" @click="searchType = 'task'">发布任务</a-button>
+            </div>
           </div>
           <div class="header-right">
             <a-popover placement="bottomRight" trigger="hover">
@@ -115,7 +112,7 @@
               <a-avatar :size="36" style="background-color: #87d068; cursor: pointer">{{ username }}</a-avatar>
             </a-popover>
             <span class="header-username">个人中心</span>
-            <span class="header-link" @click="handleLogout">退出</span>
+            <span class="header-link" @click="handleLogout">消息</span>
             <a-popover placement="bottomRight" trigger="click" v-model:open="createPopoverVisible">
               <template #content>
                 <div class="create-popup">
@@ -262,7 +259,8 @@ const handleLogout = () => {
   border-bottom: 1px solid #f0f0f0;
 }
 
-.header-left { display: flex; align-items: center; }
+.header-left { display: flex; align-items: center; gap: 8px; }
+.search-tags { display: flex; gap: 8px; }
 .header-right { display: flex; align-items: center; gap: 16px; }
 .header-username { font-size: 13px; color: #666; cursor: pointer; }
 .header-link { font-size: 13px; color: #999; cursor: pointer; }
@@ -298,7 +296,7 @@ const handleLogout = () => {
 
 .main-content {
   background: #f5f5f5;
-  padding: 20px;
+  padding: 16px;
   overflow-y: auto;
   height: calc(100% - 56px);
 }
