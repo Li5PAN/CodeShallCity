@@ -1,12 +1,12 @@
 <template>
-  <div class="demand-detail-page">
-    <!-- 面包屑 -->
-    <a-breadcrumb class="breadcrumb">
-      <a-breadcrumb-item><a @click="closeDetail">需求悬赏</a></a-breadcrumb-item>
-      <a-breadcrumb-item>订单号：{{ demand.orderNo }}</a-breadcrumb-item>
-    </a-breadcrumb>
+  <div class="my-demand-detail-page">
+    <div class="page-header">
+      <a-button @click="$router.back()" type="text" class="back-btn">
+        <LeftOutlined /> 返回我的悬赏
+      </a-button>
+    </div>
 
-    <!-- 主体内容：左侧详情 + 右侧操作栏 -->
+    <!-- 主体内容：左侧详情 + 右侧审核状态 -->
     <div class="detail-layout">
       <!-- 左侧主内容 -->
       <div class="detail-main">
@@ -58,15 +58,6 @@
               <span class="stat-value">{{ demand.bids }}</span>
             </div>
           </div>
-
-          <!-- 操作按钮 -->
-          <div class="action-row">
-            <a-button type="primary" size="large" class="join-btn" ghost>参与此需求</a-button>
-            <a-button size="large" class="similar-btn">发布类似需求</a-button>
-            <a-button v-if="!fromFavorites" size="large" :type="collected ? 'primary' : 'default'" @click="collected = !collected">
-              <HeartOutlined /> {{ collected ? '已收藏' : '收藏' }}
-            </a-button>
-          </div>
         </div>
 
         <!-- 参与服务商 -->
@@ -89,14 +80,9 @@
         </div>
       </div>
 
-      <!-- 右侧操作栏 -->
+      <!-- 右侧审核状态栏 -->
       <div class="detail-sidebar">
-        <!-- 调试信息 -->
-        <!-- <div style="background: yellow; padding: 10px; margin-bottom: 10px;">
-          Debug: from = {{ from }}, fromMyDemands = {{ fromMyDemands }}
-        </div> -->
-        
-        <div class="sidebar-card" v-if="fromMyDemands">
+        <div class="sidebar-card">
           <div class="sidebar-title">审核状态</div>
           <div class="audit-info">
             <div class="audit-status">
@@ -106,12 +92,6 @@
             <div class="audit-remark-label">审核备注</div>
             <div class="audit-remark-content">{{ demand.auditRemark }}</div>
           </div>
-        </div>
-
-        <div class="sidebar-card" v-else>
-          <div class="sidebar-title">发布需求</div>
-          <p class="sidebar-desc">描述您的需求，让专业服务商来帮您完成</p>
-          <a-button type="primary" block size="large" class="publish-btn">立即发布需求</a-button>
         </div>
 
         <div class="sidebar-card">
@@ -130,21 +110,12 @@
 </template>
 
 <script setup>
-import { ref, computed, inject } from 'vue'
+import { ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
-import { CheckCircleOutlined, SafetyOutlined, MoneyCollectOutlined, AuditOutlined, HeartOutlined, EyeOutlined, FileTextOutlined } from '@ant-design/icons-vue'
+import { CheckCircleOutlined, SafetyOutlined, MoneyCollectOutlined, AuditOutlined, EyeOutlined, FileTextOutlined, LeftOutlined } from '@ant-design/icons-vue'
 
-const props = defineProps({ id: { type: Number, default: 1 }, from: { type: String, default: '' } })
 const route = useRoute()
-const closeDetail = inject('closeDetail', () => {})
-
-const collected = ref(false)
-const fromFavorites = computed(() => props.from === 'favorites')
-const fromMyDemands = computed(() => {
-  // 检查是否从"我的悬赏"进入：通过 query 参数或 props
-  return props.from === 'my-demands' || route.query.from === 'my-demands'
-})
-const demandId = computed(() => props.id || parseInt(route.params.id) || 1)
+const demandId = computed(() => parseInt(route.params.id) || 1)
 
 // 获取紧急程度颜色
 const getUrgencyColor = (urgency) => {
@@ -159,66 +130,62 @@ const getUrgencyColor = (urgency) => {
 
 const demandMap = {
   1: {
-    orderNo: '100234560',
-    publisher: '李明',
+    publisher: '当前用户',
     createTime: '2026-03-03 15:02:06',
-    deadline: '2026-03-18 23:59:59',
-    status: '进行中',
-    title: 'MiniMax-M2.1: MiniMax-AI开源大模型，赋能高效智能应用开发',
+    deadline: '2026-03-31 23:59:59',
+    status: '招募中',
+    title: 'MiniMax-M2.1 智能客服系统开发',
     budget: '3800.00',
-    description: '需要基于MiniMax大模型开发一套智能客服系统，支持多轮对话、意图识别、知识库问答等功能，需提供完整源码及部署文档。',
+    description: '需要基于MiniMax大模型开发一套智能客服系统，支持多轮对话、意图识别、知识库接入',
     type: '人工智能',
     urgency: '紧急',
     views: 1256,
-    bids: 8,
-    auditStatus: 'approved',
-    auditRemark: '-'
-  },
-  2: {
-    orderNo: '100234561',
-    publisher: '王芳',
-    createTime: '2026-03-02 10:30:00',
-    deadline: '2026-03-22 23:59:59',
-    status: '招募中',
-    title: 'PaddleOCR-VL: 开源视觉语言OCR工具，多模态识别提升文档处理效率',
-    budget: '3800.00',
-    description: '基于PaddleOCR开发文档智能识别系统，支持表格、印章、手写体等多种场景识别，需要提供API接口及前端展示页面。',
-    type: 'Python',
-    urgency: '一般',
-    views: 892,
-    bids: 5,
-    auditStatus: 'approved',
-    auditRemark: '-'
-  },
-  3: {
-    orderNo: '100234562',
-    publisher: '张伟',
-    createTime: '2026-03-01 09:00:00',
-    deadline: '2026-03-31 23:59:59',
-    status: '进行中',
-    title: 'CHATERMAI：开启云资源氛围管理新篇章！',
-    budget: '3800.00',
-    description: '开发一套云资源管理平台，支持多云环境统一管理、资源监控、费用分析、自动扩缩容等功能，技术栈不限。',
-    type: '人工智能',
-    urgency: '紧急',
-    views: 2103,
     bids: 12,
     auditStatus: 'approved',
     auditRemark: '-'
   },
-  4: {
-    orderNo: '100234563',
-    publisher: '赵强',
-    createTime: '2026-02-28 14:20:00',
-    deadline: '2026-03-25 23:59:59',
+  2: {
+    publisher: '当前用户',
+    createTime: '2026-02-28 10:30:00',
+    deadline: '2026-04-15 23:59:59',
+    status: '进行中',
+    title: 'React Native 跨平台移动端应用开发',
+    budget: '12000.00',
+    description: '开发一款电商类App，需要支持iOS和Android双端，包含商品浏览、购物车、支付功能',
+    type: '移动开发',
+    urgency: '一般',
+    views: 892,
+    bids: 7,
+    auditStatus: 'approved',
+    auditRemark: '-'
+  },
+  3: {
+    publisher: '当前用户',
+    createTime: '2026-02-10 09:00:00',
+    deadline: '2026-02-28 23:59:59',
     status: '已完成',
-    title: '欧拉操作系统内核开源，助力开发者获取源码与技术',
-    budget: '3800.00',
-    description: '基于欧拉操作系统进行内核模块开发，需要熟悉Linux内核开发，提供完整的模块代码、测试报告及技术文档。',
-    type: 'C',
-    urgency: '非常紧急',
-    views: 3456,
-    bids: 15,
+    title: 'MySQL 数据库性能优化咨询',
+    budget: '2000.00',
+    description: '现有系统查询慢，需要专业DBA对数据库进行诊断和优化，提供优化报告',
+    type: '数据库',
+    urgency: '一般',
+    views: 654,
+    bids: 5,
+    auditStatus: 'approved',
+    auditRemark: '-'
+  },
+  4: {
+    publisher: '当前用户',
+    createTime: '2026-03-01 14:20:00',
+    deadline: '2026-04-01 23:59:59',
+    status: '招募中',
+    title: 'Vue3 后台管理系统开发',
+    budget: '8000.00',
+    description: '基于Vue3+Element Plus开发一套通用后台管理系统，包含权限管理、数据可视化',
+    type: 'Vue/React',
+    urgency: '紧急',
+    views: 1023,
+    bids: 9,
     auditStatus: 'rejected',
     auditRemark: '需求描述不够详细，请补充具体的功能模块和技术要求'
   }
@@ -241,8 +208,10 @@ const guarantees = ref([
 </script>
 
 <style scoped>
-.demand-detail-page { width: 100%; }
-.breadcrumb { margin-bottom: 16px; }
+.my-demand-detail-page { width: 100%; }
+.page-header { margin-bottom: 16px; }
+.back-btn { font-size: 14px; color: #666; }
+.back-btn:hover { color: #1890ff; }
 
 .detail-layout { display: flex; gap: 20px; align-items: flex-start; }
 .detail-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
@@ -269,14 +238,6 @@ const guarantees = ref([
 .stat-label { font-size: 13px; color: #999; }
 .stat-value { font-size: 16px; font-weight: 600; color: #333; }
 
-.action-row { display: flex; gap: 16px; margin-bottom: 16px; }
-.join-btn { border-color: #52c41a; color: #52c41a; min-width: 140px; }
-.join-btn:hover { background: #52c41a; color: #fff; }
-.similar-btn { min-width: 140px; }
-.more-link-row { text-align: right; }
-.more-link { font-size: 13px; color: #1890ff; cursor: pointer; }
-.more-link:hover { color: #40a9ff; }
-
 .providers-card { }
 .providers-title { font-size: 16px; font-weight: 600; color: #333; margin: 0 0 20px 0; }
 .providers-count { font-size: 14px; color: #999; font-weight: 400; }
@@ -291,9 +252,6 @@ const guarantees = ref([
 
 .sidebar-card { background: #fff; border-radius: 8px; padding: 20px; }
 .sidebar-title { font-size: 15px; font-weight: 600; color: #333; margin-bottom: 10px; padding-bottom: 10px; border-bottom: 1px solid #f0f0f0; }
-.sidebar-desc { font-size: 13px; color: #999; margin-bottom: 16px; line-height: 1.6; }
-.publish-btn { background: #52c41a; border-color: #52c41a; }
-.publish-btn:hover { background: #73d13d; border-color: #73d13d; }
 
 .guarantee-item { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f5f5f5; }
 .guarantee-item:last-child { border-bottom: none; }

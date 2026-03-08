@@ -1,7 +1,7 @@
 <template>
   <div class="my-demands-page">
     <div class="page-header">
-      <h2 class="page-title">我的悬赏</h2>
+      <h2 class="page-title">我的悬赏2223</h2>
       <a-button type="primary" style="background:#52c41a;border-color:#52c41a" @click="openDrawer()">
         <PlusOutlined /> 发布悬赏
       </a-button>
@@ -35,8 +35,8 @@
       </div>
 
       <div class="demand-item" v-for="item in filteredList" :key="item.id">
-        <div class="demand-main">
-          <div class="demand-title">{{ item.title }}</div>
+        <div class="demand-main" style="cursor: pointer;">
+          <div class="demand-title" @click="$router.push(`/user/demand-detail/${item.id}?from=my-demands`)">{{ item.title }}</div>
           <div class="demand-desc">{{ item.desc }}</div>
           <div class="demand-tags">
             <a-tag size="small" color="orange">{{ item.category }}</a-tag>
@@ -54,10 +54,11 @@
             <a-badge :status="statusMap[item.status].badge" :text="statusMap[item.status].text" />
           </div>
           <div class="demand-actions">
-            <a-button size="small" @click="openDrawer(item)">编辑</a-button>
-            <a-button size="small" v-if="item.status === 'open'" @click="item.status = 'closed'; message.success('已关闭')">关闭</a-button>
+            <a-button size="small" @click.stop="$router.push(`/user/demand-detail/${item.id}?from=my-demands`)">查看详情</a-button>
+            <a-button size="small" @click.stop="openDrawer(item)">编辑</a-button>
+            <a-button size="small" v-if="item.status === 'open'" @click.stop="item.status = 'closed'; message.success('已关闭')">关闭</a-button>
             <a-popconfirm title="确认删除？" ok-text="删除" cancel-text="取消" @confirm="deleteItem(item.id)">
-              <a-button size="small" danger>删除</a-button>
+              <a-button size="small" danger @click.stop>删除</a-button>
             </a-popconfirm>
           </div>
         </div>
@@ -137,10 +138,10 @@ const statCards = ref([
 ])
 
 const demands = ref([
-  { id: 1, title: 'MiniMax-M2.1 智能客服系统开发', desc: '需要基于MiniMax大模型开发一套智能客服系统，支持多轮对话、意图识别、知识库接入', budget: '3800.00', category: '人工智能', tags: ['Python', 'LLM'], status: 'open', applyCount: 12, publishTime: '2026-03-03', deadline: '2026-03-31' },
-  { id: 2, title: 'React Native 跨平台移动端应用开发', desc: '开发一款电商类App，需要支持iOS和Android双端，包含商品浏览、购物车、支付功能', budget: '12000.00', category: '移动开发', tags: ['React Native', 'TypeScript'], status: 'progress', applyCount: 7, publishTime: '2026-02-28', deadline: '2026-04-15' },
-  { id: 3, title: 'MySQL 数据库性能优化咨询', desc: '现有系统查询慢，需要专业DBA对数据库进行诊断和优化，提供优化报告', budget: '2000.00', category: '数据库', tags: ['MySQL', '性能优化'], status: 'done', applyCount: 5, publishTime: '2026-02-10', deadline: '2026-02-28' },
-  { id: 4, title: 'Vue3 后台管理系统开发', desc: '基于Vue3+Element Plus开发一套通用后台管理系统，包含权限管理、数据可视化', budget: '8000.00', category: 'Vue/React', tags: ['Vue3', 'TypeScript'], status: 'open', applyCount: 9, publishTime: '2026-03-01', deadline: '2026-04-01' }
+  { id: 1, title: 'MiniMax-M2.1 智能客服系统开发', desc: '需要基于MiniMax大模型开发一套智能客服系统，支持多轮对话、意图识别、知识库接入', budget: '3800.00', category: '人工智能', tags: ['Python', 'LLM'], status: 'open', applyCount: 12, publishTime: '2026-03-03', deadline: '2026-03-31', auditStatus: 'approved', auditRemark: '-' },
+  { id: 2, title: 'React Native 跨平台移动端应用开发', desc: '开发一款电商类App，需要支持iOS和Android双端，包含商品浏览、购物车、支付功能', budget: '12000.00', category: '移动开发', tags: ['React Native', 'TypeScript'], status: 'progress', applyCount: 7, publishTime: '2026-02-28', deadline: '2026-04-15', auditStatus: 'approved', auditRemark: '-' },
+  { id: 3, title: 'MySQL 数据库性能优化咨询', desc: '现有系统查询慢，需要专业DBA对数据库进行诊断和优化，提供优化报告', budget: '2000.00', category: '数据库', tags: ['MySQL', '性能优化'], status: 'done', applyCount: 5, publishTime: '2026-02-10', deadline: '2026-02-28', auditStatus: 'approved', auditRemark: '-' },
+  { id: 4, title: 'Vue3 后台管理系统开发', desc: '基于Vue3+Element Plus开发一套通用后台管理系统，包含权限管理、数据可视化', budget: '8000.00', category: 'Vue/React', tags: ['Vue3', 'TypeScript'], status: 'open', applyCount: 9, publishTime: '2026-03-01', deadline: '2026-04-01', auditStatus: 'rejected', auditRemark: '需求描述不够详细，请补充具体的功能模块和技术要求' }
 ])
 
 const form = reactive({ title: '', desc: '', category: undefined, budget: null, deadline: null, tags: [] })
@@ -214,7 +215,8 @@ onMounted(() => { if (route.query.action === 'create') openDrawer() })
 .demand-item { display: flex; align-items: flex-start; gap: 16px; padding: 16px 20px; border-bottom: 1px solid #f5f5f5; }
 .demand-item:last-child { border-bottom: none; }
 .demand-main { flex: 1; min-width: 0; }
-.demand-title { font-size: 15px; font-weight: 600; color: #333; margin-bottom: 6px; }
+.demand-title { font-size: 15px; font-weight: 600; color: #333; margin-bottom: 6px; cursor: pointer; }
+.demand-title:hover { color: #1890ff; }
 .demand-desc { font-size: 13px; color: #999; margin-bottom: 8px; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .demand-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
 .demand-meta { display: flex; gap: 20px; font-size: 12px; color: #bbb; }

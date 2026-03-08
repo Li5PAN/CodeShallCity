@@ -1,6 +1,14 @@
 <template>
   <div class="service-market-page">
     <h3>服务市场</h3>
+    <div class="search-bar">
+      <a-input-search
+        v-model:value="searchValue"
+        placeholder="搜索服务"
+        style="width: 400px"
+        @search="handleSearch"
+      />
+    </div>
     <a-tabs
       v-model:activeKey="activeCategory"
       type="card"
@@ -56,7 +64,12 @@ import { CheckCircleOutlined, SafetyOutlined, AuditOutlined, MoneyCollectOutline
 
 const openDetail = inject('openDetail')
 
+const searchValue = ref('')
 const activeCategory = ref('all')
+
+const handleSearch = (value) => {
+  console.log('搜索服务:', value)
+}
 const serviceList = reactive([
   { id: 1, title: 'Java大厂面试�?一套搞定offer', desc: '覆盖Java基础、JVM、并发、分布式等核心考点，配套面试模', price: 399, cover: 'https://placehold.co/240x120/FFD700/000000?text=Java', tags: ['平台保障', '商家认证', '7天无理由'] },
   { id: 2, title: '10天精通MySQL 讲的特别深入的那', desc: '从底层原理到实战优化，涵盖索引、事务、锁机制、分库分', price: 399, cover: 'https://placehold.co/240x120/FF6600/FFFFFF?text=MySQL', tags: ['平台保障', '官方认证', '售后答疑'] },
@@ -75,6 +88,7 @@ const handleCategoryChange = (key) => { console.log('切换到分�?', key) }
 
 <style scoped>
 .service-market-page { width: 100%; min-height: 100%; display: flex; flex-direction: column; }
+.search-bar { margin-bottom: 20px; }
 .service-list { flex: 1; }
 .category-tabs { margin-bottom: 20px; }
 .category-tabs :deep(.ant-tabs-nav::before) { border-bottom: none !important; }

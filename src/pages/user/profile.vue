@@ -232,7 +232,7 @@ const myDemands = ref([
 
 const goForumDetail = (id) => router.push({ name: 'ForumDetail', params: { id } })
 const goServiceDetail = (id) => router.push({ name: 'ServiceDetail', params: { id } })
-const goDemandDetail = (id) => router.push({ name: 'DemandDetail', params: { id } })
+const goDemandDetail = (id) => router.push({ name: 'DemandDetail', params: { id }, query: { from: 'my-demands' } })
 </script>
 
 <style scoped>
