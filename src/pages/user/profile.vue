@@ -99,19 +99,6 @@
 
       <!-- 右侧边栏 -->
       <div class="profile-side">
-        <!-- 账户资产 -->
-        <div class="profile-card">
-          <div class="card-title">账户资产</div>
-          <div class="asset-list">
-            <div class="asset-item" v-for="a in assets" :key="a.label">
-              <div class="asset-left">
-                <component :is="a.icon" :style="{ color: a.color, fontSize: '18px' }" />
-                <span class="asset-label">{{ a.label }}</span>
-              </div>
-              <span class="asset-value" :style="{ color: a.color }">{{ a.value }}</span>
-            </div>
-          </div>
-        </div>
 
         <!-- 快捷入口 -->
         <div class="profile-card">
@@ -230,7 +217,7 @@ const myDemands = ref([
   { id: 2, title: 'React Native 跨平台移动端应用', budget: '12000.00', type: '移动开发', applyCount: 7, publishTime: '2026-02-28' }
 ])
 
-const goForumDetail = (id) => router.push({ name: 'ForumDetail', params: { id } })
+const goForumDetail = (id) => router.push({ name: 'MyForumDetail', params: { id } })
 const goServiceDetail = (id) => router.push({ name: 'ServiceDetail', params: { id } })
 const goDemandDetail = (id) => router.push({ name: 'DemandDetail', params: { id }, query: { from: 'my-demands' } })
 </script>

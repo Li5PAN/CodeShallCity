@@ -58,6 +58,12 @@ export default [
         meta: { title: '文章详情' }
       },
       {
+        path: 'my-forum-detail/:id',
+        name: 'MyForumDetail',
+        component: () => import('../../pages/user/my-forum-detail.vue'),
+        meta: { title: '我的文章详情' }
+      },
+      {
         path: 'tech-forum',
         name: 'TechForum',
         component: () => import('../../pages/user/tech-forum.vue'),
