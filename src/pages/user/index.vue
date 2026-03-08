@@ -170,9 +170,11 @@ const detailComponent = shallowRef(null)
 const detailProps = ref({})
 
 const openDetail = (type, props = {}) => {
+  console.log('openDetail called with:', type, props)
   const map = { service: ServiceDetail, demand: DemandDetail, forum: ForumDetail }
   detailComponent.value = map[type]
   detailProps.value = props
+  console.log('detailProps.value set to:', detailProps.value)
   detailVisible.value = true
 }
 const closeDetail = () => {
