@@ -12,11 +12,11 @@
       <div class="section">
         <div class="section-header">
           <h3>需求悬赏</h3>
-          <a class="section-more">更多需求 ></a>
+          <a class="section-more" @click="goToDemandBounty">更多需求 ></a>
         </div>
         <a-row :gutter="[16, 16]">
-          <a-col :span="8" v-for="item in rewardList" :key="item.title">
-            <div class="reward-card">
+          <a-col :span="8" v-for="item in rewardList" :key="item.id">
+            <div class="reward-card" @click="openDetail('demand', { id: item.id })">
               <div class="reward-tag">{{ item.tag }}</div>
               <h4>{{ item.title }}</h4>
               <p class="reward-desc">{{ item.desc }}</p>
@@ -63,7 +63,7 @@
       <div class="right-section">
         <div class="right-section-header">
           <h4>论坛推荐</h4>
-          <a class="more-link">更多</a>
+          <a class="more-link" @click="goToTechForum">更多</a>
         </div>
         <div class="forum-list">
           <div class="forum-item" v-for="item in forumList" :key="item.name">
@@ -77,14 +77,26 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, inject } from 'vue'
+import { useRouter } from 'vue-router'
 import { EyeOutlined, LikeOutlined, MessageOutlined, RightOutlined } from '@ant-design/icons-vue'
 
+const router = useRouter()
+const openDetail = inject('openDetail')
+
 const rewardList = ref([
-  { tag: 'CHATERIN AI', title: '开创全新发展新思路和新路线', desc: '人工智能', author: '科技前沿', views: 12 },
-  { tag: 'MiniMax-M1', title: 'MiniMax-M1开源大模型，刷新重度数据应用开发', desc: 'Python', author: '开发者社区', views: 8 },
-  { tag: 'PaddleOCR', title: '开源智能图像OCR工具，多语言识别超强开发者工具', desc: 'Python', author: '技术博客', views: 15 }
+  { id: 1, tag: 'CHATERIN AI', title: '开创全新发展新思路和新路线', desc: '人工智能', author: '科技前沿', views: 12 },
+  { id: 2, tag: 'MiniMax-M1', title: 'MiniMax-M1开源大模型，刷新重度数据应用开发', desc: 'Python', author: '开发者社区', views: 8 },
+  { id: 3, tag: 'PaddleOCR', title: '开源智能图像OCR工具，多语言识别超强开发者工具', desc: 'Python', author: '技术博客', views: 15 }
 ])
+
+const goToDemandBounty = () => {
+  router.push('/user/demand-bounty')
+}
+
+const goToTechForum = () => {
+  router.push('/user/tech-forum')
+}
 
 const articleList = ref([
   { title: '人工智能大模型应用：2025年AI技术发展趋势', desc: '从入门到精通，全面解析AI大模型在各行业的应用场景与技术实现方案', author: 'AI研究员', read: 3589, like: 286, comment: 45, cover: 'https://picsum.photos/160/100?random=1' },

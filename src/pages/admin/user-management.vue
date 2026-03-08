@@ -44,6 +44,7 @@
               <button class="btn-link" @click="toggleUser(user)">
                 {{ user.enabled ? '禁用' : '启用' }}
               </button>
+              <button>分配角色</button>
             </td>
           </tr>
         </tbody>

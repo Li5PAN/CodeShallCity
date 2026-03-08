@@ -1,6 +1,14 @@
 <template>
   <div class="reward-content">
     <h2 class="page-title">需求悬赏</h2>
+    <div class="search-bar">
+      <a-input-search
+        v-model:value="searchValue"
+        placeholder="搜索需求"
+        style="width: 400px"
+        @search="handleSearch"
+      />
+    </div>
     <div class="category-bar">
       <div class="category-tabs">
         <a-tag v-for="item in categoryList" :key="item.key" :class="['category-tag', activeCategory === item.key ? 'active-tag' : '']" @click="activeCategory = item.key">
@@ -32,6 +40,12 @@
 import { ref, computed, inject } from 'vue'
 
 const openDetail = inject('openDetail')
+
+const searchValue = ref('')
+
+const handleSearch = (value) => {
+  console.log('搜索需求:', value)
+}
 
 // 分类标签数据
 const categoryList = ref([
@@ -105,6 +119,11 @@ const serviceRows = computed(() => {
   color: #333;
   margin-bottom: 20px;
   font-weight: 600;
+}
+
+/* 搜索栏 */
+.search-bar {
+  margin-bottom: 20px;
 }
 
 /* 分类标签�?*/

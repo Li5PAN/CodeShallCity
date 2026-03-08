@@ -39,7 +39,7 @@
                 </a-menu-item>
                 <a-menu-item key="follow" @click="onMenuClick('following', 'follow')">
                   <template #icon><StarOutlined /></template>
-                  <span>关注</span>
+                  <span>订阅</span>
                 </a-menu-item>
                 <a-menu-item key="collect" @click="onMenuClick('favorites', 'collect')">
                   <template #icon><HeartOutlined /></template>
@@ -66,18 +66,6 @@
       <a-layout>
         <!-- 顶部导航栏 -->
         <a-layout-header class="header">
-          <div class="header-left">
-            <a-input-search
-              v-model:value="searchValue"
-              placeholder="小李想知道最新下载"
-              style="width: 300px"
-            />
-            <div class="search-tags">
-              <a-button :type="searchType === 'article' ? 'primary' : 'default'" size="small" @click="searchType = 'article'">搜索文章</a-button>
-              <a-button :type="searchType === 'service' ? 'primary' : 'default'" size="small" @click="searchType = 'service'">搜索服务</a-button>
-              <a-button :type="searchType === 'task' ? 'primary' : 'default'" size="small" @click="searchType = 'task'">发布任务</a-button>
-            </div>
-          </div>
           <div class="header-right">
             <a-popover placement="bottomRight" trigger="hover">
               <template #content>
@@ -172,8 +160,6 @@ import ForumDetail from './forum-detail.vue'
 const router = useRouter()
 const route = useRoute()
 const collapsed = ref(false)
-const searchValue = ref('')
-const searchType = ref('article')
 const selectedKeys = ref(['home'])
 const createPopoverVisible = ref(false)
 const username = ref('')
@@ -286,14 +272,12 @@ const handleLogout = () => {
   padding: 0 24px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
   height: 56px;
   line-height: 56px;
   border-bottom: 1px solid #f0f0f0;
 }
 
-.header-left { display: flex; align-items: center; gap: 8px; }
-.search-tags { display: flex; gap: 8px; }
 .header-right { display: flex; align-items: center; gap: 16px; }
 .header-username { font-size: 13px; color: #666; cursor: pointer; }
 .header-link { font-size: 13px; color: #999; cursor: pointer; }
