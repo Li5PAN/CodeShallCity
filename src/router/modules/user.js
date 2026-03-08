@@ -139,6 +139,12 @@ export default [
         meta: { title: '我的悬赏', icon: 'TrophyOutlined' }
       },
       {
+        path: 'my-demand-detail/:id',
+        name: 'MyDemandDetail',
+        component: () => import('../../pages/user/my-demand-detail.vue'),
+        meta: { title: '我的悬赏详情' }
+      },
+      {
         path: 'my-forum',
         name: 'MyForum',
         component: () => import('../../pages/user/my-forum.vue'),

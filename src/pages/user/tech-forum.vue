@@ -1,5 +1,14 @@
 <template>
   <div class="tech-forum-content">
+    <!-- 搜索栏 -->
+    <div class="search-bar">
+      <a-input-search
+        v-model:value="searchValue"
+        placeholder="搜索文章"
+        style="width: 400px"
+        @search="handleSearch"
+      />
+    </div>
     <!-- 分类标签栏 -->
     <div class="category-tabs">
       <a-tag
@@ -64,6 +73,12 @@
 import { ref, inject } from 'vue'
 
 const openDetail = inject('openDetail')
+
+const searchValue = ref('')
+
+const handleSearch = (value) => {
+  console.log('搜索文章:', value)
+}
 
 const categoryList = ref([
   { key: 'all', name: '全部' },
@@ -133,6 +148,9 @@ const communityList = ref([
 
 <style scoped>
 .tech-forum-content { width: 100%; }
+
+/* 搜索栏 */
+.search-bar { margin-bottom: 16px; }
 
 /* 分类标签栏 */
 .category-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; background: #fff; padding: 12px 16px; border-radius: 8px; align-items: center; }

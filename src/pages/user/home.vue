@@ -12,11 +12,11 @@
       <div class="section">
         <div class="section-header">
           <h3>需求悬赏</h3>
-          <a class="section-more">更多需求 ></a>
+          <a class="section-more" @click="goToDemandBounty">更多需求 ></a>
         </div>
         <a-row :gutter="[16, 16]">
-          <a-col :span="8" v-for="item in rewardList" :key="item.title">
-            <div class="reward-card">
+          <a-col :span="8" v-for="item in rewardList" :key="item.id">
+            <div class="reward-card" @click="openDetail('demand', { id: item.id })">
               <div class="reward-tag">{{ item.tag }}</div>
               <h4>{{ item.title }}</h4>
               <p class="reward-desc">{{ item.desc }}</p>
@@ -58,7 +58,7 @@
       <div class="right-section">
         <div class="right-section-header">
           <h4>论坛推荐</h4>
-          <a class="more-link">更多</a>
+          <a class="more-link" @click="goToTechForum">更多</a>
         </div>
         <div class="forum-list">
           <div class="forum-item" v-for="item in forumList" :key="item.name">
@@ -74,7 +74,7 @@
 <script setup>
 import { ref, inject } from 'vue'
 import { useRouter } from 'vue-router'
-import { RightOutlined } from '@ant-design/icons-vue'
+import { EyeOutlined, LikeOutlined, MessageOutlined, RightOutlined } from '@ant-design/icons-vue'
 
 const router = useRouter()
 const openDetail = inject('openDetail')

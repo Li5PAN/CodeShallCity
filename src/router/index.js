@@ -25,16 +25,16 @@ router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
   const userRole = localStorage.getItem('userRole')
   
-  // 如果访问的是需要认证的页面
-  if (to.meta.requiresAuth) {
-    // 检查是否登录
+  // 如果访问的是需要认证的页面（检查当前路由及所有父路由的 meta）
+  const requiresAuth = to.matched.some(r => r.meta.requiresAuth)
+  const requiredRole = to.matched.find(r => r.meta.role)?.meta.role
+
+  if (requiresAuth) {
     if (!token) {
       next('/login')
       return
     }
-    
-    // 检查角色权限
-    if (to.meta.role && to.meta.role !== userRole) {
+    if (requiredRole && requiredRole !== userRole) {
       next('/login')
       return
     }

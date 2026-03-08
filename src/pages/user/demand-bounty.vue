@@ -1,6 +1,14 @@
 <template>
   <div class="reward-content">
     <h2 class="page-title">需求悬赏</h2>
+    <div class="search-bar">
+      <a-input-search
+        v-model:value="searchValue"
+        placeholder="搜索需求"
+        style="width: 400px"
+        @search="handleSearch"
+      />
+    </div>
     <div class="category-bar">
       <div class="category-tabs">
         <a-tag v-for="item in categoryList" :key="item.key" :class="['category-tag', activeCategory === item.key ? 'active-tag' : '']" @click="activeCategory = item.key">
@@ -10,17 +18,18 @@
     </div>
     <div class="service-grid">
       <div class="service-row" v-for="(row, index) in serviceRows" :key="index">
-        <div class="service-card" v-for="item in row" :key="item.id" @click="openDetail('demand', { id: item.id })" style="cursor: pointer">
-          <div class="card-left">
-            <img :src="item.cover" alt="" class="card-cover" />
-            <div class="card-info">
-              <h4 class="card-title">{{ item.title }}</h4>
-              <span class="card-tag">{{ item.tag }}</span>
-            </div>
+        <div class="service-card" v-for="item in row" :key="item.id" @click="openDetail('demand', { id: item.id })">
+          <div class="card-header">
+            <h4 class="card-title">{{ item.title }}</h4>
+            <a-tag :color="getUrgencyColor(item.urgency)" class="urgency-tag">{{ item.urgency }}</a-tag>
           </div>
-          <div class="card-right">
-            <span class="card-price">¥{{ item.price }}</span>
-            <a class="card-detail" @click.stop="openDetail('demand', { id: item.id })">查看详情 </a>
+          <p class="card-desc">{{ item.desc }}</p>
+          <div class="card-footer">
+            <a-tag class="type-tag">{{ item.tag }}</a-tag>
+            <div class="card-actions">
+              <span class="card-price">¥{{ item.minPrice }} ~ ¥{{ item.maxPrice }}</span>
+              <a class="card-detail" @click.stop="openDetail('demand', { id: item.id })">查看详情 ></a>
+            </div>
           </div>
         </div>
       </div>
@@ -32,6 +41,23 @@
 import { ref, computed, inject } from 'vue'
 
 const openDetail = inject('openDetail')
+
+const searchValue = ref('')
+
+const handleSearch = (value) => {
+  console.log('搜索需求:', value)
+}
+
+// 获取紧急程度颜色
+const getUrgencyColor = (urgency) => {
+  const colorMap = {
+    '非常紧急': 'red',
+    '紧急': 'orange',
+    '一般': 'blue',
+    '不紧急': 'default'
+  }
+  return colorMap[urgency] || 'default'
+}
 
 // 分类标签数据
 const categoryList = ref([
@@ -49,31 +75,39 @@ const activeCategory = ref('recommend')
 const serviceList = ref([
   {
     id: 1,
-    cover: 'https://placehold.co/60x60/000000/FFFFFF?text=MM',
-    title: 'MiniMax-M2.1: MiniMax-AI开源大模型，赋能高效智能应用开',
+    title: 'MiniMax-M2.1: MiniMax-AI开源大模型，赋能高效智能应用开发',
+    desc: '基于最新AI技术，提供高效的智能应用开发解决方案，支持多种场景应用，帮助企业快速构建智能化系统',
     tag: 'Python',
-    price: 3800
+    minPrice: 3000,
+    maxPrice: 5000,
+    urgency: '紧急'
   },
   {
     id: 2,
-    cover: 'https://placehold.co/60x60/1890ff/FFFFFF?text=OCR',
-    title: 'PaddleOCR-VL: 开源视觉语言OCR工具，多模态识别提升文档处理效',
+    title: 'PaddleOCR-VL: 开源视觉语言OCR工具，多模态识别提升文档处理效率',
+    desc: '专业的OCR识别工具开发需求，需要支持多语言识别和文档智能处理，提升企业文档数字化效率',
     tag: 'Python',
-    price: 3800
+    minPrice: 2500,
+    maxPrice: 4500,
+    urgency: '一般'
   },
   {
     id: 3,
-    cover: 'https://placehold.co/60x60/13c2c2/FFFFFF?text=AI',
     title: 'CHATERMAI：开启云资源氛围管理新篇章！',
+    desc: '云资源管理平台开发，需要实现资源监控、自动化部署、成本优化等功能，提升云资源使用效率',
     tag: '人工智能',
-    price: 3800
+    minPrice: 5000,
+    maxPrice: 8000,
+    urgency: '紧急'
   },
   {
     id: 4,
-    cover: 'https://placehold.co/60x60/f5222d/FFFFFF?text=OS',
-    title: '欧拉操作系统内核开源，助力开发者获取源码与技',
+    title: '欧拉操作系统内核开源，助力开发者获取源码与技术',
+    desc: '操作系统内核开发与优化项目，需要深入理解Linux内核机制，进行性能优化和功能扩展',
     tag: 'C',
-    price: 3800
+    minPrice: 8000,
+    maxPrice: 15000,
+    urgency: '非常紧急'
   }
 ])
 
@@ -105,6 +139,11 @@ const serviceRows = computed(() => {
   color: #333;
   margin-bottom: 20px;
   font-weight: 600;
+}
+
+/* 搜索栏 */
+.search-bar {
+  margin-bottom: 20px;
 }
 
 /* 分类标签�?*/
@@ -161,73 +200,97 @@ const serviceRows = computed(() => {
 .service-card {
   flex: 1;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px;
+  flex-direction: column;
+  padding: 20px;
   border: 1px solid #e8e8e8;
-  border-radius: 4px;
-  background: #fafafa;
+  border-radius: 8px;
+  background: #fff;
   box-sizing: border-box;
+  cursor: pointer;
+  transition: all 0.3s;
 }
 
-.card-left {
+.service-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border-color: #1890ff;
+}
+
+.card-header {
   display: flex;
-  align-items: center;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
   gap: 12px;
 }
 
-.card-cover {
-  width: 60px;
-  height: 60px;
-  border-radius: 4px;
-  object-fit: cover;
-}
-
-.card-info {
-  max-width: 400px;
-}
-
 .card-title {
-  font-size: 14px;
-  margin: 0 0 8px 0;
+  flex: 1;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0;
   color: #333;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.urgency-tag {
+  flex-shrink: 0;
+  margin: 0;
+}
+
+.card-desc {
+  font-size: 14px;
+  color: #666;
+  margin: 0 0 16px 0;
+  line-height: 1.6;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  line-height: 1.4;
+  min-height: 44px;
 }
 
-.card-tag {
-  font-size: 12px;
-  color: #666;
-  background: #e8e8e8;
-  padding: 2px 6px;
-  border-radius: 2px;
-}
-
-.card-right {
+.card-footer {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.type-tag {
+  font-size: 12px;
+  background: #f0f0f0;
+  color: #666;
+  border: none;
+  margin: 0;
+}
+
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 .card-price {
   font-size: 16px;
   color: #ff4d4f;
-  font-weight: bold;
+  font-weight: 600;
 }
 
 .card-detail {
-  font-size: 12px;
+  font-size: 14px;
   color: #1890ff;
   text-decoration: none;
+  white-space: nowrap;
 }
 
 .card-detail:hover {
   color: #40a9ff;
-  text-decoration: underline;
 }
 
 /* 响应式适配 */
