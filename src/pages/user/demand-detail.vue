@@ -14,8 +14,9 @@
         <div class="detail-card">
           <h2 class="card-title">需求内容</h2>
           <div class="meta-line">
-            <span class="meta-author">购买者：{{ demand.buyer }}</span>
-            <span class="meta-time">{{ demand.publishTime }}</span>
+            <span class="meta-author">发布者：{{ demand.publisher }}</span>
+            <span class="meta-time">创建时间：{{ demand.createTime }}</span>
+            <span class="meta-time">截止时间：{{ demand.deadline }}</span>
             <a-tag :color="demand.status === '进行中' ? 'green' : 'orange'" class="status-tag">{{ demand.status }}</a-tag>
           </div>
 
@@ -27,8 +28,6 @@
             <div class="info-row">
               <span class="info-label">预算金额</span>
               <span class="info-value price-text">{{ demand.budget }}元</span>
-              <span class="info-label" style="margin-left: 40px">预计交付时长</span>
-              <span class="info-value">{{ demand.deliveryDays }}天</span>
             </div>
             <div class="info-row">
               <span class="info-label">需求描述</span>
@@ -37,6 +36,26 @@
             <div class="info-row">
               <span class="info-label">需求类型</span>
               <span class="info-value">{{ demand.type }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">紧急程度</span>
+              <span class="info-value">
+                <a-tag :color="getUrgencyColor(demand.urgency)">{{ demand.urgency }}</a-tag>
+              </span>
+            </div>
+          </div>
+
+          <!-- 统计信息 -->
+          <div class="stats-row">
+            <div class="stat-item">
+              <EyeOutlined class="stat-icon" />
+              <span class="stat-label">浏览量</span>
+              <span class="stat-value">{{ demand.views }}</span>
+            </div>
+            <div class="stat-item">
+              <FileTextOutlined class="stat-icon" />
+              <span class="stat-label">投标数</span>
+              <span class="stat-value">{{ demand.bids }}</span>
             </div>
           </div>
 
@@ -47,11 +66,6 @@
             <a-button v-if="!fromFavorites" size="large" :type="collected ? 'primary' : 'default'" @click="collected = !collected">
               <HeartOutlined /> {{ collected ? '已收藏' : '收藏' }}
             </a-button>
-          </div>
-
-          <!-- 查看更多 -->
-          <div class="more-link-row">
-            <a class="more-link">查看更多类似需求 &gt;</a>
           </div>
         </div>
 
@@ -100,7 +114,7 @@
 
 <script setup>
 import { ref, computed, inject } from 'vue'
-import { CheckCircleOutlined, SafetyOutlined, MoneyCollectOutlined, AuditOutlined, HeartOutlined } from '@ant-design/icons-vue'
+import { CheckCircleOutlined, SafetyOutlined, MoneyCollectOutlined, AuditOutlined, HeartOutlined, EyeOutlined, FileTextOutlined } from '@ant-design/icons-vue'
 
 const props = defineProps({ id: { type: Number, default: 1 }, from: { type: String, default: '' } })
 const closeDetail = inject('closeDetail', () => {})
@@ -109,50 +123,73 @@ const collected = ref(false)
 const fromFavorites = computed(() => props.from === 'favorites')
 const demandId = computed(() => props.id || 1)
 
+// 获取紧急程度颜色
+const getUrgencyColor = (urgency) => {
+  const colorMap = {
+    '非常紧急': 'red',
+    '紧急': 'orange',
+    '一般': 'blue',
+    '不紧急': 'default'
+  }
+  return colorMap[urgency] || 'default'
+}
+
 const demandMap = {
   1: {
     orderNo: '100234560',
-    buyer: '购买者李**',
-    publishTime: '2026-03-03 15:02:06',
+    publisher: '李明',
+    createTime: '2026-03-03 15:02:06',
+    deadline: '2026-03-18 23:59:59',
     status: '进行中',
     title: 'MiniMax-M2.1: MiniMax-AI开源大模型，赋能高效智能应用开发',
     budget: '3800.00',
-    deliveryDays: 15,
     description: '需要基于MiniMax大模型开发一套智能客服系统，支持多轮对话、意图识别、知识库问答等功能，需提供完整源码及部署文档。',
-    type: '人工智能'
+    type: '人工智能',
+    urgency: '紧急',
+    views: 1256,
+    bids: 8
   },
   2: {
     orderNo: '100234561',
-    buyer: '购买者王**',
-    publishTime: '2026-03-02 10:30:00',
+    publisher: '王芳',
+    createTime: '2026-03-02 10:30:00',
+    deadline: '2026-03-22 23:59:59',
     status: '招募中',
     title: 'PaddleOCR-VL: 开源视觉语言OCR工具，多模态识别提升文档处理效率',
     budget: '3800.00',
-    deliveryDays: 20,
     description: '基于PaddleOCR开发文档智能识别系统，支持表格、印章、手写体等多种场景识别，需要提供API接口及前端展示页面。',
-    type: 'Python'
+    type: 'Python',
+    urgency: '一般',
+    views: 892,
+    bids: 5
   },
   3: {
     orderNo: '100234562',
-    buyer: '购买者张**',
-    publishTime: '2026-03-01 09:00:00',
+    publisher: '张伟',
+    createTime: '2026-03-01 09:00:00',
+    deadline: '2026-03-31 23:59:59',
     status: '进行中',
     title: 'CHATERMAI：开启云资源氛围管理新篇章！',
     budget: '3800.00',
-    deliveryDays: 30,
     description: '开发一套云资源管理平台，支持多云环境统一管理、资源监控、费用分析、自动扩缩容等功能，技术栈不限。',
-    type: '人工智能'
+    type: '人工智能',
+    urgency: '紧急',
+    views: 2103,
+    bids: 12
   },
   4: {
     orderNo: '100234563',
-    buyer: '购买者赵**',
-    publishTime: '2026-02-28 14:20:00',
+    publisher: '赵强',
+    createTime: '2026-02-28 14:20:00',
+    deadline: '2026-03-25 23:59:59',
     status: '已完成',
     title: '欧拉操作系统内核开源，助力开发者获取源码与技术',
     budget: '3800.00',
-    deliveryDays: 25,
     description: '基于欧拉操作系统进行内核模块开发，需要熟悉Linux内核开发，提供完整的模块代码、测试报告及技术文档。',
-    type: 'C'
+    type: 'C',
+    urgency: '非常紧急',
+    views: 3456,
+    bids: 15
   }
 }
 
@@ -183,16 +220,23 @@ const guarantees = ref([
 .detail-card { background: #fff; border-radius: 8px; padding: 28px 32px; }
 .card-title { font-size: 20px; font-weight: 700; color: #333; margin: 0 0 12px 0; }
 
-.meta-line { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; font-size: 13px; color: #999; }
-.meta-author { color: #666; }
+.meta-line { display: flex; align-items: center; gap: 16px; margin-bottom: 24px; font-size: 13px; color: #999; flex-wrap: wrap; }
+.meta-author { color: #666; font-weight: 500; }
+.meta-time { color: #999; }
 .status-tag { margin-left: auto; }
 
-.info-grid { display: flex; flex-direction: column; gap: 0; border: 1px solid #f0f0f0; border-radius: 6px; overflow: hidden; margin-bottom: 28px; }
+.info-grid { display: flex; flex-direction: column; gap: 0; border: 1px solid #f0f0f0; border-radius: 6px; overflow: hidden; margin-bottom: 20px; }
 .info-row { display: flex; align-items: center; padding: 14px 20px; border-bottom: 1px solid #f0f0f0; }
 .info-row:last-child { border-bottom: none; }
 .info-label { font-size: 13px; color: #999; width: 72px; flex-shrink: 0; }
 .info-value { font-size: 14px; color: #333; flex: 1; }
 .price-text { color: #ff4d4f; font-weight: 600; font-size: 16px; }
+
+.stats-row { display: flex; gap: 32px; padding: 16px 20px; background: #fafafa; border-radius: 6px; margin-bottom: 20px; }
+.stat-item { display: flex; align-items: center; gap: 8px; }
+.stat-icon { font-size: 16px; color: #1890ff; }
+.stat-label { font-size: 13px; color: #999; }
+.stat-value { font-size: 16px; font-weight: 600; color: #333; }
 
 .action-row { display: flex; gap: 16px; margin-bottom: 16px; }
 .join-btn { border-color: #52c41a; color: #52c41a; min-width: 140px; }
