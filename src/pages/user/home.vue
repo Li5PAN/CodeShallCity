@@ -44,11 +44,6 @@
               </div>
               <h4 class="article-title">{{ item.title }}</h4>
               <p class="article-desc">{{ item.desc }}</p>
-              <div class="article-meta-bottom">
-                <span><EyeOutlined /> {{ item.read }}</span>
-                <span><LikeOutlined /> {{ item.like }}</span>
-                <span><MessageOutlined /> {{ item.comment }}</span>
-              </div>
             </div>
             <div class="article-cover" v-if="item.cover">
               <img :src="item.cover" alt="封面" />
@@ -77,19 +72,31 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { EyeOutlined, LikeOutlined, MessageOutlined, RightOutlined } from '@ant-design/icons-vue'
+import { ref, inject } from 'vue'
+import { useRouter } from 'vue-router'
+import { RightOutlined } from '@ant-design/icons-vue'
+
+const router = useRouter()
+const openDetail = inject('openDetail')
 
 const rewardList = ref([
-  { tag: 'CHATERIN AI', title: '开创全新发展新思路和新路线', desc: '人工智能', author: '科技前沿', views: 12 },
-  { tag: 'MiniMax-M1', title: 'MiniMax-M1开源大模型，刷新重度数据应用开发', desc: 'Python', author: '开发者社区', views: 8 },
-  { tag: 'PaddleOCR', title: '开源智能图像OCR工具，多语言识别超强开发者工具', desc: 'Python', author: '技术博客', views: 15 }
+  { id: 1, tag: 'CHATERIN AI', title: '开创全新发展新思路和新路线', desc: '人工智能', author: '科技前沿', views: 12 },
+  { id: 2, tag: 'MiniMax-M1', title: 'MiniMax-M1开源大模型，刷新重度数据应用开发', desc: 'Python', author: '开发者社区', views: 8 },
+  { id: 3, tag: 'PaddleOCR', title: '开源智能图像OCR工具，多语言识别超强开发者工具', desc: 'Python', author: '技术博客', views: 15 }
 ])
 
+const goToDemandBounty = () => {
+  router.push('/user/demand-bounty')
+}
+
+const goToTechForum = () => {
+  router.push('/user/tech-forum')
+}
+
 const articleList = ref([
-  { title: '人工智能大模型应用：2025年AI技术发展趋势', desc: '从入门到精通，全面解析AI大模型在各行业的应用场景与技术实现方案', author: 'AI研究员', read: 3589, like: 286, comment: 45, cover: 'https://picsum.photos/160/100?random=1' },
-  { title: 'NASA的Artemis IV: Building First Lunar Space Station', desc: '前沿太空技术与开发者社区的深度合作探索', author: '科技前沿', read: 5621, like: 458, comment: 89, cover: 'https://picsum.photos/160/100?random=2' },
-  { title: '大模型TPCDS大数据集测试与性能优化实战', desc: '深入分析大数据处理框架的性能瓶颈与优化策略', author: '数据工程师', read: 2987, like: 198, comment: 32, cover: 'https://picsum.photos/160/100?random=3' }
+  { title: '人工智能大模型应用：2025年AI技术发展趋势', desc: '从入门到精通，全面解析AI大模型在各行业的应用场景与技术实现方案', author: 'AI研究员', cover: 'https://picsum.photos/160/100?random=1' },
+  { title: 'NASA的Artemis IV: Building First Lunar Space Station', desc: '前沿太空技术与开发者社区的深度合作探索', author: '科技前沿', cover: 'https://picsum.photos/160/100?random=2' },
+  { title: '大模型TPCDS大数据集测试与性能优化实战', desc: '深入分析大数据处理框架的性能瓶颈与优化策略', author: '数据工程师', cover: 'https://picsum.photos/160/100?random=3' }
 ])
 
 const forumList = ref([
@@ -129,9 +136,7 @@ const forumList = ref([
 .article-meta-top { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .article-author { font-size: 12px; color: #999; }
 .article-title { font-size: 15px; font-weight: 600; margin: 0 0 8px 0; color: #333; }
-.article-desc { font-size: 13px; color: #666; margin: 0 0 12px 0; line-height: 1.5; }
-.article-meta-bottom { display: flex; gap: 20px; font-size: 12px; color: #999; }
-.article-meta-bottom span { display: flex; align-items: center; gap: 4px; }
+.article-desc { font-size: 13px; color: #666; margin: 0; line-height: 1.5; }
 .article-cover img { width: 160px; height: 100px; object-fit: cover; border-radius: 6px; }
 
 .right-section { background: #fff; border-radius: 8px; padding: 16px; margin-bottom: 16px; }

@@ -46,9 +46,6 @@
           <a-button v-if="!fromFavorites" :type="collected ? 'primary' : 'default'" size="large" @click="collected = !collected; article.collectCount += collected ? 1 : -1">
             <StarOutlined /> {{ collected ? '已收藏' : '收藏' }} {{ article.collectCount }}
           </a-button>
-          <a-button size="large">
-            <ShareAltOutlined /> 分享
-          </a-button>
         </div>
 
         <!-- 评论区 -->

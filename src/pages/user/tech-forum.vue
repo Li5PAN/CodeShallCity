@@ -33,12 +33,6 @@
             <div class="article-text">
               <h4 class="article-title">{{ item.title }}</h4>
               <p class="article-desc">{{ item.desc }}</p>
-              <div class="article-meta">
-                <a-tag size="small" :color="item.tagColor">{{ item.category }}</a-tag>
-                <span>👁 {{ item.readCount }}</span>
-                <span>👍 {{ item.likeCount }}</span>
-                <span>⭐ {{ item.collectCount }}</span>
-              </div>
             </div>
             <img v-if="item.cover" :src="item.cover" class="article-cover" alt="" />
           </div>
