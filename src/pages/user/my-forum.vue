@@ -41,8 +41,8 @@
       </div>
 
       <div class="article-item" v-for="item in filteredList" :key="item.id">
-        <img v-if="item.cover" :src="item.cover" class="article-cover" />
-        <div class="article-info">
+        <img v-if="item.cover" :src="item.cover" class="article-cover" @click="router.push(`/user/my-forum-detail/${item.id}`)" style="cursor: pointer" />
+        <div class="article-info" @click="router.push(`/user/my-forum-detail/${item.id}`)" style="cursor: pointer">
           <div class="article-title">{{ item.title }}</div>
           <div class="article-desc">{{ item.desc }}</div>
           <div class="article-meta">
@@ -56,9 +56,9 @@
         <div class="article-right">
           <a-tag :color="statusMap[item.status].color" size="small">{{ statusMap[item.status].text }}</a-tag>
           <div class="article-actions">
-            <a-button size="small" @click="router.push('/user/write-article')">编辑</a-button>
+            <a-button size="small" @click.stop="router.push('/user/write-article')">编辑</a-button>
             <a-popconfirm title="确认删除该文章？" ok-text="删除" cancel-text="取消" @confirm="deleteItem(item.id)">
-              <a-button size="small" danger>删除</a-button>
+              <a-button size="small" danger @click.stop>删除</a-button>
             </a-popconfirm>
           </div>
         </div>

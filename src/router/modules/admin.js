@@ -15,7 +15,13 @@ export default [
         path: 'user-management',
         name: 'AdminUserManagement',
         component: () => import('../../pages/admin/user-management.vue'),
-        meta: { title: '用户与商品管理' }
+        meta: { title: '用户管理' }
+      },
+      {
+        path: 'goods-management',
+        name: 'AdminGoodsManagement',
+        component: () => import('../../pages/admin/goods-management.vue'),
+        meta: { title: '商品管理' }
       },
       {
         path: 'content-management',

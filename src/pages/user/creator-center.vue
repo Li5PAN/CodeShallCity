@@ -35,7 +35,7 @@
               <div class="publish-label">发布需求</div>
               <div class="publish-desc">发布悬赏需求，寻找专业服务商</div>
             </div>
-            <div class="publish-item" @click="serviceModalVisible = true">
+            <div v-if="isProvider" class="publish-item" @click="serviceModalVisible = true">
               <div class="publish-icon-wrap" style="background:#f6ffed">
                 <ShopOutlined style="color:#52c41a;font-size:28px" />
               </div>
@@ -341,7 +341,8 @@ import {
 
 const router = useRouter()
 const applyVisible = ref(false)
-const isProvider = ref(false)
+const userRole = ref(localStorage.getItem('userRole') || 'user') // 获取用户角色
+const isProvider = ref(userRole.value === 'provider') // 判断是否为服务商
 const recentType = ref('article')
 const applyFormRef = ref(null)
 
@@ -448,6 +449,8 @@ const submitApply = () => {
   applyFormRef.value?.validate().then(() => {
     applyVisible.value = false
     isProvider.value = true
+    userRole.value = 'provider'
+    localStorage.setItem('userRole', 'provider') // 保存角色到 localStorage
     message.success('申请已提交，平台将在 3 个工作日内完成审核')
   }).catch(() => {
     message.warning('请完整填写必填信息')
