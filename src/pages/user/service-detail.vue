@@ -45,7 +45,7 @@
             </div>
           </div>
         </div>
-        <div class="quantity-row">
+        <div class="quantity-row" v-if="!fromMyServices">
           <span class="price-label">购买数量</span>
           <div class="quantity-control">
             <a-button @click="quantity > 1 && quantity--">-</a-button>
@@ -53,7 +53,7 @@
             <a-button @click="quantity < 99 && quantity++">+</a-button>
           </div>
         </div>
-        <div class="action-buttons">
+        <div class="action-buttons" v-if="!fromMyServices">
           <a-button type="primary" size="large" danger class="buy-btn"><ShoppingCartOutlined /> 立即购买</a-button>
           <a-button v-if="!fromFavorites" size="large" :type="collected ? 'primary' : 'default'" @click="collected = !collected">
             <HeartOutlined /> {{ collected ? '已收藏' : '收藏' }}
@@ -89,6 +89,7 @@ const closeDetail = inject('closeDetail', () => {})
 
 const collected = ref(false)
 const fromFavorites = computed(() => props.from === 'favorites')
+const fromMyServices = computed(() => props.from === 'my-services')
 const serviceId = computed(() => props.id || 1)
 const currentImage = ref(0)
 const activeTab = ref('detail')

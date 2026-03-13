@@ -34,18 +34,19 @@ router.beforeEach((to, from, next) => {
       next('/login')
       return
     }
+    // 允许 provider 访问 user 路由，因为 provider 是 user 的超集
     if (requiredRole && requiredRole !== userRole) {
-      next('/login')
-      return
+      if (!(requiredRole === 'user' && userRole === 'provider')) {
+        next('/login')
+        return
+      }
     }
   }
   
   // 如果已登录，访问登录页，则重定向到对应的首页
   if (to.path === '/login' && token) {
-    if (userRole === 'user') {
+    if (userRole === 'user' || userRole === 'provider') {
       next('/user/home')
-    } else if (userRole === 'provider') {
-      next('/provider')
     } else if (userRole === 'admin') {
       next('/admin')
     } else {

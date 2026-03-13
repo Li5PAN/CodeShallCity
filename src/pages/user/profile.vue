@@ -8,9 +8,8 @@
           <div class="profile-name">{{ username }}</div>
           <div class="profile-bio">{{ bio }}</div>
           <div class="profile-tags">
-            <a-tag color="green">Lv.{{ level }}</a-tag>
-            <a-tag color="blue">{{ role }}</a-tag>
-            <a-tag v-if="certified" color="gold">认证服务商</a-tag>
+            <a-tag v-if="userRole === 'user'" color="blue">user</a-tag>
+            <a-tag v-else-if="userRole === 'provider'" color="gold">服务商</a-tag>
           </div>
         </div>
       </div>
@@ -59,7 +58,7 @@
               </div>
             </a-tab-pane>
 
-            <a-tab-pane key="service" tab="我的服务">
+            <a-tab-pane key="service" tab="我的服务" v-if="userRole === 'provider'">
               <div class="content-list">
                 <div class="content-item" v-for="item in myServices" :key="item.id" @click="goServiceDetail(item.id)">
                   <img :src="item.cover" class="content-item-cover" />
@@ -124,14 +123,6 @@
         <a-form-item label="个人简介">
           <a-textarea v-model:value="editForm.bio" :rows="3" placeholder="介绍一下自己" :maxlength="100" show-count />
         </a-form-item>
-        <a-form-item label="身份标签">
-          <a-select v-model:value="editForm.role" style="width: 100%">
-            <a-select-option value="开发者">开发者</a-select-option>
-            <a-select-option value="设计师">设计师</a-select-option>
-            <a-select-option value="产品经理">产品经理</a-select-option>
-            <a-select-option value="学生">学生</a-select-option>
-          </a-select>
-        </a-form-item>
       </a-form>
     </a-modal>
   </div>
@@ -150,23 +141,19 @@ import {
 const router = useRouter()
 
 const username = ref(localStorage.getItem('username') || '用户')
+const userRole = ref(localStorage.getItem('userRole') || 'user') // 获取用户角色
 const bio = ref('热爱技术，专注于全栈开发与AI应用探索')
-const level = ref(5)
-const role = ref('开发者')
-const certified = ref(true)
 const editVisible = ref(false)
 const contentTab = ref('article')
 
 const editForm = reactive({
   username: username.value,
-  bio: bio.value,
-  role: role.value
+  bio: bio.value
 })
 
 const saveProfile = () => {
   username.value = editForm.username
   bio.value = editForm.bio
-  role.value = editForm.role
   editVisible.value = false
 }
 
@@ -182,7 +169,9 @@ const overview = ref([
   { label: '总获赞', value: '3.8k', color: '#ff4d4f', icon: LikeOutlined },
   { label: '总评论', value: 286, color: '#52c41a', icon: MessageOutlined },
   { label: '发布文章', value: 28, color: '#722ed1', icon: FileTextOutlined },
-  { label: '上架服务', value: 5, color: '#fa8c16', icon: ShopOutlined },
+  ...(userRole.value === 'provider' ? [
+    { label: '上架服务', value: 5, color: '#fa8c16', icon: ShopOutlined }
+  ] : []),
   { label: '悬赏需求', value: 3, color: '#13c2c2', icon: TrophyOutlined }
 ])
 
@@ -218,7 +207,7 @@ const myDemands = ref([
 ])
 
 const goForumDetail = (id) => router.push({ name: 'MyForumDetail', params: { id } })
-const goServiceDetail = (id) => router.push({ name: 'ServiceDetail', params: { id } })
+const goServiceDetail = (id) => router.push({ name: 'ServiceDetail', params: { id }, query: { from: 'my-services' } })
 const goDemandDetail = (id) => router.push({ name: 'DemandDetail', params: { id }, query: { from: 'my-demands' } })
 </script>
 

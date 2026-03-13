@@ -55,7 +55,7 @@ const formState = reactive({
 // 模拟账号数据
 const accounts = {
   user: { password: '123456', role: 'user', redirect: '/user/home' },
-  provider: { password: '123456', role: 'provider', redirect: '/provider' },
+  provider: { password: '123456', role: 'provider', redirect: '/user/home' },
   admin: { password: '123456', role: 'admin', redirect: '/admin' }
 }
 

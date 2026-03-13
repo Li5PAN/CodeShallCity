@@ -108,10 +108,10 @@
                   <div class="create-box">
                     <div class="create-box-icons">
                       <div class="create-box-item" @click="createPopoverVisible = false; router.push('/user/write-article')"><EditOutlined class="create-box-icon" /><span>写文章</span></div>
-                      <div class="create-box-item" @click="createPopoverVisible = false; router.push('/user/my-services')"><CodeOutlined class="create-box-icon" /><span>我的服务</span></div>
+                      <div v-if="userRole === 'provider'" class="create-box-item" @click="createPopoverVisible = false; router.push('/user/my-services')"><CodeOutlined class="create-box-icon" /><span>我的服务</span></div>
                       <div class="create-box-item" @click="createPopoverVisible = false; router.push('/user/my-demands')"><FileTextOutlined class="create-box-icon" /><span>我的悬赏</span></div>
                       <div class="create-box-item" @click="createPopoverVisible = false; router.push('/user/my-forum')"><CommentOutlined class="create-box-icon" /><span>我的论坛</span></div>
-                      <div class="create-box-item" @click="createPopoverVisible = false; router.push('/user/order-manage')"><LockOutlined class="create-box-icon" /><span>订单管理</span></div>
+                      <div v-if="userRole === 'provider'" class="create-box-item" @click="createPopoverVisible = false; router.push('/user/order-manage')"><LockOutlined class="create-box-icon" /><span>订单管理</span></div>
                     </div>
                     <div class="create-box-footer" @click="createPopoverVisible = false; onMenuClick('creator-center', 'create')">
                       <BulbOutlined /> 进入创作中心 >
@@ -163,6 +163,7 @@ const collapsed = ref(false)
 const selectedKeys = ref(['home'])
 const createPopoverVisible = ref(false)
 const username = ref('')
+const userRole = ref('user') // 用户角色：user 或 provider
 
 // 详情覆盖层
 const detailVisible = ref(false)
@@ -209,6 +210,7 @@ watch(() => route.path, (path) => {
 
 onMounted(() => {
   username.value = localStorage.getItem('username') || 'U'
+  userRole.value = localStorage.getItem('userRole') || 'user' // 从 localStorage 获取用户角色
 })
 
 const onMenuClick = (path, key) => {
