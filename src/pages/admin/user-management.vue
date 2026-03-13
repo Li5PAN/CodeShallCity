@@ -1,245 +1,475 @@
 <template>
-  <div class="page">
-    <!-- 标签页 -->
-    <div class="tabs">
-      <button
-        v-for="tab in tabs"
-        :key="tab.key"
-        :class="['tab-btn', activeTab === tab.key && 'tab-btn--active']"
-        @click="activeTab = tab.key"
-      >{{ tab.label }}</button>
-    </div>
-
-    <!-- 用户管理 -->
-    <div v-if="activeTab === 'users'" class="tab-content">
-      <div class="toolbar">
-        <input v-model="userSearch" class="search-input" placeholder="搜索用户名 / 手机号" />
-        <button class="btn-primary" @click="handleUserSearch">搜索</button>
-      </div>
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>用户名</th><th>手机号</th><th>角色</th><th>状态</th><th>注册时间</th><th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="user in userList" :key="user.id">
-            <td>{{ user.name }}</td>
-            <td>{{ user.phone }}</td>
-            <td>
-              <select v-model="user.role" class="role-select" @change="changeRole(user)">
-                <option value="user">普通用户</option>
-                <option value="provider">服务商</option>
-                <option value="admin">管理员</option>
-              </select>
-            </td>
-            <td>
-              <span :class="['status-tag', user.enabled ? 'status-tag--green' : 'status-tag--red']">
-                {{ user.enabled ? '启用' : '禁用' }}
-              </span>
-            </td>
-            <td>{{ user.createdAt }}</td>
-            <td class="action-cell">
-              <button class="btn-link" @click="viewUser(user)">详情</button>
-              <button class="btn-link" @click="toggleUser(user)">
-                {{ user.enabled ? '禁用' : '启用' }}
-              </button>
-              <button>分配角色</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- 服务商认证审核 -->
-    <div v-if="activeTab === 'provider-audit'" class="tab-content">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>申请人</th><th>手机号</th><th>提交时间</th><th>资质材料</th><th>状态</th><th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="item in providerList" :key="item.id">
-            <td>{{ item.name }}</td>
-            <td>{{ item.phone }}</td>
-            <td>{{ item.submitAt }}</td>
-            <td><a href="#" class="btn-link">查看材料</a></td>
-            <td>
-              <span :class="['status-tag', statusClass(item.status)]">{{ statusLabel(item.status) }}</span>
-            </td>
-            <td class="action-cell" v-if="item.status === 'pending'">
-              <button class="btn-success" @click="openAudit(item, 'pass')">通过</button>
-              <button class="btn-danger" @click="openAudit(item, 'reject')">驳回</button>
-            </td>
-            <td v-else>—</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- 商品审核 -->
-    <div v-if="activeTab === 'goods-audit'" class="tab-content">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>商品名称</th><th>服务商</th><th>分类</th><th>价格</th><th>提交时间</th><th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="item in goodsList" :key="item.id">
-            <td>{{ item.name }}</td>
-            <td>{{ item.provider }}</td>
-            <td>{{ item.category }}</td>
-            <td>¥{{ item.price }}</td>
-            <td>{{ item.submitAt }}</td>
-            <td class="action-cell">
-              <button class="btn-success" @click="openAudit(item, 'pass')">通过</button>
-              <button class="btn-danger" @click="openAudit(item, 'reject')">驳回</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <!-- 审核弹窗 -->
-    <div v-if="auditModal.show" class="modal-mask" @click.self="auditModal.show = false">
-      <div class="modal">
-        <div class="modal-title">{{ auditModal.type === 'pass' ? '通过审核' : '驳回审核' }}</div>
-        <textarea
-          v-model="auditModal.remark"
-          class="modal-textarea"
-          :placeholder="auditModal.type === 'pass' ? '填写备注（选填）' : '填写驳回原因（必填）'"
-        ></textarea>
-        <div class="modal-footer">
-          <button class="btn-default" @click="auditModal.show = false">取消</button>
-          <button
-            :class="auditModal.type === 'pass' ? 'btn-success' : 'btn-danger'"
-            @click="submitAudit"
-          >确认</button>
+  <div class="user-management-page">
+    <div class="page-header">
+      <h2 class="page-title">用户管理</h2>
+      <div class="header-stats">
+        <div class="stat-item">
+          <span class="stat-label">总用户数</span>
+          <span class="stat-value">{{ totalUsers }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">普通用户</span>
+          <span class="stat-value">{{ normalUsers }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">服务商</span>
+          <span class="stat-value">{{ providerUsers }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">待审核</span>
+          <span class="stat-value pending">{{ pendingAudits }}</span>
         </div>
       </div>
     </div>
+
+    <!-- 标签页 -->
+    <a-tabs v-model:activeKey="activeTab" class="management-tabs">
+      <a-tab-pane key="users" tab="用户列表">
+        <!-- 筛选栏 -->
+        <div class="filter-bar">
+          <div class="filter-left">
+            <a-select v-model:value="roleFilter" style="width: 120px" size="small" placeholder="用户角色">
+              <a-select-option value="">全部角色</a-select-option>
+              <a-select-option value="user">普通用户</a-select-option>
+              <a-select-option value="provider">服务商</a-select-option>
+              <a-select-option value="admin">管理员</a-select-option>
+            </a-select>
+            <a-select v-model:value="statusFilter" style="width: 120px" size="small" placeholder="账号状态">
+              <a-select-option value="">全部状态</a-select-option>
+              <a-select-option value="enabled">启用</a-select-option>
+              <a-select-option value="disabled">禁用</a-select-option>
+            </a-select>
+          </div>
+          <a-input-search
+            v-model:value="userSearch"
+            placeholder="搜索用户名或手机号"
+            style="width: 240px"
+            size="small"
+            @search="handleUserSearch"
+          />
+        </div>
+
+        <!-- 用户列表 -->
+        <a-table
+          :columns="userColumns"
+          :data-source="filteredUsers"
+          :pagination="userPagination"
+          :row-key="record => record.id"
+        >
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.key === 'user'">
+              <div class="user-info">
+                <a-avatar :size="32" :style="{ backgroundColor: record.avatarColor }">
+                  {{ record.name[0] }}
+                </a-avatar>
+                <div class="user-detail">
+                  <div class="user-name">{{ record.name }}</div>
+                  <div class="user-phone">{{ record.phone }}</div>
+                </div>
+              </div>
+            </template>
+
+            <template v-else-if="column.key === 'role'">
+              <a-tag :color="roleColorMap[record.role]" size="small">
+                {{ roleTextMap[record.role] }}
+              </a-tag>
+            </template>
+
+            <template v-else-if="column.key === 'status'">
+              <a-tag :color="record.enabled ? 'green' : 'red'" size="small">
+                {{ record.enabled ? '启用' : '禁用' }}
+              </a-tag>
+            </template>
+
+            <template v-else-if="column.key === 'action'">
+              <div class="action-buttons">
+                <a-button type="link" size="small" @click="viewUser(record)">详情</a-button>
+                <a-button type="link" size="small" @click="editRole(record)">修改角色</a-button>
+                <a-button
+                  type="link"
+                  size="small"
+                  :danger="record.enabled"
+                  @click="toggleUser(record)"
+                >
+                  {{ record.enabled ? '禁用' : '启用' }}
+                </a-button>
+              </div>
+            </template>
+          </template>
+        </a-table>
+      </a-tab-pane>
+
+      <a-tab-pane key="provider-audit" tab="服务商认证审核">
+        <!-- 认证审核列表 -->
+        <a-table
+          :columns="auditColumns"
+          :data-source="providerAuditList"
+          :pagination="auditPagination"
+          :row-key="record => record.id"
+        >
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.key === 'applicant'">
+              <div class="user-info">
+                <a-avatar :size="32" :style="{ backgroundColor: record.avatarColor }">
+                  {{ record.name[0] }}
+                </a-avatar>
+                <div class="user-detail">
+                  <div class="user-name">{{ record.name }}</div>
+                  <div class="user-phone">{{ record.phone }}</div>
+                </div>
+              </div>
+            </template>
+
+            <template v-else-if="column.key === 'materials'">
+              <a-button type="link" size="small" @click="viewMaterials(record)">
+                查看材料
+              </a-button>
+            </template>
+
+            <template v-else-if="column.key === 'status'">
+              <a-tag :color="auditStatusColorMap[record.status]" size="small">
+                {{ auditStatusTextMap[record.status] }}
+              </a-tag>
+            </template>
+
+            <template v-else-if="column.key === 'action'">
+              <div class="action-buttons" v-if="record.status === 'pending'">
+                <a-button
+                  type="link"
+                  size="small"
+                  style="color: #52c41a"
+                  @click="openProviderAuditModal(record, 'approve')"
+                >通过</a-button>
+                <a-button
+                  type="link"
+                  size="small"
+                  danger
+                  @click="openProviderAuditModal(record, 'reject')"
+                >驳回</a-button>
+              </div>
+              <span v-else>—</span>
+            </template>
+          </template>
+        </a-table>
+      </a-tab-pane>
+    </a-tabs>
+
+    <!-- 审核弹窗 -->
+    <a-modal
+      v-model:open="auditModal.visible"
+      :title="auditModal.type === 'approve' ? '通过认证' : '驳回认证'"
+      @ok="handleProviderAudit"
+      ok-text="确认"
+      cancel-text="取消"
+    >
+      <a-form layout="vertical">
+        <a-form-item :label="auditModal.type === 'approve' ? '审核备注（选填）' : '驳回原因（必填）'">
+          <a-textarea
+            v-model:value="auditModal.remark"
+            :placeholder="auditModal.type === 'approve' ? '填写审核备注' : '请填写驳回原因'"
+            :rows="4"
+            :maxlength="200"
+            show-count
+          />
+        </a-form-item>
+      </a-form>
+    </a-modal>
+
+    <!-- 修改角色弹窗 -->
+    <a-modal
+      v-model:open="roleModal.visible"
+      title="修改用户角色"
+      @ok="handleRoleChange"
+      ok-text="确认"
+      cancel-text="取消"
+    >
+      <a-form layout="vertical">
+        <a-form-item label="选择角色">
+          <a-radio-group v-model:value="roleModal.role">
+            <a-radio value="user">普通用户</a-radio>
+            <a-radio value="provider">服务商</a-radio>
+            <a-radio value="admin">管理员</a-radio>
+          </a-radio-group>
+        </a-form-item>
+      </a-form>
+    </a-modal>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, computed } from 'vue'
+import { message } from 'ant-design-vue'
 
-const tabs = [
-  { key: 'users', label: '用户管理' },
-  { key: 'provider-audit', label: '服务商认证审核' },
-  { key: 'goods-audit', label: '商品审核' }
-]
 const activeTab = ref('users')
 const userSearch = ref('')
+const roleFilter = ref('')
+const statusFilter = ref('')
 
-const userList = ref([
-  { id: 1, name: '张三', phone: '138****0001', role: 'user', enabled: true, createdAt: '2025-01-10' },
-  { id: 2, name: '李四', phone: '139****0002', role: 'provider', enabled: true, createdAt: '2025-02-15' },
-  { id: 3, name: '王五', phone: '137****0003', role: 'user', enabled: false, createdAt: '2025-03-01' }
-])
-
-const providerList = ref([
-  { id: 1, name: '赵六', phone: '136****0004', submitAt: '2025-06-01', status: 'pending' },
-  { id: 2, name: '孙七', phone: '135****0005', submitAt: '2025-05-28', status: 'passed' }
-])
-
-const goodsList = ref([
-  { id: 1, name: 'Vue3全栈开发', provider: '李四', category: '前端开发', price: 2000, submitAt: '2025-06-02' },
-  { id: 2, name: 'Python爬虫服务', provider: '赵六', category: '数据分析', price: 1500, submitAt: '2025-06-03' }
-])
-
-const auditModal = reactive({ show: false, type: '', remark: '', target: null })
-
-const statusClass = s => ({ pending: 'status-tag--yellow', passed: 'status-tag--green', rejected: 'status-tag--red' }[s])
-const statusLabel = s => ({ pending: '待审核', passed: '已通过', rejected: '已驳回' }[s])
-
-const handleUserSearch = () => { /* 调用接口 */ }
-const viewUser = (user) => { alert(`查看用户：${user.name}`) }
-const toggleUser = (user) => { user.enabled = !user.enabled }
-const changeRole = (user) => { console.log('变更角色', user) }
-
-const openAudit = (item, type) => {
-  auditModal.show = true
-  auditModal.type = type
-  auditModal.remark = ''
-  auditModal.target = item
+const auditStatusColorMap = {
+  pending: 'orange',
+  approved: 'green',
+  rejected: 'red'
 }
 
-const submitAudit = () => {
-  if (auditModal.type === 'reject' && !auditModal.remark.trim()) {
-    alert('请填写驳回原因')
+const auditStatusTextMap = {
+  pending: '待审核',
+  approved: '已通过',
+  rejected: '已驳回'
+}
+
+const roleColorMap = {
+  user: 'blue',
+  provider: 'green',
+  admin: 'red'
+}
+
+const roleTextMap = {
+  user: '普通用户',
+  provider: '服务商',
+  admin: '管理员'
+}
+
+const userColumns = [
+  { title: '用户信息', key: 'user', width: '25%' },
+  { title: '角色', key: 'role', width: '15%' },
+  { title: '状态', key: 'status', width: '10%' },
+  { title: '注册时间', dataIndex: 'createdAt', key: 'createdAt', width: '15%' },
+  { title: '最后登录', dataIndex: 'lastLogin', key: 'lastLogin', width: '15%' },
+  { title: '操作', key: 'action', width: '20%' }
+]
+
+const auditColumns = [
+  { title: '申请人', key: 'applicant', width: '20%' },
+  { title: '提交时间', dataIndex: 'submitTime', key: 'submitTime', width: '15%' },
+  { title: '认证类型', dataIndex: 'certType', key: 'certType', width: '15%' },
+  { title: '资质材料', key: 'materials', width: '15%' },
+  { title: '状态', key: 'status', width: '15%' },
+  { title: '操作', key: 'action', width: '20%' }
+]
+
+const userPagination = ref({
+  current: 1,
+  pageSize: 10,
+  total: 0,
+  showSizeChanger: true,
+  showTotal: (total) => `共 ${total} 条`
+})
+
+const auditPagination = ref({
+  current: 1,
+  pageSize: 10,
+  total: 0,
+  showSizeChanger: true,
+  showTotal: (total) => `共 ${total} 条`
+})
+
+const userList = ref([
+  {
+    id: 1,
+    name: '张三',
+    phone: '138****0001',
+    role: 'user',
+    enabled: true,
+    createdAt: '2025-01-10',
+    lastLogin: '2026-03-07 10:30',
+    avatarColor: '#1890ff'
+  },
+  {
+    id: 2,
+    name: '李四',
+    phone: '139****0002',
+    role: 'provider',
+    enabled: true,
+    createdAt: '2025-02-15',
+    lastLogin: '2026-03-06 15:20',
+    avatarColor: '#52c41a'
+  },
+  {
+    id: 3,
+    name: '王五',
+    phone: '137****0003',
+    role: 'user',
+    enabled: false,
+    createdAt: '2025-03-01',
+    lastLogin: '2026-02-28 09:15',
+    avatarColor: '#722ed1'
+  },
+  {
+    id: 4,
+    name: '赵六',
+    phone: '136****0004',
+    role: 'provider',
+    enabled: true,
+    createdAt: '2025-04-12',
+    lastLogin: '2026-03-07 14:45',
+    avatarColor: '#fa8c16'
+  },
+  {
+    id: 5,
+    name: '孙七',
+    phone: '135****0005',
+    role: 'admin',
+    enabled: true,
+    createdAt: '2024-12-01',
+    lastLogin: '2026-03-07 16:00',
+    avatarColor: '#13c2c2'
+  }
+])
+
+const providerAuditList = ref([
+  {
+    id: 1,
+    name: '周八',
+    phone: '134****0006',
+    submitTime: '2026-03-05 10:00',
+    certType: '企业认证',
+    status: 'pending',
+    avatarColor: '#ff4d4f'
+  },
+  {
+    id: 2,
+    name: '吴九',
+    phone: '133****0007',
+    submitTime: '2026-03-04 14:30',
+    certType: '个人认证',
+    status: 'approved',
+    avatarColor: '#9254de'
+  },
+  {
+    id: 3,
+    name: '郑十',
+    phone: '132****0008',
+    submitTime: '2026-03-03 09:20',
+    certType: '企业认证',
+    status: 'rejected',
+    avatarColor: '#faad14'
+  }
+])
+
+const auditModal = ref({
+  visible: false,
+  type: 'approve',
+  remark: '',
+  target: null
+})
+
+const roleModal = ref({
+  visible: false,
+  role: '',
+  target: null
+})
+
+const filteredUsers = computed(() => {
+  let list = userList.value
+
+  if (roleFilter.value) {
+    list = list.filter(u => u.role === roleFilter.value)
+  }
+
+  if (statusFilter.value) {
+    const enabled = statusFilter.value === 'enabled'
+    list = list.filter(u => u.enabled === enabled)
+  }
+
+  if (userSearch.value.trim()) {
+    const keyword = userSearch.value.trim().toLowerCase()
+    list = list.filter(u =>
+      u.name.toLowerCase().includes(keyword) ||
+      u.phone.includes(keyword)
+    )
+  }
+
+  userPagination.value.total = list.length
+  return list
+})
+
+const totalUsers = computed(() => userList.value.length)
+const normalUsers = computed(() => userList.value.filter(u => u.role === 'user').length)
+const providerUsers = computed(() => userList.value.filter(u => u.role === 'provider').length)
+const pendingAudits = computed(() => providerAuditList.value.filter(a => a.status === 'pending').length)
+
+const handleUserSearch = () => {
+  // 搜索逻辑已在 computed 中处理
+}
+
+const viewUser = (user) => {
+  message.info(`查看用户详情：${user.name}`)
+}
+
+const toggleUser = (user) => {
+  user.enabled = !user.enabled
+  message.success(user.enabled ? '用户已启用' : '用户已禁用')
+}
+
+const editRole = (user) => {
+  roleModal.value = {
+    visible: true,
+    role: user.role,
+    target: user
+  }
+}
+
+const handleRoleChange = () => {
+  const target = roleModal.value.target
+  if (target) {
+    target.role = roleModal.value.role
+    message.success(`已将 ${target.name} 的角色更改为 ${roleTextMap[target.role]}`)
+  }
+  roleModal.value.visible = false
+}
+
+const viewMaterials = (record) => {
+  message.info(`查看 ${record.name} 的认证材料`)
+}
+
+const openProviderAuditModal = (record, type) => {
+  auditModal.value = {
+    visible: true,
+    type,
+    remark: '',
+    target: record
+  }
+}
+
+const handleProviderAudit = () => {
+  if (auditModal.value.type === 'reject' && !auditModal.value.remark.trim()) {
+    message.warning('请填写驳回原因')
     return
   }
-  if (auditModal.target) {
-    auditModal.target.status = auditModal.type === 'pass' ? 'passed' : 'rejected'
+
+  const target = auditModal.value.target
+  if (target) {
+    target.status = auditModal.value.type === 'approve' ? 'approved' : 'rejected'
+    message.success(auditModal.value.type === 'approve' ? '认证已通过' : '认证已驳回')
   }
-  auditModal.show = false
+
+  auditModal.value.visible = false
 }
 </script>
 
 <style scoped>
-.page { display: flex; flex-direction: column; gap: 16px; }
+.user-management-page { display: flex; flex-direction: column; gap: 16px; height: 100%; }
 
-.tabs { display: flex; gap: 4px; border-bottom: 2px solid #e8e8e8; padding-bottom: 0; }
+.page-header { background: #fff; border-radius: 8px; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; }
+.page-title { font-size: 18px; font-weight: 600; color: #333; margin: 0; }
 
-.tab-btn {
-  padding: 10px 20px;
-  border: none;
-  background: none;
-  font-size: 14px;
-  color: #888;
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -2px;
-  transition: all 0.2s;
-}
+.header-stats { display: flex; gap: 32px; }
+.stat-item { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.stat-label { font-size: 12px; color: #999; }
+.stat-value { font-size: 20px; font-weight: 700; color: #333; }
+.stat-value.pending { color: #fa8c16; }
 
-.tab-btn--active { color: #4f46e5; border-bottom-color: #4f46e5; font-weight: 600; }
+.management-tabs { background: #fff; border-radius: 8px; padding: 0 24px; flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+.management-tabs :deep(.ant-tabs-nav) { margin-bottom: 0; }
+.management-tabs :deep(.ant-tabs-content-holder) { overflow: auto; }
 
-.tab-content { background: #fff; border-radius: 8px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+.filter-bar { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; }
+.filter-left { display: flex; gap: 12px; }
 
-.toolbar { display: flex; gap: 10px; margin-bottom: 16px; }
+.user-info { display: flex; align-items: center; gap: 12px; }
+.user-detail { flex: 1; min-width: 0; }
+.user-name { font-size: 14px; font-weight: 600; color: #333; }
+.user-phone { font-size: 12px; color: #999; margin-top: 2px; }
 
-.search-input {
-  padding: 8px 12px;
-  border: 1px solid #e0e0e0;
-  border-radius: 6px;
-  font-size: 14px;
-  width: 260px;
-  outline: none;
-}
-
-.search-input:focus { border-color: #4f46e5; }
-
-.data-table { width: 100%; border-collapse: collapse; font-size: 14px; }
-.data-table th { background: #f8f8f8; padding: 10px 12px; text-align: left; color: #555; font-weight: 600; border-bottom: 1px solid #e8e8e8; }
-.data-table td { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; color: #333; }
-.data-table tr:last-child td { border-bottom: none; }
-
-.action-cell { display: flex; gap: 8px; align-items: center; }
-
-.role-select { padding: 4px 8px; border: 1px solid #e0e0e0; border-radius: 4px; font-size: 13px; }
-
-.status-tag { padding: 2px 8px; border-radius: 10px; font-size: 12px; }
-.status-tag--green { background: #dcfce7; color: #16a34a; }
-.status-tag--red { background: #fee2e2; color: #dc2626; }
-.status-tag--yellow { background: #fef9c3; color: #ca8a04; }
-
-.btn-primary { padding: 8px 16px; background: #4f46e5; color: #fff; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; }
-.btn-success { padding: 5px 12px; background: #16a34a; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
-.btn-danger { padding: 5px 12px; background: #dc2626; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
-.btn-default { padding: 5px 12px; background: #f0f0f0; color: #555; border: none; border-radius: 4px; cursor: pointer; font-size: 13px; }
-.btn-link { background: none; border: none; color: #4f46e5; cursor: pointer; font-size: 13px; padding: 0; }
-
-.modal-mask {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.4);
-  display: flex; align-items: center; justify-content: center; z-index: 100;
-}
-
-.modal { background: #fff; border-radius: 10px; padding: 24px; width: 400px; }
-.modal-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
-.modal-textarea { width: 100%; height: 100px; padding: 10px; border: 1px solid #e0e0e0; border-radius: 6px; font-size: 14px; resize: none; box-sizing: border-box; }
-.modal-footer { display: flex; justify-content: flex-end; gap: 10px; margin-top: 16px; }
+.action-buttons { display: flex; gap: 4px; }
 </style>

@@ -47,7 +47,8 @@ const route = useRoute()
 
 const menuItems = [
   { path: '/admin/home', label: '数据概览', icon: '📊' },
-  { path: '/admin/user-management', label: '用户与商品管理', icon: '👥' },
+  { path: '/admin/user-management', label: '用户管理', icon: '👥' },
+  { path: '/admin/goods-management', label: '商品管理', icon: '📦' },
   { path: '/admin/content-management', label: '内容管理', icon: '📝' },
   { path: '/admin/order-appeal', label: '订单申诉', icon: '⚖️' },
   { path: '/admin/system-management', label: '系统管理', icon: '🔧' }
