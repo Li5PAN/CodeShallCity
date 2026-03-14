@@ -142,13 +142,13 @@ export default [
         path: 'my-demands',
         name: 'MyDemands',
         component: () => import('../../pages/user/my-demands.vue'),
-        meta: { title: '我的悬赏', icon: 'TrophyOutlined' }
+        meta: { title: '我的需求', icon: 'TrophyOutlined' }
       },
       {
         path: 'my-demand-detail/:id',
         name: 'MyDemandDetail',
         component: () => import('../../pages/user/my-demand-detail.vue'),
-        meta: { title: '我的悬赏详情' }
+        meta: { title: '我的需求详情' }
       },
       {
         path: 'my-forum',

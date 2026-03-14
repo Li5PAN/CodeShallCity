@@ -1,7 +1,7 @@
 <template>
   <div class="my-demands-page">
     <div class="page-header">
-      <h2 class="page-title">我的悬赏2223</h2>
+      <h2 class="page-title">我的需求</h2>
       <a-button type="primary" style="background:#52c41a;border-color:#52c41a" @click="openDrawer()">
         <PlusOutlined /> 发布悬赏
       </a-button>
@@ -40,7 +40,7 @@
           <div class="demand-desc">{{ item.desc }}</div>
           <div class="demand-tags">
             <a-tag size="small" color="orange">{{ item.category }}</a-tag>
-            <a-tag v-for="tag in item.tags" :key="tag" size="small">{{ tag }}</a-tag>
+            <a-tag size="small" :color="getUrgencyColor(item.urgency)">{{ item.urgency }}</a-tag>
           </div>
           <div class="demand-meta">
             <span>发布时间：{{ item.publishTime }}</span>
@@ -49,7 +49,7 @@
           </div>
         </div>
         <div class="demand-right">
-          <div class="demand-budget">¥ {{ item.budget }}</div>
+          <div class="demand-budget">¥ {{ item.budgetMin }} ~ ¥ {{ item.budgetMax }}</div>
           <div class="demand-status">
             <a-badge :status="statusMap[item.status].badge" :text="statusMap[item.status].text" />
           </div>
@@ -80,17 +80,31 @@
           </a-select>
         </a-form-item>
         <a-form-item label="悬赏金额（元）" required>
-          <a-input-number v-model:value="form.budget" :min="100" :max="999999" style="width:100%" placeholder="请输入金额" />
-        </a-form-item>
-        <a-form-item label="截止时间">
-          <a-date-picker v-model:value="form.deadline" style="width:100%" placeholder="请选择截止日期" />
-        </a-form-item>
-        <a-form-item label="技术标签">
-          <div class="tag-input-wrap">
-            <a-tag v-for="tag in form.tags" :key="tag" closable @close="removeTag(tag)" color="orange">{{ tag }}</a-tag>
-            <a-input v-if="tagInputVisible" ref="tagInputRef" v-model:value="tagInputValue" size="small" style="width:80px" @blur="confirmTag" @keyup.enter="confirmTag" />
-            <a-tag v-else-if="form.tags.length < 5" style="cursor:pointer;border-style:dashed" @click="showTagInput"><PlusOutlined /> 添加</a-tag>
+          <div style="display:flex;gap:8px;align-items:center">
+            <a-input-number v-model:value="form.budgetMin" :min="100" :max="999999" style="flex:1" placeholder="最小金额" />
+            <span>~</span>
+            <a-input-number v-model:value="form.budgetMax" :min="100" :max="999999" style="flex:1" placeholder="最大金额" />
           </div>
+        </a-form-item>
+        <a-row :gutter="16">
+          <a-col :span="12">
+            <a-form-item label="发布时间">
+              <a-date-picker v-model:value="form.publishDate" style="width:100%" placeholder="请选择发布日期" format="YYYY-MM-DD" valueFormat="YYYY-MM-DD" />
+            </a-form-item>
+          </a-col>
+          <a-col :span="12">
+            <a-form-item label="截止时间">
+              <a-date-picker v-model:value="form.deadline" style="width:100%" placeholder="请选择截止日期" format="YYYY-MM-DD" valueFormat="YYYY-MM-DD" />
+            </a-form-item>
+          </a-col>
+        </a-row>
+        <a-form-item label="紧急程度">
+          <a-radio-group v-model:value="form.urgency">
+            <a-radio-button value="非常紧急">非常紧急</a-radio-button>
+            <a-radio-button value="紧急">紧急</a-radio-button>
+            <a-radio-button value="一般">一般</a-radio-button>
+            <a-radio-button value="不紧急">不紧急</a-radio-button>
+          </a-radio-group>
         </a-form-item>
       </a-form>
       <template #footer>
@@ -106,7 +120,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, nextTick, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { PlusOutlined, TrophyOutlined } from '@ant-design/icons-vue'
@@ -117,9 +131,6 @@ const statusFilter = ref('all')
 const searchKeyword = ref('')
 const drawerVisible = ref(false)
 const editingItem = ref(null)
-const tagInputVisible = ref(false)
-const tagInputValue = ref('')
-const tagInputRef = ref(null)
 
 const categories = ['人工智能', 'Java', 'Python', 'Vue/React', '移动开发', '数据库', '运维部署', '大数据', '其他']
 
@@ -138,13 +149,13 @@ const statCards = ref([
 ])
 
 const demands = ref([
-  { id: 1, title: 'MiniMax-M2.1 智能客服系统开发', desc: '需要基于MiniMax大模型开发一套智能客服系统，支持多轮对话、意图识别、知识库接入', budget: '3800.00', category: '人工智能', tags: ['Python', 'LLM'], status: 'open', applyCount: 12, publishTime: '2026-03-03', deadline: '2026-03-31', auditStatus: 'approved', auditRemark: '-' },
-  { id: 2, title: 'React Native 跨平台移动端应用开发', desc: '开发一款电商类App，需要支持iOS和Android双端，包含商品浏览、购物车、支付功能', budget: '12000.00', category: '移动开发', tags: ['React Native', 'TypeScript'], status: 'progress', applyCount: 7, publishTime: '2026-02-28', deadline: '2026-04-15', auditStatus: 'approved', auditRemark: '-' },
-  { id: 3, title: 'MySQL 数据库性能优化咨询', desc: '现有系统查询慢，需要专业DBA对数据库进行诊断和优化，提供优化报告', budget: '2000.00', category: '数据库', tags: ['MySQL', '性能优化'], status: 'done', applyCount: 5, publishTime: '2026-02-10', deadline: '2026-02-28', auditStatus: 'approved', auditRemark: '-' },
-  { id: 4, title: 'Vue3 后台管理系统开发', desc: '基于Vue3+Element Plus开发一套通用后台管理系统，包含权限管理、数据可视化', budget: '8000.00', category: 'Vue/React', tags: ['Vue3', 'TypeScript'], status: 'open', applyCount: 9, publishTime: '2026-03-01', deadline: '2026-04-01', auditStatus: 'rejected', auditRemark: '需求描述不够详细，请补充具体的功能模块和技术要求' }
+  { id: 1, title: 'MiniMax-M2.1 智能客服系统开发', desc: '需要基于MiniMax大模型开发一套智能客服系统，支持多轮对话、意图识别、知识库接入', budgetMin: 3000, budgetMax: 5000, category: '人工智能', urgency: '紧急', status: 'open', applyCount: 12, publishTime: '2026-03-03', deadline: '2026-03-31', auditStatus: 'approved', auditRemark: '-' },
+  { id: 2, title: 'React Native 跨平台移动端应用开发', desc: '开发一款电商类App，需要支持iOS和Android双端，包含商品浏览、购物车、支付功能', budgetMin: 10000, budgetMax: 15000, category: '移动开发', urgency: '一般', status: 'progress', applyCount: 7, publishTime: '2026-02-28', deadline: '2026-04-15', auditStatus: 'approved', auditRemark: '-' },
+  { id: 3, title: 'MySQL 数据库性能优化咨询', desc: '现有系统查询慢，需要专业DBA对数据库进行诊断和优化，提供优化报告', budgetMin: 1500, budgetMax: 2500, category: '数据库', urgency: '一般', status: 'done', applyCount: 5, publishTime: '2026-02-10', deadline: '2026-02-28', auditStatus: 'approved', auditRemark: '-' },
+  { id: 4, title: 'Vue3 后台管理系统开发', desc: '基于Vue3+Element Plus开发一套通用后台管理系统，包含权限管理、数据可视化', budgetMin: 6000, budgetMax: 10000, category: 'Vue/React', urgency: '紧急', status: 'open', applyCount: 9, publishTime: '2026-03-01', deadline: '2026-04-01', auditStatus: 'rejected', auditRemark: '需求描述不够详细，请补充具体的功能模块和技术要求' }
 ])
 
-const form = reactive({ title: '', desc: '', category: undefined, budget: null, deadline: null, tags: [] })
+const form = reactive({ title: '', desc: '', category: undefined, budgetMin: null, budgetMax: null, publishDate: null, deadline: null, urgency: '一般' })
 
 const filteredList = computed(() => {
   let list = demands.value
@@ -155,21 +166,22 @@ const filteredList = computed(() => {
 
 const openDrawer = (item = null) => {
   editingItem.value = item
-  if (item) Object.assign(form, { title: item.title, desc: item.desc, category: item.category, budget: parseFloat(item.budget), deadline: null, tags: [...item.tags] })
-  else Object.assign(form, { title: '', desc: '', category: undefined, budget: null, deadline: null, tags: [] })
+  if (item) Object.assign(form, { title: item.title, desc: item.desc, category: item.category, budgetMin: item.budgetMin, budgetMax: item.budgetMax, publishDate: item.publishTime, deadline: item.deadline, urgency: item.urgency })
+  else Object.assign(form, { title: '', desc: '', category: undefined, budgetMin: null, budgetMax: null, publishDate: null, deadline: null, urgency: '一般' })
   drawerVisible.value = true
 }
 
 const handleSubmit = () => {
   if (!form.title.trim()) { message.warning('请输入悬赏标题'); return }
   if (!form.category) { message.warning('请选择需求分类'); return }
-  if (!form.budget) { message.warning('请输入悬赏金额'); return }
+  if (!form.budgetMin || !form.budgetMax) { message.warning('请输入悬赏金额区间'); return }
+  if (form.budgetMin > form.budgetMax) { message.warning('最小金额不能大于最大金额'); return }
   if (editingItem.value) {
     const idx = demands.value.findIndex(d => d.id === editingItem.value.id)
-    if (idx !== -1) Object.assign(demands.value[idx], { title: form.title, desc: form.desc, category: form.category, budget: form.budget.toFixed(2), tags: [...form.tags] })
+    if (idx !== -1) Object.assign(demands.value[idx], { title: form.title, desc: form.desc, category: form.category, budgetMin: form.budgetMin, budgetMax: form.budgetMax, urgency: form.urgency, publishTime: form.publishDate || demands.value[idx].publishTime, deadline: form.deadline || demands.value[idx].deadline })
     message.success('修改已保存')
   } else {
-    demands.value.unshift({ id: Date.now(), title: form.title, desc: form.desc, budget: form.budget.toFixed(2), category: form.category, tags: [...form.tags], status: 'open', applyCount: 0, publishTime: new Date().toISOString().slice(0, 10), deadline: '待定' })
+    demands.value.unshift({ id: Date.now(), title: form.title, desc: form.desc, budgetMin: form.budgetMin, budgetMax: form.budgetMax, category: form.category, urgency: form.urgency, status: 'open', applyCount: 0, publishTime: form.publishDate || new Date().toISOString().slice(0, 10), deadline: form.deadline || '待定' })
     statCards.value[0].value++
     statCards.value[1].value++
     message.success('悬赏发布成功')
@@ -183,13 +195,10 @@ const deleteItem = (id) => {
   message.success('已删除')
 }
 
-const showTagInput = () => { tagInputVisible.value = true; nextTick(() => tagInputRef.value?.focus()) }
-const confirmTag = () => {
-  const val = tagInputValue.value.trim()
-  if (val && !form.tags.includes(val)) form.tags.push(val)
-  tagInputVisible.value = false; tagInputValue.value = ''
+const getUrgencyColor = (urgency) => {
+  const colorMap = { '非常紧急': 'red', '紧急': 'orange', '一般': 'blue', '不紧急': 'default' }
+  return colorMap[urgency] || 'default'
 }
-const removeTag = (tag) => { form.tags = form.tags.filter(t => t !== tag) }
 
 onMounted(() => { if (route.query.action === 'create') openDrawer() })
 </script>

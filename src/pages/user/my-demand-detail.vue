@@ -2,7 +2,7 @@
   <div class="my-demand-detail-page">
     <div class="page-header">
       <a-button @click="$router.back()" type="text" class="back-btn">
-        <LeftOutlined /> 返回我的悬赏
+        <LeftOutlined /> 返回我的需求
       </a-button>
     </div>
 

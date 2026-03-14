@@ -109,7 +109,7 @@
                     <div class="create-box-icons">
                       <div class="create-box-item" @click="createPopoverVisible = false; router.push('/user/write-article')"><EditOutlined class="create-box-icon" /><span>写文章</span></div>
                       <div v-if="userRole === 'provider'" class="create-box-item" @click="createPopoverVisible = false; router.push('/user/my-services')"><CodeOutlined class="create-box-icon" /><span>我的服务</span></div>
-                      <div class="create-box-item" @click="createPopoverVisible = false; router.push('/user/my-demands')"><FileTextOutlined class="create-box-icon" /><span>我的悬赏</span></div>
+                      <div class="create-box-item" @click="createPopoverVisible = false; router.push('/user/my-demands')"><FileTextOutlined class="create-box-icon" /><span>我的需求</span></div>
                       <div class="create-box-item" @click="createPopoverVisible = false; router.push('/user/my-forum')"><CommentOutlined class="create-box-icon" /><span>我的论坛</span></div>
                       <div v-if="userRole === 'provider'" class="create-box-item" @click="createPopoverVisible = false; router.push('/user/order-manage')"><LockOutlined class="create-box-icon" /><span>订单管理</span></div>
                     </div>

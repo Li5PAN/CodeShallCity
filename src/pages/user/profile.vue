@@ -75,7 +75,7 @@
               </div>
             </a-tab-pane>
 
-            <a-tab-pane key="demand" tab="我的悬赏">
+            <a-tab-pane key="demand" tab="我的需求">
               <div class="content-list">
                 <div class="content-item" v-for="item in myDemands" :key="item.id" @click="goDemandDetail(item.id)">
                   <div class="content-item-info">
