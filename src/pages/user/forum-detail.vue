@@ -20,6 +20,10 @@
             <span><StarOutlined /> {{ article.collectCount }} 收藏</span>
             <span><MessageOutlined /> {{ article.commentCount }} 评论</span>
           </div>
+          <div class="article-forum-info">
+            <span class="forum-label">论坛分类</span>
+            <span class="forum-detail">{{ article.forumName }} {{ article.forumArticleCount }}篇文章</span>
+          </div>
         </div>
 
         <!-- 文章正文 -->
@@ -124,6 +128,7 @@ const articleMap = {
     author: 'bkspiderx', authorArticles: 42, authorFans: 1280, authorLikes: 3600,
     publishTime: '2026-02-20 10:30', category: '操作系统',
     readCount: 1500, likeCount: 34, collectCount: 11, commentCount: 8,
+    forumName: '操作系统技术交流', forumArticleCount: 8,
     content: [
       { type: 'h2', text: '一、什么是CPU调度？' },
       { type: 'p', text: 'CPU调度是操作系统的核心功能之一，负责决定哪个进程在何时使用CPU资源。在多任务操作系统中，多个进程同时竞争CPU，调度器需要在它们之间合理分配CPU时间，以达到最优的系统性能。' },
@@ -156,6 +161,7 @@ while (ready_queue not empty) {
     author: 'Agent学习路线', authorBio: 'AI技术布道者，专注大模型应用开发', authorArticles: 88, authorFans: 5600, authorLikes: 12000,
     publishTime: '2026-02-25 14:00', category: '人工智能',
     readCount: 1500, likeCount: 47, collectCount: 14, commentCount: 12,
+    forumName: 'AI大模型技术论坛', forumArticleCount: 15,
     content: [
       { type: 'h2', text: '一、为什么要学习AI大模型？' },
       { type: 'p', text: '2025年，AI大模型已经渗透到各行各业。无论是软件开发、内容创作还是数据分析，掌握大模型技术都将成为核心竞争力。' },
@@ -215,6 +221,9 @@ const submitComment = () => {
 .publish-time { font-size: 13px; color: #999; }
 .article-stats { display: flex; gap: 20px; font-size: 13px; color: #999; padding-top: 12px; border-top: 1px solid #f0f0f0; }
 .article-stats span { display: flex; align-items: center; gap: 4px; }
+.article-forum-info { display: flex; align-items: center; gap: 12px; font-size: 13px; color: #666; padding-top: 10px; border-top: 1px solid #f0f0f0; margin-top: 12px; }
+.forum-label { color: #1890ff; font-weight: 500; }
+.forum-detail { color: #666; }
 
 .article-body { background: #fff; border-radius: 8px; padding: 28px 32px; line-height: 1.9; }
 .article-body h2 { font-size: 20px; font-weight: 700; color: #1a1a1a; margin: 28px 0 14px; padding-left: 12px; border-left: 4px solid #1890ff; }

@@ -1,18 +1,22 @@
 <template>
   <div class="write-page">
-    <!-- 顶部工具栏 -->
-    <div class="write-header">
+    <!-- 顶部操作栏 -->
+    <div class="write-toolbar">
+      <div class="toolbar-actions">
+        <a-button @click="handleSaveDraft" :loading="saving">保存草稿</a-button>
+        <a-button type="primary" style="background:#52c41a;border-color:#52c41a" @click="publishDrawerVisible = true">发布文章</a-button>
+        <a-button type="text" @click="router.back()"><CloseOutlined /></a-button>
+      </div>
+    </div>
+
+    <!-- 标题输入 -->
+    <div class="write-title-bar">
       <input
         v-model="title"
         class="title-input"
         placeholder="输入文章标题..."
         maxlength="100"
       />
-      <div class="header-actions">
-        <a-button @click="handleSaveDraft" :loading="saving">保存草稿</a-button>
-        <a-button type="primary" style="background:#52c41a;border-color:#52c41a" @click="publishDrawerVisible = true">发布文章</a-button>
-        <a-button type="text" @click="router.back()"><CloseOutlined /></a-button>
-      </div>
     </div>
 
     <!-- 编辑器区域 -->
@@ -73,24 +77,7 @@
             </div>
           </div>
           <input ref="coverInputRef" type="file" accept="image/*" style="display:none" @change="onCoverChange" />
-        </a-form-item>
-
-        <a-form-item label="文章摘要">
-          <a-textarea
-            v-model:value="publishForm.summary"
-            :rows="4"
-            placeholder="请输入文章摘要，不填则自动截取正文内容"
-            :maxlength="200"
-            show-count
-          />
-        </a-form-item>
-
-        <a-form-item label="发布设置">
-          <a-radio-group v-model:value="publishForm.visibility">
-            <a-radio value="public">公开</a-radio>
-            <a-radio value="private">仅自己可见</a-radio>
-          </a-radio-group>
-        </a-form-item>
+        </a-form-item> 
       </a-form>
 
       <template #footer>
@@ -239,18 +226,25 @@ const onCoverChange = (e) => {
   overflow: hidden;
 }
 
-.write-header {
+/* 顶部操作栏 */
+.write-toolbar {
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 0 24px;
-  height: 56px;
+  justify-content: flex-end;
+  padding: 10px 24px;
   border-bottom: 1px solid #f0f0f0;
   flex-shrink: 0;
 }
+.toolbar-actions { display: flex; align-items: center; gap: 8px; }
 
+/* 标题输入 */
+.write-title-bar {
+  padding: 12px 24px;
+  border-bottom: 1px solid #f0f0f0;
+  flex-shrink: 0;
+}
 .title-input {
-  flex: 1;
+  width: 100%;
   border: none;
   outline: none;
   font-size: 22px;
@@ -258,15 +252,7 @@ const onCoverChange = (e) => {
   color: #333;
   background: transparent;
 }
-
 .title-input::placeholder { color: #ccc; }
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
-}
 
 .write-body {
   flex: 1;

@@ -24,7 +24,7 @@
 
     <!-- 订单分类 -->
     <a-tabs v-model:activeKey="activeTab" class="order-tabs">
-      <a-tab-pane key="service" tab="服务市场订单">
+      <a-tab-pane key="service" tab="服务商品订单">
         <div class="order-list">
           <div v-if="serviceOrders.length === 0" class="empty-state">
             <InboxOutlined class="empty-icon" />
@@ -55,10 +55,8 @@
               <div class="order-right">
                 <div class="order-price">¥ {{ order.price }}</div>
                 <div class="order-qty">x {{ order.quantity }}</div>
-                <div class="order-total">合计<span>¥ {{ (order.price * order.quantity).toFixed(2) }}</span></div>
                 <div class="order-actions">
                   <a-button size="small" type="link" @click="viewServiceDetail(order.serviceId)">查看详情</a-button>
-                  <a-button v-if="order.status === '已完成'" size="small" type="link">评价</a-button>
                 </div>
               </div>
             </div>
@@ -127,7 +125,7 @@ const statusColorMap = {
   '已取消': 'default'
 }
 
-// 服务市场订单
+// 服务商品订单
 const serviceOrders = ref([
   {
     id: 1, 

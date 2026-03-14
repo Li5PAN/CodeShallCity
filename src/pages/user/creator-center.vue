@@ -151,6 +151,20 @@
           </div>
           <input ref="serviceCoverRef" type="file" accept="image/*" style="display:none" @change="onServiceCoverChange" />
         </a-form-item>
+        <a-form-item label="附图商品图">
+          <div class="goods-images">
+            <div class="goods-img-item" v-for="(img, idx) in serviceForm.goodsImages" :key="idx">
+              <img :src="img" class="goods-img-preview" />
+              <div class="goods-img-remove" @click="serviceForm.goodsImages.splice(idx, 1)"><CloseCircleOutlined /></div>
+            </div>
+            <div v-if="serviceForm.goodsImages.length < 9" class="goods-img-add" @click="goodsImgInputRef?.click()">
+              <PlusOutlined style="font-size:24px;color:#ccc" />
+              <span>上传图片</span>
+            </div>
+          </div>
+          <input ref="goodsImgInputRef" type="file" accept="image/*" multiple style="display:none" @change="onGoodsImgChange" />
+          <div style="font-size:12px;color:#bbb;margin-top:4px">最多上传9张商品图片</div>
+        </a-form-item>
         <a-form-item label="服务详情">
           <a-textarea v-model:value="serviceForm.detail" :rows="6" placeholder="详细描述服务内容、交付物、服务流程等" :maxlength="2000" show-count />
         </a-form-item>
@@ -284,9 +298,9 @@ import {
   EditOutlined, TrophyOutlined, ShopOutlined, EyeOutlined,
   ShoppingCartOutlined, TeamOutlined, NotificationOutlined,
   SafetyCertificateOutlined, CheckCircleOutlined,
-  FileTextOutlined, StarOutlined, PlusOutlined, PictureOutlined
+  FileTextOutlined, StarOutlined, PlusOutlined, PictureOutlined,
+  CloseCircleOutlined
 } from '@ant-design/icons-vue'
-
 import DemandPublishModal from '../../components/DemandPublishModal.vue'
 
 const router = useRouter()
@@ -306,14 +320,26 @@ const serviceTagVisible = ref(false)
 const serviceTagValue = ref('')
 const serviceTagRef = ref(null)
 const serviceCategories = ['人工智能', 'Java', 'Python', 'Vue/React', '移动开发', '数据库', '运维部署', '大数据', '区块链', '其他']
-const serviceForm = reactive({ title: '', desc: '', category: undefined, price: null, deliveryDays: 7, tags: [], detail: '', coverUrl: '' })
+const serviceForm = reactive({ title: '', desc: '', category: undefined, price: null, deliveryDays: 7, tags: [], detail: '', coverUrl: '', goodsImages: [] })
 const serviceCoverRef = ref(null)
+const goodsImgInputRef = ref(null)
+
 const onServiceCoverChange = (e) => {
   const file = e.target.files[0]
   if (!file) return
   const reader = new FileReader()
   reader.onload = (ev) => { serviceForm.coverUrl = ev.target.result }
   reader.readAsDataURL(file)
+}
+const onGoodsImgChange = (e) => {
+  const files = Array.from(e.target.files)
+  const remaining = 9 - serviceForm.goodsImages.length
+  files.slice(0, remaining).forEach(f => {
+    const r = new FileReader()
+    r.onload = (ev) => { serviceForm.goodsImages.push(ev.target.result) }
+    r.readAsDataURL(f)
+  })
+  e.target.value = ''
 }
 const confirmServiceTag = () => {
   const val = serviceTagValue.value.trim()
@@ -325,7 +351,7 @@ const submitService = () => {
   if (!serviceForm.category) { message.warning('请选择服务分类'); return }
   if (!serviceForm.price) { message.warning('请输入服务价格'); return }
   serviceModalVisible.value = false
-  Object.assign(serviceForm, { title: '', desc: '', category: undefined, price: null, deliveryDays: 7, tags: [], detail: '', coverUrl: '' })
+  Object.assign(serviceForm, { title: '', desc: '', category: undefined, price: null, deliveryDays: 7, tags: [], detail: '', coverUrl: '', goodsImages: [] })
   message.success('已提交审核，审核通过后自动上架')
 }
 
@@ -393,8 +419,6 @@ const submitApply = () => {
 
 <style scoped>
 .creator-page { width: 100%; }
-
-/* 公告栏 */
 .notice-bar { background: #fff; border-radius: 8px; padding: 0 16px; margin-bottom: 16px; height: 44px; display: flex; align-items: center; overflow: hidden; }
 .notice-bar :deep(.ant-carousel) { width: 100%; }
 .notice-bar :deep(.slick-slide) { height: 44px; display: flex !important; align-items: center; }
@@ -403,32 +427,22 @@ const submitApply = () => {
 .notice-tag { background: #fff7e6; color: #fa8c16; border: 1px solid #ffd591; border-radius: 4px; padding: 1px 6px; font-size: 11px; flex-shrink: 0; }
 .notice-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .notice-time { color: #bbb; font-size: 12px; flex-shrink: 0; }
-
-/* 布局 */
 .creator-body { display: flex; gap: 16px; align-items: flex-start; }
 .creator-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 16px; }
 .creator-side { width: 260px; flex-shrink: 0; display: flex; flex-direction: column; gap: 16px; }
-
-/* 卡片 */
 .creator-card { background: #fff; border-radius: 8px; padding: 20px; }
 .card-title { font-size: 15px; font-weight: 600; color: #333; margin-bottom: 16px; }
 .card-title-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
-
-/* 快捷发布 */
 .publish-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .publish-item { display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 20px 12px; border: 1px solid #f0f0f0; border-radius: 8px; cursor: pointer; transition: all 0.2s; text-align: center; }
 .publish-item:hover { border-color: #52c41a; box-shadow: 0 2px 8px rgba(82,196,26,0.15); transform: translateY(-2px); }
 .publish-icon-wrap { width: 56px; height: 56px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
 .publish-label { font-size: 15px; font-weight: 600; color: #333; }
 .publish-desc { font-size: 12px; color: #999; line-height: 1.4; }
-
-/* 数据统计 */
 .data-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
 .data-item { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 14px; background: #fafafa; border-radius: 8px; }
 .data-num { font-size: 20px; font-weight: 700; }
 .data-label { font-size: 12px; color: #999; }
-
-/* 最近发布 */
 .recent-list { display: flex; flex-direction: column; }
 .recent-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #f5f5f5; }
 .recent-item:last-child { border-bottom: none; }
@@ -437,8 +451,6 @@ const submitApply = () => {
 .recent-meta { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #bbb; }
 .recent-stats { display: flex; gap: 12px; font-size: 12px; color: #bbb; flex-shrink: 0; }
 .empty-state { padding: 24px; text-align: center; color: #ccc; font-size: 13px; }
-
-/* 服务提供者 */
 .provider-card { border: 1px solid #b7eb8f; background: linear-gradient(135deg, #f6ffed 0%, #fff 100%); }
 .provider-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
 .provider-icon { font-size: 32px; color: #52c41a; }
@@ -446,8 +458,6 @@ const submitApply = () => {
 .provider-sub { font-size: 12px; color: #999; margin-top: 2px; }
 .provider-benefits { display: flex; flex-direction: column; gap: 8px; }
 .benefit-item { font-size: 13px; color: #555; display: flex; align-items: center; gap: 6px; }
-
-/* 申请弹窗 */
 .apply-modal { max-height: 60vh; overflow-y: auto; padding-right: 4px; }
 .form-section-title { font-size: 14px; font-weight: 600; color: #333; margin: 16px 0 12px; padding-left: 8px; border-left: 3px solid #52c41a; }
 .form-section-title:first-child { margin-top: 0; }
@@ -456,4 +466,10 @@ const submitApply = () => {
 .cover-upload:hover { border-color: #52c41a; }
 .cover-preview { width: 100%; height: 100%; object-fit: cover; }
 .cover-placeholder { display: flex; flex-direction: column; align-items: center; gap: 8px; color: #bbb; font-size: 13px; }
+.goods-images { display: flex; flex-wrap: wrap; gap: 8px; }
+.goods-img-item { position: relative; width: 100px; height: 100px; border-radius: 6px; overflow: hidden; border: 1px solid #f0f0f0; }
+.goods-img-preview { width: 100%; height: 100%; object-fit: cover; }
+.goods-img-remove { position: absolute; top: 2px; right: 2px; cursor: pointer; color: #ff4d4f; font-size: 16px; background: rgba(255,255,255,0.8); border-radius: 50%; line-height: 1; }
+.goods-img-add { width: 100px; height: 100px; border: 1px dashed #d9d9d9; border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; color: #bbb; font-size: 12px; transition: border-color 0.2s; }
+.goods-img-add:hover { border-color: #52c41a; }
 </style>

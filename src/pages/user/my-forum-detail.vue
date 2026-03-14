@@ -20,6 +20,10 @@
             <span><StarOutlined /> {{ article.collectCount }} 收藏</span>
             <span><MessageOutlined /> {{ article.commentCount }} 评论</span>
           </div>
+          <div class="article-forum-info">
+            <span class="forum-label">论坛分类</span>
+            <span class="forum-detail">{{ article.forumName }} {{ article.forumArticleCount }}篇文章</span>
+          </div>
         </div>
 
         <!-- 文章正文 -->
@@ -80,30 +84,8 @@
 
       <!-- 右侧边栏 -->
       <div class="article-sidebar">
-        <!-- 作者信息 -->
-        <div class="sidebar-card author-card">
-          <a-avatar :size="56" style="background-color: #1890ff; display: block; margin: 0 auto 12px">{{ article.author[0] }}</a-avatar>
-          <div class="author-name-center">{{ article.author }}</div>
-          <div class="author-bio">{{ article.authorBio }}</div>
-          <div class="author-stats">
-            <div class="author-stat-item">
-              <div class="stat-num">{{ article.authorArticles }}</div>
-              <div class="stat-label">文章</div>
-            </div>
-            <div class="author-stat-item">
-              <div class="stat-num">{{ article.authorFans }}</div>
-              <div class="stat-label">粉丝</div>
-            </div>
-            <div class="author-stat-item">
-              <div class="stat-num">{{ article.authorLikes }}</div>
-              <div class="stat-label">获赞</div>
-            </div>
-          </div>
-          <a-button block style="margin-top: 12px" :type="isFollowing ? 'default' : 'primary'" @click="isFollowing = !isFollowing">
-            {{ isFollowing ? '✓ 已关注' : '+ 关注' }}
-          </a-button>
-
-          <!-- 审核信息 -->
+        <!-- 审核信息 -->
+        <div class="sidebar-card review-card">
           <div class="review-info">
             <div class="review-item">
               <span class="review-label">审核状态：</span>
@@ -138,7 +120,6 @@ const articleId = computed(() => props.id || 1)
 const liked = ref(false)
 const collected = ref(false)
 const commentText = ref('')
-const isFollowing = ref(false)
 
 const reviewStatusMap = {
   pending: { text: '待审核', color: 'orange' },
@@ -160,6 +141,7 @@ const articleMap = {
     likeCount: 34, 
     collectCount: 11, 
     commentCount: 8,
+    forumName: '操作系统技术交流', forumArticleCount: 8,
     reviewStatus: 'approved',
     reviewRemark: '内容质量优秀，技术深度到位',
     reviewTime: '2026-02-20 09:15',
@@ -203,6 +185,7 @@ while (ready_queue not empty) {
     likeCount: 67,
     collectCount: 23,
     commentCount: 15,
+    forumName: 'Vue前端技术论坛', forumArticleCount: 12,
     reviewStatus: 'approved',
     reviewRemark: '实践案例丰富，对开发者很有帮助',
     reviewTime: '2026-02-25 10:20',
@@ -228,6 +211,7 @@ while (ready_queue not empty) {
     likeCount: 0,
     collectCount: 0,
     commentCount: 0,
+    forumName: 'Java后端技术论坛', forumArticleCount: 6,
     reviewStatus: 'pending',
     reviewRemark: '',
     reviewTime: '',
@@ -253,6 +237,7 @@ while (ready_queue not empty) {
     likeCount: 0,
     collectCount: 0,
     commentCount: 0,
+    forumName: '运维技术论坛', forumArticleCount: 10,
     reviewStatus: 'rejected',
     reviewRemark: '部分技术细节描述不够准确，建议补充实际案例和最佳实践',
     reviewTime: '2026-02-16 14:30',
@@ -305,6 +290,9 @@ const submitComment = () => {
 .publish-time { font-size: 13px; color: #999; }
 .article-stats { display: flex; gap: 20px; font-size: 13px; color: #999; padding-top: 12px; border-top: 1px solid #f0f0f0; }
 .article-stats span { display: flex; align-items: center; gap: 4px; }
+.article-forum-info { display: flex; align-items: center; gap: 12px; font-size: 13px; color: #666; padding-top: 10px; border-top: 1px solid #f0f0f0; margin-top: 12px; }
+.forum-label { color: #1890ff; font-weight: 500; }
+.forum-detail { color: #666; }
 
 .article-body { background: #fff; border-radius: 8px; padding: 28px 32px; line-height: 1.9; }
 .article-body h2 { font-size: 20px; font-weight: 700; color: #1a1a1a; margin: 28px 0 14px; padding-left: 12px; border-left: 4px solid #1890ff; }
@@ -341,16 +329,8 @@ const submitComment = () => {
 .article-sidebar { width: 260px; flex-shrink: 0; display: flex; flex-direction: column; gap: 16px; position: sticky; top: 16px; }
 .sidebar-card { background: #fff; border-radius: 8px; padding: 16px; }
 
-.author-card { text-align: center; }
-.author-name-center { font-size: 15px; font-weight: 600; color: #333; margin-bottom: 6px; }
-.author-bio { font-size: 12px; color: #999; margin-bottom: 12px; }
-.author-stats { display: flex; justify-content: space-around; padding: 12px 0; border-top: 1px solid #f0f0f0; border-bottom: 1px solid #f0f0f0; }
-.author-stat-item { text-align: center; }
-.stat-num { font-size: 16px; font-weight: 700; color: #333; }
-.stat-label { font-size: 11px; color: #999; }
-
 /* 审核信息 */
-.review-info { margin-top: 16px; padding-top: 16px; border-top: 1px solid #f0f0f0; text-align: left; }
+.review-card { text-align: left; }
 .review-item { margin-bottom: 10px; font-size: 13px; }
 .review-item:last-child { margin-bottom: 0; }
 .review-label { color: #666; font-weight: 500; display: inline-block; min-width: 70px; }

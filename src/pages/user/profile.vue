@@ -52,7 +52,7 @@
                       <span class="content-item-time">{{ item.publishTime }}</span>
                     </div>
                   </div>
-                  <a-tag :color="item.status === '已发布' ? 'green' : 'orange'" size="small">{{ item.status }}</a-tag>
+                  <a-tag :color="articleStatusMap[item.status]?.color || 'default'" size="small">{{ articleStatusMap[item.status]?.text || item.status }}</a-tag>
                 </div>
                 <div v-if="myArticles.length === 0" class="empty-state">暂无文章，去创作中心写一篇吧</div>
               </div>
@@ -70,6 +70,7 @@
                     </div>
                   </div>
                   <div class="content-item-price">¥ {{ item.price }}</div>
+                  <a-tag :color="serviceStatusMap[item.status]?.color || 'default'" size="small">{{ serviceStatusMap[item.status]?.text || '-' }}</a-tag>
                 </div>
                 <div v-if="myServices.length === 0" class="empty-state">暂无服务，去创作中心发布吧</div>
               </div>
@@ -87,6 +88,7 @@
                     </div>
                   </div>
                   <div class="content-item-price">¥ {{ item.budget }}</div>
+                  <a-tag :color="demandStatusMap[item.status]?.color || 'default'" size="small">{{ demandStatusMap[item.status]?.text || '-' }}</a-tag>
                 </div>
                 <div v-if="myDemands.length === 0" class="empty-state">暂无悬赏需求</div>
               </div>
@@ -190,20 +192,41 @@ const shortcuts = [
 
 
 const myArticles = ref([
-  { id: 1, title: '深入解析CPU调度：操作系统的核心资源分配机制', readCount: '1.5k', likeCount: 34, commentCount: 12, publishTime: '2026-02-27', status: '已发布' },
-  { id: 2, title: 'Vue3 Composition API 最佳实践总结', readCount: '2.3k', likeCount: 67, commentCount: 23, publishTime: '2026-02-20', status: '已发布' },
-  { id: 3, title: 'Docker容器化部署实战指南', readCount: '890', likeCount: 21, commentCount: 8, publishTime: '2026-02-15', status: '草稿' }
+  { id: 1, title: '深入解析CPU调度：操作系统的核心资源分配机制', readCount: '1.5k', likeCount: 34, commentCount: 12, publishTime: '2026-02-27', status: 'PUBLISHED' },
+  { id: 2, title: 'Vue3 Composition API 最佳实践总结', readCount: '2.3k', likeCount: 67, commentCount: 23, publishTime: '2026-02-20', status: 'PUBLISHED' },
+  { id: 3, title: 'Docker容器化部署实战指南', readCount: '890', likeCount: 21, commentCount: 8, publishTime: '2026-02-15', status: 'DRAFT' }
 ])
 
 const myServices = ref([
-  { id: 1, title: 'Java大厂面试课，一套搞定offer', price: 399, orders: 128, rating: '4.9', cover: 'https://placehold.co/60x45/FFD700/000000?text=Java', updateTime: '2026-02-25' },
-  { id: 2, title: 'Vue3 + TypeScript 企业级实战', price: 299, orders: 86, rating: '4.8', cover: 'https://placehold.co/60x45/42b883/FFFFFF?text=Vue3', updateTime: '2026-02-18' }
+  { id: 1, title: 'Java大厂面试课，一套搞定offer', price: 399, orders: 128, rating: '4.9', cover: 'https://placehold.co/60x45/FFD700/000000?text=Java', updateTime: '2026-02-25', status: 'PUBLISHED' },
+  { id: 2, title: 'Vue3 + TypeScript 企业级实战', price: 299, orders: 86, rating: '4.8', cover: 'https://placehold.co/60x45/42b883/FFFFFF?text=Vue3', updateTime: '2026-02-18', status: 'PENDING' }
 ])
 
 const myDemands = ref([
-  { id: 1, title: 'MiniMax-M2.1 智能客服系统开发', budget: '3800.00', type: '人工智能', applyCount: 12, publishTime: '2026-03-03' },
-  { id: 2, title: 'React Native 跨平台移动端应用', budget: '12000.00', type: '移动开发', applyCount: 7, publishTime: '2026-02-28' }
+  { id: 1, title: 'MiniMax-M2.1 智能客服系统开发', budget: '3800.00', type: '人工智能', applyCount: 12, publishTime: '2026-03-03', status: 'PENDING' },
+  { id: 2, title: 'React Native 跨平台移动端应用', budget: '12000.00', type: '移动开发', applyCount: 7, publishTime: '2026-02-28', status: 'PROCESSING' }
 ])
+
+// 状态映射
+const articleStatusMap = {
+  DRAFT: { text: '草稿', color: 'default' },
+  PENDING: { text: '审核中', color: 'orange' },
+  PUBLISHED: { text: '已发布', color: 'green' },
+  OFFLINE: { text: '已下架', color: 'red' }
+}
+const serviceStatusMap = {
+  DRAFT: { text: '草稿', color: 'default' },
+  PENDING: { text: '审核中', color: 'orange' },
+  PUBLISHED: { text: '已发布', color: 'green' },
+  OFFLINE: { text: '已下架', color: 'red' }
+}
+const demandStatusMap = {
+  PENDING: { text: '待接单', color: 'orange' },
+  PROCESSING: { text: '进行中', color: 'blue' },
+  COMPLETED: { text: '已完成', color: 'green' },
+  CLOSED: { text: '已关闭', color: 'default' },
+  CANCELLED: { text: '已取消', color: 'red' }
+}
 
 const goForumDetail = (id) => router.push({ name: 'MyForumDetail', params: { id } })
 const goServiceDetail = (id) => router.push({ name: 'ServiceDetail', params: { id }, query: { from: 'my-services' } })
