@@ -53,7 +53,7 @@ const getUrgencyColor = (urgency) => {
   const colorMap = {
     '紧急': 'orange',
     '一般': 'blue',
-    '不紧急': 'default'
+    '常规': 'default'
   }
   return colorMap[urgency] || 'default'
 }

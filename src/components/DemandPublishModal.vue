@@ -62,8 +62,8 @@ const visible = computed({
 })
 
 const categories = ['人工智能', 'Java', 'Python', 'Vue/React', '移动开发', '数据库', '运维部署', '大数据', '其他']
-const urgencyOptions = ['紧急', '一般', '不紧急']
-const urgencyColorMap = { '紧急': 'orange', '一般': 'blue', '不紧急': 'green' }
+const urgencyOptions = ['紧急', '一般', '常规']
+const urgencyColorMap = { '紧急': 'orange', '一般': 'blue', '常规': 'green' }
 
 const defaultForm = { title: '', desc: '', category: undefined, budgetMin: null, budgetMax: null, publishDate: null, deadline: null, urgency: '一般' }
 const form = reactive({ ...defaultForm })

@@ -192,7 +192,7 @@ const getUrgencyColor = (urgency) => {
   const colorMap = {
     '紧急': 'orange',
     '一般': 'blue',
-    '不紧急': 'default'
+    '常规': 'default'
   }
   return colorMap[urgency] || 'default'
 }
@@ -260,7 +260,7 @@ const demandMap = {
     budgetMax: 15000,
     description: '基于欧拉操作系统进行内核模块开发，需要熟悉Linux内核开发，提供完整的模块代码、测试报告及技术文档。',
     type: 'C',
-    urgency: '不紧急',
+    urgency: '常规',
     views: 3456,
     bids: 15,
     auditStatus: 'rejected',

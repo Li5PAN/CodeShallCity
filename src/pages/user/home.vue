@@ -83,7 +83,7 @@ const getUrgencyColor = (urgency) => {
   const colorMap = {
     '紧急': 'orange',
     '一般': 'blue',
-    '不紧急': 'default'
+    '常规': 'default'
   }
   return colorMap[urgency] || 'default'
 }
@@ -91,7 +91,7 @@ const getUrgencyColor = (urgency) => {
 const rewardList = ref([
   { id: 1, tag: '紧急', title: 'MiniMax-M2.1: MiniMax-AI开源大模型，赋能高效智能应用开发', desc: '基于最新AI技术，提供高效的智能应用开发解决方案，支持多种场景应用，帮助企业快速构建智能化系统', author: '李XXX' },
   { id: 2, tag: '一般', title: 'PaddleOCR-VL: 开源视觉语言OCR工具，多模态识别提升文档处理效率', desc: '专业的OCR识别工具开发需求，需要支持多语言识别和文档智能处理，提升企业文档数字化效率', author: '王哈哈'},
-  { id: 3, tag: '不紧急', title: 'CHATERMAI：开启云资源氛围管理新篇章！', desc: '云资源管理平台开发，需要实现资源监控、自动化部署、成本优化等功能，提升云资源使用效率', author: '向前开' }
+  { id: 3, tag: '常规', title: 'CHATERMAI：开启云资源氛围管理新篇章！', desc: '云资源管理平台开发，需要实现资源监控、自动化部署、成本优化等功能，提升云资源使用效率', author: '向前开' }
 ])
 
 const goToDemandBounty = () => {
