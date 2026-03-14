@@ -66,7 +66,6 @@
                     <div class="content-item-title">{{ item.title }}</div>
                     <div class="content-item-meta">
                       <span>订单 {{ item.orders }}</span>
-                      <span>评分 {{ item.rating }}</span>
                       <span class="content-item-time">{{ item.updateTime }}</span>
                     </div>
                   </div>
@@ -76,14 +75,14 @@
               </div>
             </a-tab-pane>
 
-            <a-tab-pane key="demand" tab="我的悬赏">
+            <a-tab-pane key="demand" tab="我的需求">
               <div class="content-list">
                 <div class="content-item" v-for="item in myDemands" :key="item.id" @click="goDemandDetail(item.id)">
                   <div class="content-item-info">
                     <div class="content-item-title">{{ item.title }}</div>
                     <div class="content-item-meta">
                       <a-tag size="small" color="orange">{{ item.type }}</a-tag>
-                      <span>报名 {{ item.applyCount }} 人</span>
+                      <span>投标 {{ item.applyCount }} 人</span>
                       <span class="content-item-time">{{ item.publishTime }}</span>
                     </div>
                   </div>

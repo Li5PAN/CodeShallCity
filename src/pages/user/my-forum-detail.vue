@@ -151,7 +151,6 @@ const articleMap = {
   1: {
     title: '深入解析CPU调度：操作系统的核心资源分配机制',
     author: 'bkspiderx', 
-    authorBio: '专注操作系统与底层技术研究', 
     authorArticles: 42, 
     authorFans: 1280, 
     authorLikes: 3600,

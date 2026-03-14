@@ -38,7 +38,7 @@
             </div>
             <div class="card-footer">
               <span class="price">¥ {{ item.price }}</span>
-              <span class="stats">好评�?00% 成交�?1000+</span>
+              <span class="stats">提供商:李XXX 成交:1000+</span>
             </div>
           </div>
         </a-card>

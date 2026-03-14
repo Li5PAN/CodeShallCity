@@ -59,10 +59,10 @@
             </div>
           </div>
 
-          <!-- 操作按钮 -->
-          <div class="action-row">
-            <a-button type="primary" size="large" class="join-btn" ghost>参与此需求</a-button>
-            <a-button size="large" class="similar-btn">发布类似需求</a-button>
+          <!-- 操作按钮：自己发布的需求不显示 -->
+          <div class="action-row" v-if="!fromMyDemands">
+            <a-button type="primary" size="large" class="join-btn" ghost @click="handleJoin" :disabled="hasJoined">{{ hasJoined ? '已参与' : '参与此需求' }}</a-button>
+            <a-button v-if="userRole === 'provider'" size="large" class="similar-btn">发布类似需求</a-button>
             <a-button v-if="!fromFavorites" size="large" :type="collected ? 'primary' : 'default'" @click="collected = !collected">
               <HeartOutlined /> {{ collected ? '已收藏' : '收藏' }}
             </a-button>
@@ -77,13 +77,11 @@
               <a-avatar :size="56" :style="{ backgroundColor: p.color }">{{ p.name[0] }}</a-avatar>
               <div class="provider-info">
                 <div class="provider-name">{{ p.name }}</div>
-                <div class="provider-desc">{{ p.desc }}</div>
                 <div class="provider-meta">
-                  <a-rate :value="p.star" disabled allow-half :style="{ fontSize: '12px' }" />
                   <span class="provider-orders">{{ p.orders }}单已完成</span>
                 </div>
               </div>
-              <a-button type="primary" size="small" ghost class="contact-btn">联系TA</a-button>
+              <a-button v-if="fromMyDemands" type="primary" size="small" ghost class="contact-btn">联系TA</a-button>
             </div>
           </div>
         </div>
@@ -132,6 +130,7 @@
 <script setup>
 import { ref, computed, inject } from 'vue'
 import { useRoute } from 'vue-router'
+import { Modal, message } from 'ant-design-vue'
 import { CheckCircleOutlined, SafetyOutlined, MoneyCollectOutlined, AuditOutlined, HeartOutlined, EyeOutlined, FileTextOutlined } from '@ant-design/icons-vue'
 
 const props = defineProps({ id: { type: Number, default: 1 }, from: { type: String, default: '' } })
@@ -139,9 +138,32 @@ const route = useRoute()
 const closeDetail = inject('closeDetail', () => {})
 
 const collected = ref(false)
+const userRole = ref(localStorage.getItem('userRole') || 'user')
 const fromFavorites = computed(() => props.from === 'favorites')
+
+const hasJoined = ref(false)
+
+const handleJoin = () => {
+  Modal.confirm({
+    title: '确认参与',
+    content: '确定要参与此需求吗？',
+    okText: '确定',
+    cancelText: '取消',
+    onOk() {
+      const username = localStorage.getItem('username') || '我'
+      providers.value.push({
+        id: Date.now(),
+        name: username,
+        orders: 0,
+        color: '#722ed1'
+      })
+      hasJoined.value = true
+      message.success('已成功参与此需求')
+    }
+  })
+}
 const fromMyDemands = computed(() => {
-  // 检查是否从"我的悬赏"进入：通过 query 参数或 props
+  // 检查是否从"我的需求"进入：通过 query 参数或 props
   return props.from === 'my-demands' || route.query.from === 'my-demands'
 })
 const demandId = computed(() => props.id || parseInt(route.params.id) || 1)
@@ -227,9 +249,9 @@ const demandMap = {
 const demand = computed(() => demandMap[demandId.value] || demandMap[1])
 
 const providers = ref([
-  { id: 1, name: 'xxx公司', desc: '专注AI应用开发，10年经验', star: 4.5, orders: 320, color: '#1890ff' },
-  { id: 2, name: '技术工作室', desc: '全栈开发团队，快速交付', star: 5, orders: 180, color: '#52c41a' },
-  { id: 3, name: '云端科技', desc: '云原生架构专家', star: 4, orders: 95, color: '#faad14' }
+  { id: 1, name: 'xxx公司',  orders: 320, color: '#1890ff' },
+  { id: 2, name: '技术工作室', orders: 180, color: '#52c41a' },
+  { id: 3, name: '云端科技',  orders: 95, color: '#faad14' }
 ])
 
 const guarantees = ref([
