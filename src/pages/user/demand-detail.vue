@@ -27,7 +27,7 @@
             </div>
             <div class="info-row">
               <span class="info-label">预算金额</span>
-              <span class="info-value price-text">{{ demand.budget }}元</span>
+              <span class="info-value price-text">{{ demand.budgetMin }} ~ {{ demand.budgetMax }}元</span>
             </div>
             <div class="info-row">
               <span class="info-label">需求描述</span>
@@ -62,7 +62,7 @@
           <!-- 操作按钮：自己发布的需求不显示 -->
           <div class="action-row" v-if="!fromMyDemands">
             <a-button type="primary" size="large" class="join-btn" ghost @click="handleJoin" :disabled="hasJoined">{{ hasJoined ? '已参与' : '参与此需求' }}</a-button>
-            <a-button v-if="userRole === 'provider'" size="large" class="similar-btn">发布类似需求</a-button>
+            <a-button v-if="userRole === 'provider'" size="large" class="similar-btn" @click="openSimilarDemand">发布类似需求</a-button>
             <a-button v-if="!fromFavorites" size="large" :type="collected ? 'primary' : 'default'" @click="collected = !collected">
               <HeartOutlined /> {{ collected ? '已收藏' : '收藏' }}
             </a-button>
@@ -109,7 +109,7 @@
         <div class="sidebar-card" v-else>
           <div class="sidebar-title">发布需求</div>
           <p class="sidebar-desc">描述您的需求，让专业服务商来帮您完成</p>
-          <a-button type="primary" block size="large" class="publish-btn">立即发布需求</a-button>
+          <a-button type="primary" block size="large" class="publish-btn" @click="publishInitialData = null; publishModalVisible = true">立即发布需求</a-button>
         </div>
 
         <div class="sidebar-card">
@@ -124,6 +124,8 @@
         </div>
       </div>
     </div>
+
+    <DemandPublishModal v-model:open="publishModalVisible" :initialData="publishInitialData" />
   </div>
 </template>
 
@@ -132,12 +134,15 @@ import { ref, computed, inject } from 'vue'
 import { useRoute } from 'vue-router'
 import { Modal, message } from 'ant-design-vue'
 import { CheckCircleOutlined, SafetyOutlined, MoneyCollectOutlined, AuditOutlined, HeartOutlined, EyeOutlined, FileTextOutlined } from '@ant-design/icons-vue'
+import DemandPublishModal from '../../components/DemandPublishModal.vue'
 
 const props = defineProps({ id: { type: Number, default: 1 }, from: { type: String, default: '' } })
 const route = useRoute()
 const closeDetail = inject('closeDetail', () => {})
 
 const collected = ref(false)
+const publishModalVisible = ref(false)
+const publishInitialData = ref(null)
 const userRole = ref(localStorage.getItem('userRole') || 'user')
 const fromFavorites = computed(() => props.from === 'favorites')
 
@@ -162,6 +167,20 @@ const handleJoin = () => {
     }
   })
 }
+
+const openSimilarDemand = () => {
+  const d = demand.value
+  publishInitialData.value = {
+    title: d.title,
+    desc: d.description,
+    category: d.type,
+    budgetMin: d.budgetMin,
+    budgetMax: d.budgetMax,
+    urgency: d.urgency
+  }
+  publishModalVisible.value = true
+}
+
 const fromMyDemands = computed(() => {
   // 检查是否从"我的需求"进入：通过 query 参数或 props
   return props.from === 'my-demands' || route.query.from === 'my-demands'
@@ -171,7 +190,6 @@ const demandId = computed(() => props.id || parseInt(route.params.id) || 1)
 // 获取紧急程度颜色
 const getUrgencyColor = (urgency) => {
   const colorMap = {
-    '非常紧急': 'red',
     '紧急': 'orange',
     '一般': 'blue',
     '不紧急': 'default'
@@ -187,7 +205,8 @@ const demandMap = {
     deadline: '2026-03-18 23:59:59',
     status: '进行中',
     title: 'MiniMax-M2.1: MiniMax-AI开源大模型，赋能高效智能应用开发',
-    budget: '3800.00',
+    budgetMin: 3000,
+    budgetMax: 5000,
     description: '需要基于MiniMax大模型开发一套智能客服系统，支持多轮对话、意图识别、知识库问答等功能，需提供完整源码及部署文档。',
     type: '人工智能',
     urgency: '紧急',
@@ -203,7 +222,8 @@ const demandMap = {
     deadline: '2026-03-22 23:59:59',
     status: '招募中',
     title: 'PaddleOCR-VL: 开源视觉语言OCR工具，多模态识别提升文档处理效率',
-    budget: '3800.00',
+    budgetMin: 2500,
+    budgetMax: 4500,
     description: '基于PaddleOCR开发文档智能识别系统，支持表格、印章、手写体等多种场景识别，需要提供API接口及前端展示页面。',
     type: 'Python',
     urgency: '一般',
@@ -219,7 +239,8 @@ const demandMap = {
     deadline: '2026-03-31 23:59:59',
     status: '进行中',
     title: 'CHATERMAI：开启云资源氛围管理新篇章！',
-    budget: '3800.00',
+    budgetMin: 5000,
+    budgetMax: 8000,
     description: '开发一套云资源管理平台，支持多云环境统一管理、资源监控、费用分析、自动扩缩容等功能，技术栈不限。',
     type: '人工智能',
     urgency: '紧急',
@@ -235,10 +256,11 @@ const demandMap = {
     deadline: '2026-03-25 23:59:59',
     status: '已完成',
     title: '欧拉操作系统内核开源，助力开发者获取源码与技术',
-    budget: '3800.00',
+    budgetMin: 8000,
+    budgetMax: 15000,
     description: '基于欧拉操作系统进行内核模块开发，需要熟悉Linux内核开发，提供完整的模块代码、测试报告及技术文档。',
     type: 'C',
-    urgency: '非常紧急',
+    urgency: '不紧急',
     views: 3456,
     bids: 15,
     auditStatus: 'rejected',

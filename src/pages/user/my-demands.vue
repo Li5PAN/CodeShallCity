@@ -153,8 +153,8 @@ const demands = ref([
 ])
 
 const form = reactive({ title: '', desc: '', category: undefined, budgetMin: null, budgetMax: null, publishDate: null, deadline: null, urgency: '一般' })
-const urgencyOptions = ['非常紧急', '紧急', '一般', '不紧急']
-const urgencyColorMap = { '非常紧急': 'red', '紧急': 'orange', '一般': 'blue', '不紧急': 'default' }
+const urgencyOptions = [ '紧急', '一般', '不紧急']
+const urgencyColorMap = {  '紧急': 'orange', '一般': 'blue', '不紧急': 'default' }
 
 const filteredList = computed(() => {
   let list = demands.value
@@ -195,7 +195,7 @@ const deleteItem = (id) => {
 }
 
 const getUrgencyColor = (urgency) => {
-  const colorMap = { '非常紧急': 'red', '紧急': 'orange', '一般': 'blue', '不紧急': 'default' }
+  const colorMap = { '紧急': 'orange', '一般': 'blue', '不紧急': 'default' }
   return colorMap[urgency] || 'default'
 }
 

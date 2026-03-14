@@ -81,7 +81,6 @@ const openDetail = inject('openDetail')
 // 获取紧急程度颜色
 const getUrgencyColor = (urgency) => {
   const colorMap = {
-    '非常紧急': 'red',
     '紧急': 'orange',
     '一般': 'blue',
     '不紧急': 'default'

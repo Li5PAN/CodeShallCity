@@ -51,7 +51,6 @@ const handleSearch = (value) => {
 // 获取紧急程度颜色
 const getUrgencyColor = (urgency) => {
   const colorMap = {
-    '非常紧急': 'red',
     '紧急': 'orange',
     '一般': 'blue',
     '不紧急': 'default'
@@ -107,7 +106,7 @@ const serviceList = ref([
     tag: 'C',
     minPrice: 8000,
     maxPrice: 15000,
-    urgency: '非常紧急'
+    urgency: '一般'
   }
 ])
 

@@ -27,7 +27,7 @@
             </div>
             <div class="info-row">
               <span class="info-label">预算金额</span>
-              <span class="info-value price-text">{{ demand.budget }}元</span>
+              <span class="info-value price-text">{{ demand.budgetMin }} ~ {{ demand.budgetMax }}元</span>
             </div>
             <div class="info-row">
               <span class="info-label">需求描述</span>
@@ -120,7 +120,6 @@ const demandId = computed(() => parseInt(route.params.id) || 1)
 // 获取紧急程度颜色
 const getUrgencyColor = (urgency) => {
   const colorMap = {
-    '非常紧急': 'red',
     '紧急': 'orange',
     '一般': 'blue',
     '不紧急': 'default'
@@ -135,7 +134,8 @@ const demandMap = {
     deadline: '2026-03-31 23:59:59',
     status: '招募中',
     title: 'MiniMax-M2.1 智能客服系统开发',
-    budget: '3800.00',
+    budgetMin: 3000,
+    budgetMax: 5000,
     description: '需要基于MiniMax大模型开发一套智能客服系统，支持多轮对话、意图识别、知识库接入',
     type: '人工智能',
     urgency: '紧急',
@@ -150,7 +150,8 @@ const demandMap = {
     deadline: '2026-04-15 23:59:59',
     status: '进行中',
     title: 'React Native 跨平台移动端应用开发',
-    budget: '12000.00',
+    budgetMin: 10000,
+    budgetMax: 15000,
     description: '开发一款电商类App，需要支持iOS和Android双端，包含商品浏览、购物车、支付功能',
     type: '移动开发',
     urgency: '一般',
@@ -165,7 +166,8 @@ const demandMap = {
     deadline: '2026-02-28 23:59:59',
     status: '已完成',
     title: 'MySQL 数据库性能优化咨询',
-    budget: '2000.00',
+    budgetMin: 1500,
+    budgetMax: 2500,
     description: '现有系统查询慢，需要专业DBA对数据库进行诊断和优化，提供优化报告',
     type: '数据库',
     urgency: '一般',
@@ -180,7 +182,8 @@ const demandMap = {
     deadline: '2026-04-01 23:59:59',
     status: '招募中',
     title: 'Vue3 后台管理系统开发',
-    budget: '8000.00',
+    budgetMin: 6000,
+    budgetMax: 10000,
     description: '基于Vue3+Element Plus开发一套通用后台管理系统，包含权限管理、数据可视化',
     type: 'Vue/React',
     urgency: '紧急',

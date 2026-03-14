@@ -113,51 +113,7 @@
     </div>
 
     <!-- 发布需求 Modal -->
-    <a-modal v-model:open="demandModalVisible" title="发布悬赏需求" width="600px" ok-text="发布悬赏" cancel-text="取消" @ok="submitDemand">
-      <a-form :model="demandForm" layout="vertical" style="margin-top:8px">
-        <a-form-item label="悬赏标题" required>
-          <a-input v-model:value="demandForm.title" placeholder="请输入悬赏标题" :maxlength="80" show-count />
-        </a-form-item>
-        <a-form-item label="需求描述" required>
-          <a-textarea v-model:value="demandForm.desc" :rows="4" placeholder="详细描述需求内容、技术要求、交付标准等" :maxlength="500" show-count />
-        </a-form-item>
-        <a-row :gutter="16">
-          <a-col :span="12">
-            <a-form-item label="需求分类" required>
-              <a-select v-model:value="demandForm.category" placeholder="请选择分类" style="width:100%">
-                <a-select-option v-for="c in demandCategories" :key="c" :value="c">{{ c }}</a-select-option>
-              </a-select>
-            </a-form-item>
-          </a-col>
-          <a-col :span="12">
-            <a-form-item label="悬赏金额（元）" required>
-              <div style="display:flex;gap:8px;align-items:center">
-                <a-input-number v-model:value="demandForm.budgetMin" :min="100" :max="999999" style="flex:1" placeholder="最小金额" />
-                <span>~</span>
-                <a-input-number v-model:value="demandForm.budgetMax" :min="100" :max="999999" style="flex:1" placeholder="最大金额" />
-              </div>
-            </a-form-item>
-          </a-col>
-        </a-row>
-        <a-row :gutter="16">
-          <a-col :span="12">
-            <a-form-item label="发布时间">
-              <a-date-picker v-model:value="demandForm.publishDate" style="width:100%" placeholder="请选择发布日期" format="YYYY-MM-DD" valueFormat="YYYY-MM-DD" />
-            </a-form-item>
-          </a-col>
-          <a-col :span="12">
-            <a-form-item label="截止时间">
-              <a-date-picker v-model:value="demandForm.deadline" style="width:100%" placeholder="请选择截止日期" format="YYYY-MM-DD" valueFormat="YYYY-MM-DD" />
-            </a-form-item>
-          </a-col>
-        </a-row>
-        <a-form-item label="紧急程度">
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <a-tag v-for="u in urgencyOptions" :key="u" :color="demandForm.urgency === u ? urgencyColorMap[u] : 'default'" style="cursor:pointer;font-size:13px;padding:4px 12px" @click="demandForm.urgency = u">{{ u }}</a-tag>
-          </div>
-        </a-form-item>
-      </a-form>
-    </a-modal>
+    <DemandPublishModal v-model:open="demandModalVisible" @success="onDemandSuccess" />
 
     <!-- 发布服务 Modal -->
     <a-modal v-model:open="serviceModalVisible" title="发布新服务" width="600px" ok-text="提交审核" cancel-text="取消" @ok="submitService">
@@ -331,6 +287,8 @@ import {
   FileTextOutlined, StarOutlined, PlusOutlined, PictureOutlined
 } from '@ant-design/icons-vue'
 
+import DemandPublishModal from '../../components/DemandPublishModal.vue'
+
 const router = useRouter()
 const applyVisible = ref(false)
 const userRole = ref(localStorage.getItem('userRole') || 'user')
@@ -340,19 +298,7 @@ const applyFormRef = ref(null)
 
 // 发布需求
 const demandModalVisible = ref(false)
-const demandCategories = ['人工智能', 'Java', 'Python', 'Vue/React', '移动开发', '数据库', '运维部署', '大数据', '其他']
-const demandForm = reactive({ title: '', desc: '', category: undefined, budgetMin: null, budgetMax: null, publishDate: null, deadline: null, urgency: '一般' })
-const submitDemand = () => {
-  if (!demandForm.title.trim()) { message.warning('请输入悬赏标题'); return }
-const demandForm = reactive({ title: '', desc: '', category: undefined, budgetMin: null, budgetMax: null, publishDate: null, deadline: null, urgency: '一般' })
-const urgencyOptions = ['非常紧急', '紧急', '一般', '不紧急']
-const urgencyColorMap = { '非常紧急': 'red', '紧急1': 'orange', '一般': 'blue', '不紧急': 'default' }
-  if (!demandForm.budgetMin || !demandForm.budgetMax) { message.warning('请输入悬赏金额区间'); return }
-  if (demandForm.budgetMin > demandForm.budgetMax) { message.warning('最小金额不能大于最大金额'); return }
-  demandModalVisible.value = false
-  Object.assign(demandForm, { title: '', desc: '', category: undefined, budgetMin: null, budgetMax: null, publishDate: null, deadline: null, urgency: '一般' })
-  message.success('悬赏发布成功')
-}
+const onDemandSuccess = () => {}
 
 // 发布服务
 const serviceModalVisible = ref(false)
