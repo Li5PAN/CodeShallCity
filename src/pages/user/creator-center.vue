@@ -89,8 +89,6 @@
 
       <!-- 右侧边栏 -->
       <div class="creator-side">
-
-        <!-- 成为服务提供者 -->
         <div class="creator-card provider-card">
           <div class="provider-header">
             <SafetyCertificateOutlined class="provider-icon" />
@@ -111,8 +109,6 @@
             立即申请认证
           </a-button>
         </div>
-
-
       </div>
     </div>
 
@@ -135,20 +131,29 @@
           </a-col>
           <a-col :span="12">
             <a-form-item label="悬赏金额（元）" required>
-              <a-input-number v-model:value="demandForm.budget" :min="100" :max="999999" style="width:100%" placeholder="请输入金额" />
+              <div style="display:flex;gap:8px;align-items:center">
+                <a-input-number v-model:value="demandForm.budgetMin" :min="100" :max="999999" style="flex:1" placeholder="最小金额" />
+                <span>~</span>
+                <a-input-number v-model:value="demandForm.budgetMax" :min="100" :max="999999" style="flex:1" placeholder="最大金额" />
+              </div>
             </a-form-item>
           </a-col>
         </a-row>
-        <a-form-item label="截止时间">
-          <a-date-picker v-model:value="demandForm.deadline" style="width:100%" placeholder="请选择截止日期" />
-        </a-form-item>
-        <a-form-item label="技术标签">
-          <div class="tag-input-wrap">
-            <a-tag v-for="tag in demandForm.tags" :key="tag" closable @close="demandForm.tags = demandForm.tags.filter(t=>t!==tag)" color="orange">{{ tag }}</a-tag>
-            <a-input v-if="demandTagVisible" ref="demandTagRef" v-model:value="demandTagValue" size="small" style="width:80px" @blur="confirmDemandTag" @keyup.enter="confirmDemandTag" />
-            <a-tag v-else-if="demandForm.tags.length < 5" style="cursor:pointer;border-style:dashed" @click="demandTagVisible=true;$nextTick(()=>demandTagRef?.focus())">
-              <PlusOutlined /> 添加
-            </a-tag>
+        <a-row :gutter="16">
+          <a-col :span="12">
+            <a-form-item label="发布时间">
+              <a-date-picker v-model:value="demandForm.publishDate" style="width:100%" placeholder="请选择发布日期" format="YYYY-MM-DD" valueFormat="YYYY-MM-DD" />
+            </a-form-item>
+          </a-col>
+          <a-col :span="12">
+            <a-form-item label="截止时间">
+              <a-date-picker v-model:value="demandForm.deadline" style="width:100%" placeholder="请选择截止日期" format="YYYY-MM-DD" valueFormat="YYYY-MM-DD" />
+            </a-form-item>
+          </a-col>
+        </a-row>
+        <a-form-item label="紧急程度">
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <a-tag v-for="u in urgencyOptions" :key="u" :color="demandForm.urgency === u ? urgencyColorMap[u] : 'default'" style="cursor:pointer;font-size:13px;padding:4px 12px" @click="demandForm.urgency = u">{{ u }}</a-tag>
           </div>
         </a-form-item>
       </a-form>
@@ -206,19 +211,10 @@
     </a-modal>
 
     <!-- 服务提供者申请弹窗 -->
-    <a-modal
-      v-model:open="applyVisible"
-      title="申请成为服务提供者"
-      width="680px"
-      ok-text="提交申请"
-      cancel-text="取消"
-      @ok="submitApply"
-    >
+    <a-modal v-model:open="applyVisible" title="申请成为服务提供者" width="680px" ok-text="提交申请" cancel-text="取消" @ok="submitApply">
       <div class="apply-modal">
         <a-alert message="请如实填写以下信息，平台将在 3 个工作日内完成审核，审核结果将通过站内信通知您。" type="info" show-icon style="margin-bottom:20px" />
-
         <a-form :model="applyForm" layout="vertical" ref="applyFormRef">
-
           <div class="form-section-title">基本信息</div>
           <a-row :gutter="16">
             <a-col :span="12">
@@ -244,7 +240,6 @@
               </a-form-item>
             </a-col>
           </a-row>
-
           <div class="form-section-title">专业背景</div>
           <a-row :gutter="16">
             <a-col :span="12">
@@ -285,7 +280,6 @@
           <a-form-item label="所在公司/机构" name="company">
             <a-input v-model:value="applyForm.company" placeholder="请输入当前就职公司或机构名称（可填在校生）" />
           </a-form-item>
-
           <div class="form-section-title">技能与服务</div>
           <a-form-item label="主要技术方向" name="skills" :rules="[{ required: true, message: '请选择技术方向' }]">
             <a-select v-model:value="applyForm.skills" mode="multiple" placeholder="请选择（可多选）" :max-tag-count="4">
@@ -300,18 +294,16 @@
           <a-form-item label="个人简介 / 服务说明" name="intro" :rules="[{ required: true, message: '请填写个人简介' }]">
             <a-textarea v-model:value="applyForm.intro" :rows="4" placeholder="请介绍您的技术背景、擅长领域、可提供的服务内容，以及过往项目经验（100字以上）" :maxlength="500" show-count />
           </a-form-item>
-
           <div class="form-section-title">资质证明（文字填写）</div>
           <a-form-item label="专业证书 / 资质认证">
             <a-textarea v-model:value="applyForm.certificates" :rows="3" placeholder="请列举您持有的相关证书，如：软件设计师证书（2023年）、AWS Solutions Architect（2024年）、PMP证书等" :maxlength="300" show-count />
           </a-form-item>
           <a-form-item label="代表性项目经历">
-            <a-textarea v-model:value="applyForm.projects" :rows="4" placeholder="请描述1-3个代表性项目，包括项目名称、技术栈、您的角色和主要贡献（如：某电商平台后端开发，负责订单系统设计，日均处理100万+订单）" :maxlength="500" show-count />
+            <a-textarea v-model:value="applyForm.projects" :rows="4" placeholder="请描述1-3个代表性项目，包括项目名称、技术栈、您的角色和主要贡献" :maxlength="500" show-count />
           </a-form-item>
           <a-form-item label="开源贡献 / 作品链接">
             <a-textarea v-model:value="applyForm.portfolio" :rows="2" placeholder="如 GitHub 主页、个人博客、开源项目地址等（选填）" :maxlength="200" show-count />
           </a-form-item>
-
           <div class="form-section-title">承诺与协议</div>
           <a-form-item name="agreed" :rules="[{ validator: checkAgreed }]">
             <a-checkbox v-model:checked="applyForm.agreed">
@@ -341,29 +333,24 @@ import {
 
 const router = useRouter()
 const applyVisible = ref(false)
-const userRole = ref(localStorage.getItem('userRole') || 'user') // 获取用户角色
-const isProvider = ref(userRole.value === 'provider') // 判断是否为服务商
+const userRole = ref(localStorage.getItem('userRole') || 'user')
+const isProvider = ref(userRole.value === 'provider')
 const recentType = ref('article')
 const applyFormRef = ref(null)
 
 // 发布需求
 const demandModalVisible = ref(false)
-const demandTagVisible = ref(false)
-const demandTagValue = ref('')
-const demandTagRef = ref(null)
 const demandCategories = ['人工智能', 'Java', 'Python', 'Vue/React', '移动开发', '数据库', '运维部署', '大数据', '其他']
-const demandForm = reactive({ title: '', desc: '', category: undefined, budget: null, deadline: null, tags: [] })
-const confirmDemandTag = () => {
-  const val = demandTagValue.value.trim()
-  if (val && !demandForm.tags.includes(val)) demandForm.tags.push(val)
-  demandTagVisible.value = false; demandTagValue.value = ''
-}
+const demandForm = reactive({ title: '', desc: '', category: undefined, budgetMin: null, budgetMax: null, publishDate: null, deadline: null, urgency: '一般' })
 const submitDemand = () => {
   if (!demandForm.title.trim()) { message.warning('请输入悬赏标题'); return }
-  if (!demandForm.category) { message.warning('请选择需求分类'); return }
-  if (!demandForm.budget) { message.warning('请输入悬赏金额'); return }
+const demandForm = reactive({ title: '', desc: '', category: undefined, budgetMin: null, budgetMax: null, publishDate: null, deadline: null, urgency: '一般' })
+const urgencyOptions = ['非常紧急', '紧急', '一般', '不紧急']
+const urgencyColorMap = { '非常紧急': 'red', '紧急1': 'orange', '一般': 'blue', '不紧急': 'default' }
+  if (!demandForm.budgetMin || !demandForm.budgetMax) { message.warning('请输入悬赏金额区间'); return }
+  if (demandForm.budgetMin > demandForm.budgetMax) { message.warning('最小金额不能大于最大金额'); return }
   demandModalVisible.value = false
-  Object.assign(demandForm, { title: '', desc: '', category: undefined, budget: null, deadline: null, tags: [] })
+  Object.assign(demandForm, { title: '', desc: '', category: undefined, budgetMin: null, budgetMax: null, publishDate: null, deadline: null, urgency: '一般' })
   message.success('悬赏发布成功')
 }
 
@@ -450,7 +437,7 @@ const submitApply = () => {
     applyVisible.value = false
     isProvider.value = true
     userRole.value = 'provider'
-    localStorage.setItem('userRole', 'provider') // 保存角色到 localStorage
+    localStorage.setItem('userRole', 'provider')
     message.success('申请已提交，平台将在 3 个工作日内完成审核')
   }).catch(() => {
     message.warning('请完整填写必填信息')
@@ -513,8 +500,6 @@ const submitApply = () => {
 .provider-sub { font-size: 12px; color: #999; margin-top: 2px; }
 .provider-benefits { display: flex; flex-direction: column; gap: 8px; }
 .benefit-item { font-size: 13px; color: #555; display: flex; align-items: center; gap: 6px; }
-
-
 
 /* 申请弹窗 */
 .apply-modal { max-height: 60vh; overflow-y: auto; padding-right: 4px; }

@@ -99,12 +99,9 @@
           </a-col>
         </a-row>
         <a-form-item label="紧急程度">
-          <a-radio-group v-model:value="form.urgency">
-            <a-radio-button value="非常紧急">非常紧急</a-radio-button>
-            <a-radio-button value="紧急">紧急</a-radio-button>
-            <a-radio-button value="一般">一般</a-radio-button>
-            <a-radio-button value="不紧急">不紧急</a-radio-button>
-          </a-radio-group>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <a-tag v-for="u in urgencyOptions" :key="u" :color="form.urgency === u ? urgencyColorMap[u] : 'default'" style="cursor:pointer;font-size:13px;padding:4px 12px" @click="form.urgency = u">{{ u }}</a-tag>
+          </div>
         </a-form-item>
       </a-form>
       <template #footer>
@@ -156,6 +153,8 @@ const demands = ref([
 ])
 
 const form = reactive({ title: '', desc: '', category: undefined, budgetMin: null, budgetMax: null, publishDate: null, deadline: null, urgency: '一般' })
+const urgencyOptions = ['非常紧急', '紧急', '一般', '不紧急']
+const urgencyColorMap = { '非常紧急': 'red', '紧急': 'orange', '一般': 'blue', '不紧急': 'default' }
 
 const filteredList = computed(() => {
   let list = demands.value
