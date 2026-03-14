@@ -92,7 +92,7 @@
                     <div class="avatar-popup-item"><WalletOutlined /> 会员中心</div>
                     <div class="avatar-popup-item"><SkinOutlined /> 已购内容</div>
                     <div class="avatar-popup-item"><FileTextOutlined /> 我的订单</div>
-                    <div class="avatar-popup-item"><SettingOutlined /> 我的钱包</div>
+                    <div class="avatar-popup-item"><SettingOutlined /> 重置密码</div>
                     <div class="avatar-popup-item" @click="handleLogout"><LogoutOutlined /> 退出</div>
                   </div>
                 </div>

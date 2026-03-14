@@ -121,7 +121,7 @@ const fromFavorites = computed(() => props.from === 'favorites')
 const articleMap = {
   1: {
     title: '深入解析CPU调度：操作系统的核心资源分配机制',
-    author: 'bkspiderx', authorBio: '专注操作系统与底层技术研究', authorArticles: 42, authorFans: 1280, authorLikes: 3600,
+    author: 'bkspiderx', authorArticles: 42, authorFans: 1280, authorLikes: 3600,
     publishTime: '2026-02-20 10:30', category: '操作系统',
     readCount: 1500, likeCount: 34, collectCount: 11, commentCount: 8,
     content: [

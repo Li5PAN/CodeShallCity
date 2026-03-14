@@ -46,12 +46,12 @@
           </div>
         </div>
         <div class="quantity-row" v-if="!fromMyServices">
-          <span class="price-label">购买数量</span>
-          <div class="quantity-control">
+          <span class="price-label">购买数量 X1</span>
+          <!-- <div class="quantity-control">
             <a-button @click="quantity > 1 && quantity--">-</a-button>
             <a-input-number v-model:value="quantity" :min="1" :max="99" class="quantity-input" />
             <a-button @click="quantity < 99 && quantity++">+</a-button>
-          </div>
+          </div> -->
         </div>
         <div class="action-buttons" v-if="!fromMyServices">
           <a-button type="primary" size="large" danger class="buy-btn"><ShoppingCartOutlined /> 立即购买</a-button>

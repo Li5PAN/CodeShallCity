@@ -77,9 +77,7 @@
               <a-avatar :size="56" :style="{ backgroundColor: p.color }">{{ p.name[0] }}</a-avatar>
               <div class="provider-info">
                 <div class="provider-name">{{ p.name }}</div>
-                <div class="provider-desc">{{ p.desc }}</div>
                 <div class="provider-meta">
-                  <a-rate :value="p.star" disabled allow-half :style="{ fontSize: '12px' }" />
                   <span class="provider-orders">{{ p.orders }}单已完成</span>
                 </div>
               </div>
@@ -227,9 +225,9 @@ const demandMap = {
 const demand = computed(() => demandMap[demandId.value] || demandMap[1])
 
 const providers = ref([
-  { id: 1, name: 'xxx公司', desc: '专注AI应用开发，10年经验', star: 4.5, orders: 320, color: '#1890ff' },
-  { id: 2, name: '技术工作室', desc: '全栈开发团队，快速交付', star: 5, orders: 180, color: '#52c41a' },
-  { id: 3, name: '云端科技', desc: '云原生架构专家', star: 4, orders: 95, color: '#faad14' }
+  { id: 1, name: 'xxx公司',  orders: 320, color: '#1890ff' },
+  { id: 2, name: '技术工作室', orders: 180, color: '#52c41a' },
+  { id: 3, name: '云端科技',  orders: 95, color: '#faad14' }
 ])
 
 const guarantees = ref([
