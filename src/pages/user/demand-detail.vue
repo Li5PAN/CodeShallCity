@@ -61,8 +61,8 @@
 
           <!-- 操作按钮：自己发布的需求不显示 -->
           <div class="action-row" v-if="!fromMyDemands">
-            <a-button type="primary" size="large" class="join-btn" ghost @click="handleJoin" :disabled="hasJoined">{{ hasJoined ? '已参与' : '参与此需求' }}</a-button>
-            <a-button v-if="userRole === 'provider'" size="large" class="similar-btn" @click="openSimilarDemand">发布类似需求</a-button>
+            <a-button v-if="userRole === 'provider'" type="primary" size="large" class="join-btn" ghost @click="handleJoin" :disabled="hasJoined">{{ hasJoined ? '已参与' : '参与此需求' }}</a-button>
+            <a-button size="large" class="similar-btn" @click="openSimilarDemand">发布类似需求</a-button>
             <a-button v-if="!fromFavorites" size="large" :type="collected ? 'primary' : 'default'" @click="collected = !collected">
               <HeartOutlined /> {{ collected ? '已收藏' : '收藏' }}
             </a-button>

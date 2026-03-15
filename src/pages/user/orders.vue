@@ -18,7 +18,7 @@
       </div>
       <div class="summary-item">
         <div class="summary-num">¥ {{ totalSpent }}</div>
-        <div class="summary-label">累计消费</div>
+        <div class="summary-label">累计交易金额</div>
       </div>
     </div>
 
@@ -42,7 +42,7 @@
                 <img :src="order.cover" :alt="order.serviceName" />
               </div>
               <div class="service-info">
-                <div class="service-name">{{ order.serviceName }}</div>
+                <div class="service-name">{{ order.serviceName }} <a-tag v-if="order.isMine" color="green" size="small">我发布的</a-tag></div>
                 <div class="service-desc">{{ order.serviceDesc }}</div>
                 <div class="service-tags">
                   <a-tag v-for="tag in order.tags" :key="tag" size="small" color="blue">{{ tag }}</a-tag>
@@ -82,11 +82,10 @@
                 <TrophyOutlined :style="{ fontSize: '32px', color: order.iconColor }" />
               </div>
               <div class="service-info">
-                <div class="service-name">{{ order.demandTitle }}</div>
+                <div class="service-name">{{ order.demandTitle }} <a-tag v-if="order.isMine" color="green" size="small">我发布的</a-tag></div>
                 <div class="service-desc">{{ order.demandDesc }}</div>
                 <div class="service-tags">
                   <a-tag size="small" color="orange">{{ order.demandType }}</a-tag>
-                  <a-tag v-for="tag in order.tags" :key="tag" size="small" color="blue">{{ tag }}</a-tag>
                 </div>
                 <div class="seller-row">
                   <a-avatar :size="20" :style="{ backgroundColor: order.publisherColor }">{{ order.publisher[0] }}</a-avatar>
@@ -94,9 +93,9 @@
                 </div>
               </div>
               <div class="order-right">
-                <div class="order-price">¥ {{ order.budget }}</div>
+                <div class="order-price">¥ {{ order.budgetMin }} ~ {{ order.budgetMax }}</div>
                 <div class="order-qty">悬赏金额</div>
-                <div class="order-total">支付<span>¥ {{ order.budget }}</span></div>
+                <div class="order-total">支付<span>¥ {{ order.budgetMin }} ~ {{ order.budgetMax }}</span></div>
                 <div class="order-actions">
                   <a-button size="small" type="link" @click="viewDemandDetail(order.demandId)">查看详情</a-button>
                   <a-button v-if="order.status === '进行中'" size="small" type="link">查看进度</a-button>
@@ -140,7 +139,8 @@ const serviceOrders = ref([
     price: 399, 
     quantity: 1,
     status: '已完成',
-    serviceId: 1
+    serviceId: 1,
+    isMine: true
   },
   {
     id: 2, 
@@ -155,7 +155,8 @@ const serviceOrders = ref([
     price: 399, 
     quantity: 1,
     status: '已完成',
-    serviceId: 2
+    serviceId: 2,
+    isMine: false
   },
   {
     id: 3, 
@@ -170,7 +171,8 @@ const serviceOrders = ref([
     price: 299, 
     quantity: 1,
     status: '进行中',
-    serviceId: 3
+    serviceId: 3,
+    isMine: false
   }
 ])
 
@@ -183,13 +185,14 @@ const demandOrders = ref([
     demandTitle: 'MiniMax-M2.1 智能客服系统开发',
     demandDesc: '基于MiniMax大模型开发智能客服系统，需要支持多轮对话、知识库检索',
     demandType: '人工智能',
-    tags: ['急需', '高薪'],
     publisher: '科技公司HR',
     publisherColor: '#ff4d4f',
-    budget: 3800,
+    budgetMin: 3000,
+    budgetMax: 5000,
     status: '进行中',
     iconColor: '#faad14',
-    demandId: 1
+    demandId: 1,
+    isMine: true
   },
   {
     id: 5,
@@ -198,13 +201,14 @@ const demandOrders = ref([
     demandTitle: 'React Native 跨平台移动端应用',
     demandDesc: '开发一款跨平台的移动应用，包含用户系统、支付功能、数据统计',
     demandType: '移动开发',
-    tags: ['长期合作'],
     publisher: '创业团队',
     publisherColor: '#13c2c2',
-    budget: 12000,
+    budgetMin: 10000,
+    budgetMax: 15000,
     status: '已完成',
     iconColor: '#52c41a',
-    demandId: 2
+    demandId: 2,
+    isMine: false
   }
 ])
 
@@ -212,7 +216,7 @@ const totalOrders = computed(() => serviceOrders.value.length + demandOrders.val
 
 const totalSpent = computed(() => {
   const serviceTotal = serviceOrders.value.reduce((sum, o) => sum + o.price * o.quantity, 0)
-  const demandTotal = demandOrders.value.reduce((sum, o) => sum + o.budget, 0)
+  const demandTotal = demandOrders.value.reduce((sum, o) => sum + o.budgetMax, 0)
   return (serviceTotal + demandTotal).toFixed(2)
 })
 

@@ -48,7 +48,7 @@
               </div>
             </div>
             <div class="fav-right">
-              <div class="fav-price">¥ {{ item.budget }}</div>
+              <div class="fav-price">¥ {{ item.budgetMin }} ~ {{ item.budgetMax }}</div>
               <a-button size="small" danger @click.stop="removeItem(demandItems, item.id)">取消收藏</a-button>
             </div>
           </div>
@@ -103,8 +103,8 @@ const serviceItems = ref([
 ])
 
 const demandItems = ref([
-  { id: 1, title: 'MiniMax-M2.1: MiniMax-AI开源大模型，赋能高效智能应用开', desc: '需要基于MiniMax大模型开发一套智能客服系统，支持多轮对话、意图识', budget: '3800.00', type: '人工智能', publishTime: '2026-03-03' },
-  { id: 2, title: 'PaddleOCR-VL: 开源视觉语言OCR工具，多模态识别提升文档处理效', desc: '基于PaddleOCR开发文档智能识别系统，支持表格、印章、手写体等多种场', budget: '3800.00', type: 'Python', publishTime: '2026-03-02' }
+  { id: 1, title: 'MiniMax-M2.1: MiniMax-AI开源大模型，赋能高效智能应用开', desc: '需要基于MiniMax大模型开发一套智能客服系统，支持多轮对话、意图识', budgetMin: 3000, budgetMax: 5000, type: '人工智能', publishTime: '2026-03-03' },
+  { id: 2, title: 'PaddleOCR-VL: 开源视觉语言OCR工具，多模态识别提升文档处理效', desc: '基于PaddleOCR开发文档智能识别系统，支持表格、印章、手写体等多种场', budgetMin: 3000, budgetMax: 5000, type: 'Python', publishTime: '2026-03-02' }
 ])
 
 const forumItems = ref([

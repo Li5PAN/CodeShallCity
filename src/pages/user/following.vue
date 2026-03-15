@@ -1,7 +1,7 @@
 <template>
   <div class="following-page">
     <div class="page-header">
-      <h2 class="page-title">关注动</h2>
+      <h2 class="page-title">关注订阅文章</h2>
       <span class="page-subtitle">最近一周关注的人发布的最新内容</span>
     </div>
 
