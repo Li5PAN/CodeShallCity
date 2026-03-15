@@ -44,7 +44,6 @@
               <div class="fav-desc">{{ item.desc }}</div>
               <div class="fav-meta">
                 <a-tag size="small" color="orange">{{ item.type }}</a-tag>
-                <span class="fav-time">{{ item.publishTime }}</span>
               </div>
             </div>
             <div class="fav-right">
@@ -69,7 +68,6 @@
               <div class="fav-author-row">
                 <a-avatar :size="20" :style="{ backgroundColor: item.authorColor }">{{ item.author[0] }}</a-avatar>
                 <span class="fav-author">{{ item.author }}</span>
-                <span class="fav-time">{{ item.publishTime }}</span>
               </div>
               <div class="fav-title">{{ item.title }}</div>
               <div class="fav-desc">{{ item.desc }}</div>

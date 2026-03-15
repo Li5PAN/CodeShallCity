@@ -27,7 +27,6 @@
           <h3 class="article-title">{{ article.title }}</h3>
           <p class="article-desc">{{ article.desc }}</p>
         </div>
-        <div class="article-time">{{ article.publishTime }}</div>
       </div>
     </div>
   </div>

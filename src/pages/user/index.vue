@@ -82,16 +82,24 @@
                     </div>
                   </div>
                   <div class="avatar-popup-menu">
-                    <div class="avatar-popup-item" @click="onMenuClick('profile', 'profile')">
-                      <EditOutlined /> 我的主页
+                    <div class="avatar-popup-item" @click="onMenuClick('orders', 'subscribe')">
+                      <ShoppingCartOutlined /> 订购
+                    </div>
+                    <div class="avatar-popup-item" @click="onMenuClick('following', 'follow')">
+                      <StarOutlined /> 订阅
+                    </div>
+                    <div class="avatar-popup-item" @click="onMenuClick('favorites', 'collect')">
+                      <HeartOutlined /> 收藏
+                    </div>
+                    <div class="avatar-popup-item" @click="onMenuClick('history', 'history')">
+                      <HistoryOutlined /> 历史
                     </div>
                     <div class="avatar-popup-item" @click="onMenuClick('profile', 'profile')">
                       <UserOutlined /> 个人中心
                     </div>
-                    <div class="avatar-popup-item"><SettingOutlined /> 内容管理</div>
-                    <div class="avatar-popup-item"><WalletOutlined /> 会员中心</div>
-                    <div class="avatar-popup-item"><SkinOutlined /> 已购内容</div>
-                    <div class="avatar-popup-item"><FileTextOutlined /> 我的订单</div>
+                    <div class="avatar-popup-item" @click="onMenuClick('creator-center', 'create')">
+                      <EditOutlined /> 创作中心
+                    </div>
                     <div class="avatar-popup-item"><SettingOutlined /> 重置密码</div>
                     <div class="avatar-popup-item" @click="handleLogout"><LogoutOutlined /> 退出</div>
                   </div>
@@ -100,7 +108,9 @@
               <a-avatar :size="36" style="background-color: #87d068; cursor: pointer">{{ username }}</a-avatar>
             </a-popover>
             <span class="header-username">个人中心</span>
-            <span class="header-link" @click="handleLogout">消息</span>
+            <a-badge :count="totalUnread" :offset="[-6, 0]" size="small">
+              <span class="header-link" @click="router.push('/user/messages')">消息</span>
+            </a-badge>
             <a-popover placement="bottomRight" trigger="click" v-model:open="createPopoverVisible">
               <template #content>
                 <div class="create-popup">
@@ -164,6 +174,7 @@ const selectedKeys = ref(['home'])
 const createPopoverVisible = ref(false)
 const username = ref('')
 const userRole = ref('user') // 用户角色：user 或 provider
+const totalUnread = ref(4) // 模拟未读消息数
 
 // 详情覆盖层
 const detailVisible = ref(false)
@@ -198,7 +209,8 @@ const routeKeyMap = {
   'favorites': 'collect',
   'history': 'history',
   'profile': 'profile',
-  'creator-center': 'create'
+  'creator-center': 'create',
+  'messages': 'messages'
 }
 
 watch(() => route.path, (path) => {

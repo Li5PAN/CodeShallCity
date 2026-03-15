@@ -161,6 +161,12 @@ export default [
         name: 'OrderManage',
         component: () => import('../../pages/user/order-manage.vue'),
         meta: { title: '订单管理', icon: 'ShoppingCartOutlined' }
+      },
+      {
+        path: 'messages',
+        name: 'Messages',
+        component: () => import('../../pages/user/messages.vue'),
+        meta: { title: '消息', icon: 'MessageOutlined' }
       }
     ]
   }
