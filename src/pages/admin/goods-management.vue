@@ -185,7 +185,7 @@
             </template>
 
             <template v-else-if="column.key === 'budget'">
-              <span class="price-text">¥{{ record.budget }}</span>
+              <span class="price-text">¥{{ record.budgetMin }} - ¥{{ record.budgetMax }}</span>
             </template>
 
             <template v-else-if="column.key === 'status'">
@@ -287,7 +287,7 @@ const demandColumns = [
   { title: '需求信息', key: 'demand', width: '35%' },
   { title: '发布者', key: 'publisher', width: '12%' },
   { title: '类型', key: 'type', width: '10%' },
-  { title: '预算', key: 'budget', width: '10%' },
+  { title: '预算范围', key: 'budget', width: '14%' },
   { title: '提交时间', dataIndex: 'submitTime', key: 'submitTime', width: '13%' },
   { title: '状态', key: 'status', width: '10%' },
   { title: '操作', key: 'action', width: '10%' }
@@ -380,7 +380,8 @@ const demandList = ref([
     publisher: '科技公司HR',
     publisherColor: '#ff4d4f',
     type: '人工智能',
-    budget: 3800,
+    budgetMin: 3000,
+    budgetMax: 5000,
     submitTime: '2026-03-05 14:00',
     status: 'pending',
     iconColor: '#faad14'
@@ -392,7 +393,8 @@ const demandList = ref([
     publisher: '创业团队',
     publisherColor: '#13c2c2',
     type: '移动开发',
-    budget: 12000,
+    budgetMin: 10000,
+    budgetMax: 15000,
     submitTime: '2026-03-04 10:30',
     status: 'approved',
     iconColor: '#52c41a'
@@ -404,7 +406,8 @@ const demandList = ref([
     publisher: '互联网公司',
     publisherColor: '#1890ff',
     type: 'Web开发',
-    budget: 8000,
+    budgetMin: 6000,
+    budgetMax: 10000,
     submitTime: '2026-03-03 16:20',
     status: 'pending',
     iconColor: '#faad14'
@@ -416,7 +419,8 @@ const demandList = ref([
     publisher: '电商平台',
     publisherColor: '#722ed1',
     type: '数据分析',
-    budget: 5000,
+    budgetMin: 3000,
+    budgetMax: 8000,
     submitTime: '2026-03-02 09:45',
     status: 'rejected',
     iconColor: '#ff4d4f'

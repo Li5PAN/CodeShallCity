@@ -105,35 +105,19 @@
           :columns="auditColumns"
           :data-source="providerAuditList"
           :pagination="auditPagination"
-          :row-key="record => record.id"
+          :row-key="record => record.applyId"
         >
           <template #bodyCell="{ column, record }">
-            <template v-if="column.key === 'applicant'">
-              <div class="user-info">
-                <a-avatar :size="32" :style="{ backgroundColor: record.avatarColor }">
-                  {{ record.name[0] }}
-                </a-avatar>
-                <div class="user-detail">
-                  <div class="user-name">{{ record.name }}</div>
-                  <div class="user-phone">{{ record.phone }}</div>
-                </div>
-              </div>
-            </template>
-
-            <template v-else-if="column.key === 'materials'">
-              <a-button type="link" size="small" @click="viewMaterials(record)">
-                查看材料
-              </a-button>
-            </template>
-
-            <template v-else-if="column.key === 'status'">
-              <a-tag :color="auditStatusColorMap[record.status]" size="small">
-                {{ auditStatusTextMap[record.status] }}
+            <template v-if="column.key === 'status'">
+              <a-tag :color="auditStatusColorMap[record.status] || 'default'" size="small">
+                {{ auditStatusTextMap[record.status] || record.status }}
               </a-tag>
             </template>
 
             <template v-else-if="column.key === 'action'">
-              <div class="action-buttons" v-if="record.status === 'pending'">
+              <div class="action-buttons">
+                <a-button type="link" size="small" @click="openAuditDetail(record)">详情</a-button>
+                <template v-if="record.status === 'PENDING'">
                 <a-button
                   type="link"
                   size="small"
@@ -146,13 +130,73 @@
                   danger
                   @click="openProviderAuditModal(record, 'reject')"
                 >驳回</a-button>
+                </template>
               </div>
-              <span v-else>—</span>
             </template>
           </template>
         </a-table>
       </a-tab-pane>
     </a-tabs>
+
+    <!-- 认证详情弹窗 -->
+    <a-modal
+      v-model:open="auditDetail.visible"
+      title="服务商认证申请详情"
+      width="760px"
+      ok-text="关闭"
+      cancel-text="关闭"
+      :footer="null"
+    >
+      <div v-if="auditDetail.data" class="audit-detail">
+        <div class="detail-head">
+          <a-avatar :size="48" :src="auditDetail.data.avatar">
+            {{ auditDetail.data.nickname?.[0] || auditDetail.data.username?.[0] || 'U' }}
+          </a-avatar>
+          <div class="detail-head-main">
+            <div class="detail-title">
+              <span class="detail-name">{{ auditDetail.data.nickname }}（{{ auditDetail.data.username }}）</span>
+              <a-tag
+                :color="auditStatusColorMap[auditDetail.data.status] || 'default'"
+                style="margin-left: 8px"
+              >
+                {{ auditStatusTextMap[auditDetail.data.status] || auditDetail.data.status }}
+              </a-tag>
+            </div>
+            <div class="detail-sub">
+              申请ID：{{ auditDetail.data.applyId }} ｜ 用户ID：{{ auditDetail.data.userId }} ｜ 申请时间：{{ auditDetail.data.applyTime }}
+            </div>
+          </div>
+        </div>
+
+        <a-divider style="margin: 16px 0" />
+
+        <a-descriptions bordered size="small" :column="2">
+          <a-descriptions-item label="真实姓名">{{ auditDetail.data.realName }}</a-descriptions-item>
+          <a-descriptions-item label="身份证号">{{ auditDetail.data.idCard }}</a-descriptions-item>
+          <a-descriptions-item label="申请理由" :span="2">{{ auditDetail.data.reason }}</a-descriptions-item>
+          <a-descriptions-item label="证明材料" :span="2">
+            <div class="files-list" v-if="auditDetail.data.files?.length">
+              <div v-for="(u, idx) in auditDetail.data.files" :key="u + idx" class="file-item">
+                <a :href="u" target="_blank" rel="noreferrer">{{ u }}</a>
+              </div>
+            </div>
+            <span v-else>—</span>
+          </a-descriptions-item>
+        </a-descriptions>
+
+        <a-divider style="margin: 16px 0" />
+
+        <div class="detail-section-title">审核历史</div>
+        <a-table
+          :columns="auditHistoryColumns"
+          :data-source="auditDetail.data.auditHistory || []"
+          :pagination="false"
+          size="small"
+          :row-key="(r) => r.auditId"
+        />
+      </div>
+      <div v-else class="empty-tip">暂无详情数据</div>
+    </a-modal>
 
     <!-- 审核弹窗 -->
     <a-modal
@@ -206,15 +250,17 @@ const roleFilter = ref('')
 const statusFilter = ref('')
 
 const auditStatusColorMap = {
-  pending: 'orange',
-  approved: 'green',
-  rejected: 'red'
+  PENDING: 'orange',
+  APPROVED: 'green',
+  REJECTED: 'red',
+  DISABLED: 'default'
 }
 
 const auditStatusTextMap = {
-  pending: '待审核',
-  approved: '已通过',
-  rejected: '已驳回'
+  PENDING: '待审',
+  APPROVED: '通过',
+  REJECTED: '拒绝',
+  DISABLED: '禁用'
 }
 
 const roleColorMap = {
@@ -239,12 +285,21 @@ const userColumns = [
 ]
 
 const auditColumns = [
-  { title: '申请人', key: 'applicant', width: '20%' },
-  { title: '提交时间', dataIndex: 'submitTime', key: 'submitTime', width: '15%' },
-  { title: '认证类型', dataIndex: 'certType', key: 'certType', width: '15%' },
-  { title: '资质材料', key: 'materials', width: '15%' },
-  { title: '状态', key: 'status', width: '15%' },
-  { title: '操作', key: 'action', width: '20%' }
+  { title: '申请ID', dataIndex: 'applyId', key: 'applyId', width: '12%' },
+  { title: '用户ID', dataIndex: 'userId', key: 'userId', width: '10%' },
+  { title: '用户名', dataIndex: 'username', key: 'username', width: '16%' },
+  { title: '昵称', dataIndex: 'nickname', key: 'nickname', width: '16%' },
+  { title: '申请时间', dataIndex: 'applyTime', key: 'applyTime', width: '18%' },
+  { title: '状态', key: 'status', width: '12%' },
+  { title: '操作', key: 'action', width: '16%' }
+]
+
+const auditHistoryColumns = [
+  { title: '审核ID', dataIndex: 'auditId', key: 'auditId', width: '14%' },
+  { title: '审核人', dataIndex: 'auditor', key: 'auditor', width: '16%' },
+  { title: '结果', dataIndex: 'result', key: 'result', width: '14%' },
+  { title: '原因', dataIndex: 'reason', key: 'reason', width: '36%' },
+  { title: '审核时间', dataIndex: 'auditTime', key: 'auditTime', width: '20%' }
 ]
 
 const userPagination = ref({
@@ -318,31 +373,28 @@ const userList = ref([
 
 const providerAuditList = ref([
   {
-    id: 1,
-    name: '周八',
-    phone: '134****0006',
-    submitTime: '2026-03-05 10:00',
-    certType: '企业认证',
-    status: 'pending',
-    avatarColor: '#ff4d4f'
+    applyId: 10001,
+    userId: 123,
+    username: 'zhangsan',
+    nickname: '张三',
+    applyTime: '2026-03-16 10:23:45',
+    status: 'PENDING'
   },
   {
-    id: 2,
-    name: '吴九',
-    phone: '133****0007',
-    submitTime: '2026-03-04 14:30',
-    certType: '个人认证',
-    status: 'approved',
-    avatarColor: '#9254de'
+    applyId: 10002,
+    userId: 124,
+    username: 'lisi',
+    nickname: '李四',
+    applyTime: '2026-03-15 14:30:00',
+    status: 'PENDING'
   },
   {
-    id: 3,
-    name: '郑十',
-    phone: '132****0008',
-    submitTime: '2026-03-03 09:20',
-    certType: '企业认证',
-    status: 'rejected',
-    avatarColor: '#faad14'
+    applyId: 10003,
+    userId: 125,
+    username: 'wangwu',
+    nickname: '王五',
+    applyTime: '2026-03-10 09:20:00',
+    status: 'REJECTED'
   }
 ])
 
@@ -351,6 +403,11 @@ const auditModal = ref({
   type: 'approve',
   remark: '',
   target: null
+})
+
+const auditDetail = ref({
+  visible: false,
+  data: null
 })
 
 const roleModal = ref({
@@ -386,7 +443,7 @@ const filteredUsers = computed(() => {
 const totalUsers = computed(() => userList.value.length)
 const normalUsers = computed(() => userList.value.filter(u => u.role === 'user').length)
 const providerUsers = computed(() => userList.value.filter(u => u.role === 'provider').length)
-const pendingAudits = computed(() => providerAuditList.value.filter(a => a.status === 'pending').length)
+const pendingAudits = computed(() => providerAuditList.value.filter(a => a.status === 'PENDING').length)
 
 const handleUserSearch = () => {
   // 搜索逻辑已在 computed 中处理
@@ -418,8 +475,56 @@ const handleRoleChange = () => {
   roleModal.value.visible = false
 }
 
-const viewMaterials = (record) => {
-  message.info(`查看 ${record.name} 的认证材料`)
+const openAuditDetail = (record) => {
+  // 这里按你给的详情接口返回结构做展示；后续接后端时，把这段替换成真实请求即可
+  const mockDetailByApplyId = {
+    10001: {
+      applyId: 10001,
+      userId: 123,
+      username: "zhangsan",
+      nickname: "张三",
+      avatar: "http://example.com/avatar.jpg",
+      realName: "张三",
+      idCard: "123456199001011234",
+      reason: "我有5年Java开发经验，希望成为服务商",
+      files: [
+        "http://example.com/idcard.jpg",
+        "http://example.com/cert.pdf"
+      ],
+      applyTime: "2026-03-16 10:23:45",
+      status: "PENDING",
+      auditHistory: [
+        {
+          auditId: 5001,
+          auditor: "admin01",
+          result: "REJECTED",
+          reason: "材料不全，请补充身份证照片",
+          auditTime: "2026-03-15 14:30:00"
+        }
+      ]
+    },
+    10002: {
+      applyId: 10002,
+      userId: 124,
+      username: "lisi",
+      nickname: "李四",
+      avatar: "http://example.com/avatar2.jpg",
+      realName: "李四",
+      idCard: "123456199202021234",
+      reason: "我有3年UI设计经验，希望成为服务商",
+      files: [
+        "http://example.com/idcard2.jpg"
+      ],
+      applyTime: "2026-03-15 14:30:00",
+      status: "PENDING",
+      auditHistory: []
+    }
+  }
+
+  auditDetail.value = {
+    visible: true,
+    data: mockDetailByApplyId[record.applyId] || null
+  }
 }
 
 const openProviderAuditModal = (record, type) => {
@@ -439,7 +544,7 @@ const handleProviderAudit = () => {
 
   const target = auditModal.value.target
   if (target) {
-    target.status = auditModal.value.type === 'approve' ? 'approved' : 'rejected'
+    target.status = auditModal.value.type === 'approve' ? 'APPROVED' : 'REJECTED'
     message.success(auditModal.value.type === 'approve' ? '认证已通过' : '认证已驳回')
   }
 
@@ -472,4 +577,15 @@ const handleProviderAudit = () => {
 .user-phone { font-size: 12px; color: #999; margin-top: 2px; }
 
 .action-buttons { display: flex; gap: 4px; }
+
+.audit-detail { display: flex; flex-direction: column; }
+.detail-head { display: flex; gap: 12px; align-items: center; }
+.detail-head-main { flex: 1; min-width: 0; }
+.detail-title { display: flex; align-items: center; flex-wrap: wrap; }
+.detail-name { font-size: 15px; font-weight: 700; color: #1f2937; }
+.detail-sub { margin-top: 4px; font-size: 12px; color: #6b7280; }
+.detail-section-title { font-size: 13px; font-weight: 700; color: #374151; margin-bottom: 8px; }
+.files-list { display: flex; flex-direction: column; gap: 6px; }
+.file-item a { word-break: break-all; }
+.empty-tip { color: #999; padding: 8px 0; }
 </style>

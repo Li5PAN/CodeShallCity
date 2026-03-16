@@ -311,6 +311,7 @@
             <a-select-option :value="7">7天内交付</a-select-option>
             <a-select-option :value="14">14天内交付</a-select-option>
             <a-select-option :value="30">30天内交付</a-select-option>
+            <a-select-option :value="90">90天内交付</a-select-option>
           </a-select>
         </a-form-item>
       </a-form>
@@ -333,208 +334,51 @@
           style="margin-bottom: 20px"
         />
         <a-form :model="applyForm" layout="vertical" ref="applyFormRef">
-          <div class="form-section-title">基本信息</div>
-          <a-row :gutter="16">
-            <a-col :span="12">
-              <a-form-item
-                label="真实姓名"
-                name="realName"
-                :rules="[{ required: true, message: '请输入真实姓名' }]"
-              >
-                <a-input
-                  v-model:value="applyForm.realName"
-                  placeholder="请输入真实姓名"
-                />
-              </a-form-item>
-            </a-col>
-            <a-col :span="12">
-              <a-form-item
-                label="身份证号"
-                name="idCard"
-                :rules="[
-                  { required: true, message: '请输入身份证号' },
-                  { pattern: /^\d{17}[\dX]$/, message: '身份证号格式不正确' },
-                ]"
-              >
-                <a-input
-                  v-model:value="applyForm.idCard"
-                  placeholder="请输入18位身份证号"
-                  :maxlength="18"
-                />
-              </a-form-item>
-            </a-col>
-          </a-row>
-          <a-row :gutter="16">
-            <a-col :span="12">
-              <a-form-item
-                label="联系手机"
-                name="phone"
-                :rules="[
-                  { required: true, message: '请输入手机号' },
-                  { pattern: /^1[3-9]\d{9}$/, message: '手机号格式不正确' },
-                ]"
-              >
-                <a-input
-                  v-model:value="applyForm.phone"
-                  placeholder="请输入手机号"
-                  :maxlength="11"
-                />
-              </a-form-item>
-            </a-col>
-            <a-col :span="12">
-              <a-form-item
-                label="所在城市"
-                name="city"
-                :rules="[{ required: true, message: '请输入所在城市' }]"
-              >
-                <a-input
-                  v-model:value="applyForm.city"
-                  placeholder="如：北京市朝阳区"
-                />
-              </a-form-item>
-            </a-col>
-          </a-row>
-          <div class="form-section-title">专业背景</div>
-          <a-row :gutter="16">
-            <a-col :span="12">
-              <a-form-item
-                label="最高学历"
-                name="education"
-                :rules="[{ required: true, message: '请选择学历' }]"
-              >
-                <a-select
-                  v-model:value="applyForm.education"
-                  placeholder="请选择"
-                >
-                  <a-select-option value="高中">高中及以下</a-select-option>
-                  <a-select-option value="大专">大专</a-select-option>
-                  <a-select-option value="本科">本科</a-select-option>
-                  <a-select-option value="硕士">硕士</a-select-option>
-                  <a-select-option value="博士">博士</a-select-option>
-                </a-select>
-              </a-form-item>
-            </a-col>
-            <a-col :span="12">
-              <a-form-item label="毕业院校" name="school">
-                <a-input
-                  v-model:value="applyForm.school"
-                  placeholder="请输入毕业院校名称"
-                />
-              </a-form-item>
-            </a-col>
-          </a-row>
-          <a-row :gutter="16">
-            <a-col :span="12">
-              <a-form-item
-                label="从业年限"
-                name="workYears"
-                :rules="[{ required: true, message: '请选择从业年限' }]"
-              >
-                <a-select
-                  v-model:value="applyForm.workYears"
-                  placeholder="请选择"
-                >
-                  <a-select-option value="1">1年以下</a-select-option>
-                  <a-select-option value="1-3">1-3年</a-select-option>
-                  <a-select-option value="3-5">3-5年</a-select-option>
-                  <a-select-option value="5-10">5-10年</a-select-option>
-                  <a-select-option value="10+">10年以上</a-select-option>
-                </a-select>
-              </a-form-item>
-            </a-col>
-            <a-col :span="12">
-              <a-form-item label="当前职位" name="position">
-                <a-input
-                  v-model:value="applyForm.position"
-                  placeholder="如：高级后端工程师"
-                />
-              </a-form-item>
-            </a-col>
-          </a-row>
-          <a-form-item label="所在公司/机构" name="company">
+          <a-form-item
+            label="真实姓名"
+            name="realName"
+            :rules="[{ required: true, message: '请输入真实姓名' }]"
+          >
             <a-input
-              v-model:value="applyForm.company"
-              placeholder="请输入当前就职公司或机构名称（可填在校生）"
+              v-model:value="applyForm.realName"
+              placeholder="请输入真实姓名"
             />
           </a-form-item>
-          <div class="form-section-title">技能与服务</div>
           <a-form-item
-            label="主要技术方向"
-            name="skills"
-            :rules="[{ required: true, message: '请选择技术方向' }]"
+            label="身份证号"
+            name="idCard"
+            :rules="[
+              { required: true, message: '请输入身份证号' },
+              { pattern: /^\d{17}[\dX]$/, message: '身份证号格式不正确' },
+            ]"
           >
-            <a-select
-              v-model:value="applyForm.skills"
-              mode="multiple"
-              placeholder="请选择（可多选）"
-              :max-tag-count="4"
-            >
-              <a-select-option v-for="s in skillOptions" :key="s" :value="s">{{
-                s
-              }}</a-select-option>
-            </a-select>
+            <a-input
+              v-model:value="applyForm.idCard"
+              placeholder="请输入18位身份证号"
+              :maxlength="18"
+            />
           </a-form-item>
           <a-form-item
-            label="服务类型"
-            name="serviceTypes"
-            :rules="[{ required: true, message: '请选择服务类型' }]"
-          >
-            <a-checkbox-group v-model:value="applyForm.serviceTypes">
-              <a-checkbox v-for="t in serviceTypeOptions" :key="t" :value="t">{{
-                t
-              }}</a-checkbox>
-            </a-checkbox-group>
-          </a-form-item>
-          <a-form-item
-            label="个人简介 / 服务说明"
-            name="intro"
-            :rules="[{ required: true, message: '请填写个人简介' }]"
+            label="申请理由"
+            name="reason"
+            :rules="[{ required: true, message: '请填写申请理由' }]"
           >
             <a-textarea
-              v-model:value="applyForm.intro"
+              v-model:value="applyForm.reason"
               :rows="4"
-              placeholder="请介绍您的技术背景、擅长领域、可提供的服务内容，以及过往项目经验（100字以上）"
-              :maxlength="500"
+              placeholder="文字描述申请动机或资质，便于管理员初步判断"
+              :maxlength="800"
               show-count
             />
           </a-form-item>
-          <div class="form-section-title">资质证明（文字填写）</div>
-          <a-form-item label="专业证书 / 资质认证">
+          <a-form-item label="证明材料文件URL（可多条）" name="filesRaw">
             <a-textarea
-              v-model:value="applyForm.certificates"
+              v-model:value="applyForm.filesRaw"
               :rows="3"
-              placeholder="请列举您持有的相关证书，如：软件设计师证书（2023年）、AWS Solutions Architect（2024年）、PMP证书等"
-              :maxlength="300"
+              placeholder="每行一个URL，例如：\nhttp://example.com/idcard.jpg\nhttp://example.com/certificate.pdf"
+              :maxlength="2000"
               show-count
             />
-          </a-form-item>
-          <a-form-item label="代表性项目经历">
-            <a-textarea
-              v-model:value="applyForm.projects"
-              :rows="4"
-              placeholder="请描述1-3个代表性项目，包括项目名称、技术栈、您的角色和主要贡献"
-              :maxlength="500"
-              show-count
-            />
-          </a-form-item>
-          <a-form-item label="开源贡献 / 作品链接">
-            <a-textarea
-              v-model:value="applyForm.portfolio"
-              :rows="2"
-              placeholder="如 GitHub 主页、个人博客、开源项目地址等（选填）"
-              :maxlength="200"
-              show-count
-            />
-          </a-form-item>
-          <div class="form-section-title">承诺与协议</div>
-          <a-form-item name="agreed" :rules="[{ validator: checkAgreed }]">
-            <a-checkbox v-model:checked="applyForm.agreed">
-              我已阅读并同意
-              <a style="color: #52c41a">《服务提供者服务协议》</a>
-              和
-              <a style="color: #52c41a">《平台规范与诚信承诺》</a>
-              ，保证所填信息真实有效，如有虚假愿承担相应责任。
-            </a-checkbox>
           </a-form-item>
         </a-form>
       </div>
@@ -820,33 +664,30 @@ const serviceTypeOptions = [
 const applyForm = reactive({
   realName: "",
   idCard: "",
-  phone: "",
-  city: "",
-  education: undefined,
-  school: "",
-  workYears: undefined,
-  position: "",
-  company: "",
-  skills: [],
-  serviceTypes: [],
-  intro: "",
-  certificates: "",
-  projects: "",
-  portfolio: "",
-  agreed: false,
+  reason: "",
+  filesRaw: "",
 });
-
-const checkAgreed = (_, value) =>
-  value ? Promise.resolve() : Promise.reject("请阅读并同意相关协议");
 
 const submitApply = () => {
   applyFormRef.value
     ?.validate()
     .then(() => {
+      const files = (applyForm.filesRaw || "")
+        .split(/\r?\n/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+      const payload = {
+        real_name: applyForm.realName,
+        id_card: applyForm.idCard,
+        reason: applyForm.reason,
+        files,
+      };
+
+      // 这里按你的接口参数格式组织数据；如需对接后端，把 payload 传给 API 即可
+      console.log("provider_apply_payload", payload);
+
       applyVisible.value = false;
-      isProvider.value = true;
-      userRole.value = "provider";
-      localStorage.setItem("userRole", "provider");
       message.success("申请已提交，平台将在 3 个工作日内完成审核");
     })
     .catch(() => {
