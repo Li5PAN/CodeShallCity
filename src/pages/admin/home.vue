@@ -11,7 +11,7 @@
       </div>
     </div>
 
-    <!-- 图表区 -->
+    <!-- 图表区 第一行 -->
     <div class="charts-row">
       <div class="chart-card">
         <div class="card-title">近一周订单趋势</div>
@@ -20,6 +20,18 @@
       <div class="chart-card">
         <div class="card-title">服务类别排行榜（订单量 + 交易额）</div>
         <div ref="mixChartRef" class="chart-box"></div>
+      </div>
+    </div>
+
+    <!-- 图表区 第二行 -->
+    <div class="charts-row">
+      <div class="chart-card">
+        <div class="card-title">用户来源分布</div>
+        <div ref="pieChartRef" class="chart-box"></div>
+      </div>
+      <div class="chart-card">
+        <div class="card-title">平台运营指标</div>
+        <div ref="radarChartRef" class="chart-box"></div>
       </div>
     </div>
   </div>
@@ -38,8 +50,12 @@ const statCards = [
 
 const lineChartRef = ref(null)
 const mixChartRef = ref(null)
+const pieChartRef = ref(null)
+const radarChartRef = ref(null)
 let lineChart = null
 let mixChart = null
+let pieChart = null
+let radarChart = null
 
 const categories = ['前端开发', '后端开发', 'UI设计', '数据分析', '运维部署']
 const orderData = [320, 280, 210, 180, 150]
@@ -78,7 +94,7 @@ onMounted(() => {
     }]
   })
 
-  // 混合图 - 折线（订单量）+ 柱状（交易额）
+  // 混合图 - 折线（订单量）+ 柱状（交易额） - 修复图例重叠
   mixChart = echarts.init(mixChartRef.value)
   mixChart.setOption({
     tooltip: {
@@ -88,15 +104,16 @@ onMounted(() => {
     legend: {
       data: ['订单量', '交易额(元)'],
       top: 0,
-      right: 0,
+      left: 'center',
+      itemGap: 24,
       textStyle: { color: '#888', fontSize: 12 }
     },
-    grid: { top: 36, right: 60, bottom: 30, left: 50 },
+    grid: { top: 40, right: 60, bottom: 30, left: 50 },
     xAxis: {
       type: 'category',
       data: categories,
       axisLine: { lineStyle: { color: '#e0e0e0' } },
-      axisLabel: { color: '#888' }
+      axisLabel: { color: '#888', fontSize: 11 }
     },
     yAxis: [
       {
@@ -140,19 +157,105 @@ onMounted(() => {
     ]
   })
 
-  // 响应式
+  // 饼图 - 用户来源分布
+  pieChart = echarts.init(pieChartRef.value)
+  pieChart.setOption({
+    tooltip: {
+      trigger: 'item',
+      formatter: '{b}: {c} ({d}%)'
+    },
+    legend: {
+      orient: 'vertical',
+      right: 16,
+      top: 'center',
+      itemGap: 12,
+      textStyle: { color: '#666', fontSize: 12 }
+    },
+    series: [{
+      type: 'pie',
+      radius: ['40%', '65%'],
+      center: ['35%', '50%'],
+      avoidLabelOverlap: true,
+      itemStyle: { borderRadius: 6, borderColor: '#fff', borderWidth: 2 },
+      label: { show: false },
+      emphasis: {
+        label: { show: true, fontSize: 14, fontWeight: 600 }
+      },
+      data: [
+        { value: 4280, name: '搜索引擎', itemStyle: { color: '#4f46e5' } },
+        { value: 3120, name: '社交媒体', itemStyle: { color: '#06b6d4' } },
+        { value: 2340, name: '直接访问', itemStyle: { color: '#f59e0b' } },
+        { value: 1560, name: '技术社区', itemStyle: { color: '#10b981' } },
+        { value: 1180, name: '其他渠道', itemStyle: { color: '#ef4444' } }
+      ]
+    }]
+  })
+
+  // 雷达图 - 平台运营指标
+  radarChart = echarts.init(radarChartRef.value)
+  radarChart.setOption({
+    tooltip: { trigger: 'item' },
+    legend: {
+      data: ['本月', '上月'],
+      top: 0,
+      left: 'center',
+      itemGap: 24,
+      textStyle: { color: '#888', fontSize: 12 }
+    },
+    radar: {
+      indicator: [
+        { name: '用户活跃度', max: 100 },
+        { name: '订单完成率', max: 100 },
+        { name: '用户满意度', max: 100 },
+        { name: '平均响应时间', max: 100 },
+        { name: '服务商质量', max: 100 },
+        { name: '纠纷解决率', max: 100 }
+      ],
+      center: ['50%', '55%'],
+      radius: '60%',
+      splitNumber: 4,
+      axisName: { color: '#666', fontSize: 11 },
+      splitArea: { areaStyle: { color: ['rgba(79,70,229,0.02)', 'rgba(79,70,229,0.05)'] } },
+      splitLine: { lineStyle: { color: '#e8e8e8' } },
+      axisLine: { lineStyle: { color: '#e8e8e8' } }
+    },
+    series: [{
+      type: 'radar',
+      data: [
+        {
+          value: [88, 92, 85, 78, 90, 95],
+          name: '本月',
+          lineStyle: { color: '#4f46e5', width: 2 },
+          itemStyle: { color: '#4f46e5' },
+          areaStyle: { color: 'rgba(79,70,229,0.15)' }
+        },
+        {
+          value: [75, 88, 80, 70, 82, 88],
+          name: '上月',
+          lineStyle: { color: '#f59e0b', width: 2 },
+          itemStyle: { color: '#f59e0b' },
+          areaStyle: { color: 'rgba(245,158,11,0.1)' }
+        }
+      ]
+    }]
+  })
+
   window.addEventListener('resize', handleResize)
 })
 
 const handleResize = () => {
   lineChart?.resize()
   mixChart?.resize()
+  pieChart?.resize()
+  radarChart?.resize()
 }
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', handleResize)
   lineChart?.dispose()
   mixChart?.dispose()
+  pieChart?.dispose()
+  radarChart?.dispose()
 })
 </script>
 
@@ -161,7 +264,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   gap: 20px;
-  flex: 1;
+  height: 100%;
   min-height: 0;
 }
 
@@ -201,7 +304,7 @@ onBeforeUnmount(() => {
   box-shadow: 0 1px 4px rgba(0,0,0,0.06);
   display: flex;
   flex-direction: column;
-  min-height: 300px;
+  min-height: 0;
 }
 
 .card-title {
