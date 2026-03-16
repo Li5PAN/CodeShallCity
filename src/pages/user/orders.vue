@@ -52,7 +52,7 @@
                 <img :src="order.cover" :alt="order.serviceName" />
               </div>
               <div class="service-info">
-                <div class="service-name">{{ order.serviceName }} <a-tag v-if="order.isMine" color="green" size="small">我发布的</a-tag></div>
+                <div class="service-name">{{ order.serviceName }}</div>
                 <div class="service-desc">{{ order.serviceDesc }}</div>
                 <div class="service-tags">
                   <a-tag v-for="tag in order.tags" :key="tag" size="small" color="blue">{{ tag }}</a-tag>
@@ -168,7 +168,6 @@ const serviceOrders = ref([
     quantity: 1,
     status: "已完成",
     serviceId: 1,
-    isMine: true,
   },
   {
     id: 2,
@@ -184,7 +183,6 @@ const serviceOrders = ref([
     quantity: 1,
     status: "已完成",
     serviceId: 2,
-    isMine: false,
   },
   {
     id: 3,
@@ -200,7 +198,6 @@ const serviceOrders = ref([
     quantity: 1,
     status: "进行中",
     serviceId: 3,
-    isMine: false,
   },
 ]);
 
