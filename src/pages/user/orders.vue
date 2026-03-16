@@ -106,6 +106,17 @@
         </div>
       </a-tab-pane>
     </a-tabs>
+    <div class="pagination-wrapper">
+      <a-pagination
+        v-model:current="currentPage"
+        v-model:pageSize="pageSize"
+        :total="totalOrders"
+        show-size-changer
+        show-quick-jumper
+        :show-total="(total) => `共 ${total} 条`"
+        @change="handlePageChange"
+      />
+    </div>
   </div>
 </template>
 
@@ -116,6 +127,14 @@ import { InboxOutlined, TrophyOutlined } from '@ant-design/icons-vue'
 
 const router = useRouter()
 const activeTab = ref('service')
+
+const currentPage = ref(1)
+const pageSize = ref(10)
+
+const handlePageChange = (page, size) => {
+  currentPage.value = page
+  pageSize.value = size
+}
 
 const statusColorMap = {
   '已完成': 'green',
@@ -268,4 +287,5 @@ const viewDemandDetail = (id) => {
 .order-total { font-size: 13px; color: #666; margin-top: 4px; padding-top: 8px; border-top: 1px solid #f0f0f0; }
 .order-total span { color: #ff4d4f; font-weight: 600; margin-left: 4px; }
 .order-actions { display: flex; gap: 4px; margin-top: 8px; justify-content: flex-end; }
+.pagination-wrapper { display: flex; justify-content: flex-end; padding: 20px 0; }
 </style>
