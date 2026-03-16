@@ -86,6 +86,17 @@
         </div>
       </a-tab-pane>
     </a-tabs>
+    <div class="pagination-wrapper">
+      <a-pagination
+        v-model:current="currentPage"
+        v-model:pageSize="pageSize"
+        :total="totalHistory"
+        show-size-changer
+        show-quick-jumper
+        :show-total="(total) => `共 ${total} 条`"
+        @change="handlePageChange"
+      />
+    </div>
   </div>
 </template>
 
@@ -96,6 +107,15 @@ import { EyeOutlined, LikeOutlined } from '@ant-design/icons-vue'
 
 const router = useRouter()
 const activeTab = ref('service')
+
+const currentPage = ref(1)
+const pageSize = ref(10)
+const totalHistory = ref(60)
+
+const handlePageChange = (page, size) => {
+  currentPage.value = page
+  pageSize.value = size
+}
 
 const goDetail = (type, id) => {
   const routeMap = {
@@ -154,4 +174,5 @@ const forumItems = ref([
 .history-right { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
 .history-price { font-size: 16px; font-weight: 700; color: #ff4d4f; }
 .history-time { font-size: 12px; color: #bbb; white-space: nowrap; }
+.pagination-wrapper { display: flex; justify-content: flex-end; padding: 20px 0; }
 </style>

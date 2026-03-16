@@ -84,6 +84,17 @@
         </div>
       </a-tab-pane>
     </a-tabs>
+    <div class="pagination-wrapper">
+      <a-pagination
+        v-model:current="currentPage"
+        v-model:pageSize="pageSize"
+        :total="totalFavorites"
+        show-size-changer
+        show-quick-jumper
+        :show-total="(total) => `共 ${total} 条`"
+        @change="handlePageChange"
+      />
+    </div>
   </div>
 </template>
 
@@ -94,6 +105,15 @@ import { EyeOutlined, LikeOutlined } from '@ant-design/icons-vue'
 const openDetail = inject('openDetail')
 
 const activeTab = ref('service')
+
+const currentPage = ref(1)
+const pageSize = ref(10)
+const totalFavorites = ref(50)
+
+const handlePageChange = (page, size) => {
+  currentPage.value = page
+  pageSize.value = size
+}
 
 const serviceItems = ref([
   { id: 1, title: 'Java大厂面试�?一套搞定offer', desc: '覆盖Java基础、JVM、并发、分布式等核心考点，配套面试模', price: 399, cover: 'https://placehold.co/80x60/FFD700/000000?text=Java', tags: ['平台保障', '商家认证'] },
@@ -144,4 +164,5 @@ const removeItem = (list, id) => {
 
 .fav-right { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
 .fav-price { font-size: 16px; font-weight: 700; color: #ff4d4f; }
+.pagination-wrapper { display: flex; justify-content: flex-end; padding: 20px 0; }
 </style>
