@@ -130,7 +130,7 @@ const forumList = ref([
 .content-left { flex: 1; min-width: 0; }
 .content-right { width: 280px; flex-shrink: 0; }
 
-.banner { background: linear-gradient(135deg, #52c41a 0%, #389e0d 100%); color: #fff; padding: 40px 32px; border-radius: 8px; margin-bottom: 20px; }
+.banner { background: linear-gradient(135deg, #52c41a 0%, rgb(135, 208, 104) 100%); color: #fff; padding: 40px 32px; border-radius: 8px; margin-bottom: 20px; }
 .banner h1 { font-size: 28px; margin: 0 0 12px 0; color: #fff; font-weight: 700; }
 .banner p { font-size: 14px; opacity: 0.8; margin: 0; }
 

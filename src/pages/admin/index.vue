@@ -51,6 +51,7 @@ const menuItems = [
   { path: '/admin/goods-management', label: '商品管理', icon: '📦' },
   { path: '/admin/content-management', label: '内容管理', icon: '📝' },
   { path: '/admin/order-appeal', label: '订单申诉', icon: '⚖️' },
+  { path: '/admin/notice-management', label: '公告管理', icon: '📢' },
   { path: '/admin/system-management', label: '系统管理', icon: '🔧' }
 ]
 

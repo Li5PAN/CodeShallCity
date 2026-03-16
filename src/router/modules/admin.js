@@ -24,6 +24,12 @@ export default [
         meta: { title: '商品管理' }
       },
       {
+        path: 'notice-management',
+        name: 'AdminNoticeManagement',
+        component: () => import('../../pages/admin/notice-management.vue'),
+        meta: { title: '公告管理' }
+      },
+      {
         path: 'content-management',
         name: 'AdminContentManagement',
         component: () => import('../../pages/admin/content-management.vue'),
