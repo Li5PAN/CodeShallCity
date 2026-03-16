@@ -52,7 +52,7 @@
         <div class="creator-card stats-card">
           <div class="card-title">创作战绩</div>
           <div class="stats-grid">
-            <div class="stat-item" v-for="s in statsData" :key="s.label">
+            <div class="stat-item" v-for="s in filteredStatsData" :key="s.label">
               <div class="stat-icon" :style="{ background: s.gradient }">
                 <component :is="s.icon" style="color: #fff; font-size: 18px" />
               </div>
@@ -414,7 +414,6 @@ import {
   PictureOutlined,
   CloseCircleOutlined,
   CloseOutlined,
-  ToolOutlined,
   CodeOutlined,
   ExperimentOutlined,
   HighlightOutlined,
@@ -518,6 +517,11 @@ const statsData = ref([
   { label: "累计成交", value: 214, icon: ShoppingCartOutlined, gradient: "linear-gradient(135deg, #722ed1 0%, #b37feb 100%)" },
   { label: "发布悬赏", value: 4, icon: TrophyOutlined, gradient: "linear-gradient(135deg, #13c2c0 0%, #36cfc9 100%)" },
 ]);
+
+const filteredStatsData = computed(() => {
+  if (isProvider.value) return statsData.value;
+  return statsData.value.filter(s => s.label !== "上架服务" && s.label !== "累计成交");
+});
 
 // 已认证服务商统计数据
 const providerStats = ref({
@@ -642,7 +646,7 @@ const submitApply = () => {
 }
 
 /* 快捷发布区 - 增大卡片、渐变背景、hover效果 */
-.publish-card .publish-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.publish-card .publish-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; }
 .publish-card .publish-item {
   display: flex;
   flex-direction: column;
@@ -671,7 +675,7 @@ const submitApply = () => {
 .publish-stat { font-size: 12px; color: #999; }
 
 /* 创作战绩 - 渐变背景区分 */
-.stats-card .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.stats-card .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
 .stats-card .stat-item {
   display: flex; align-items: center; gap: 12px;
   padding: 14px; border-radius: 10px;

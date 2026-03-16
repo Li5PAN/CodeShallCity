@@ -29,6 +29,17 @@
         </div>
       </div>
     </div>
+    <div class="pagination-wrapper">
+      <a-pagination
+        v-model:current="currentPage"
+        v-model:pageSize="pageSize"
+        :total="totalFollowing"
+        show-size-changer
+        show-quick-jumper
+        :show-total="(total) => `共 ${total} 条`"
+        @change="handlePageChange"
+      />
+    </div>
   </div>
 </template>
 
@@ -37,6 +48,15 @@ import { ref, computed, inject } from 'vue'
 import { SmileOutlined } from '@ant-design/icons-vue'
 
 const openDetail = inject('openDetail')
+
+const currentPage = ref(1)
+const pageSize = ref(10)
+const totalFollowing = ref(40)
+
+const handlePageChange = (page, size) => {
+  currentPage.value = page
+  pageSize.value = size
+}
 
 // 当前时间基准
 const followingUsers = ref([
@@ -150,4 +170,5 @@ const filteredArticles = computed(() => {
 .article-desc { font-size: 13px; color: #888; margin: 0; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 
 .article-time { font-size: 12px; color: #bbb; white-space: nowrap; flex-shrink: 0; padding-top: 2px; }
+.pagination-wrapper { display: flex; justify-content: flex-end; padding: 20px 0; }
 </style>
