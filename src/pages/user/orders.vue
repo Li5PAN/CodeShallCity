@@ -24,6 +24,12 @@
 
     <!-- 订单分类 -->
     <a-tabs v-model:activeKey="activeTab" class="order-tabs">
+      <template #rightExtra>
+        <a-button type="primary" size="small" @click="activeTab === 'service' ? exportServiceOrders() : exportDemandOrders()">
+          <template #icon><DownloadOutlined /></template>
+          {{ activeTab === 'service' ? '导出服务订单' : '导出悬赏订单' }}
+        </a-button>
+      </template>
       <a-tab-pane key="service" tab="服务商品订单">
         <div class="order-list">
           <div v-if="serviceOrders.length === 0" class="empty-state">
@@ -123,7 +129,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { InboxOutlined, TrophyOutlined } from '@ant-design/icons-vue'
+import { InboxOutlined, TrophyOutlined, DownloadOutlined } from '@ant-design/icons-vue'
 
 const router = useRouter()
 const activeTab = ref('service')
@@ -245,6 +251,41 @@ const viewServiceDetail = (id) => {
 
 const viewDemandDetail = (id) => {
   router.push({ name: 'DemandDetail', params: { id } })
+}
+
+// CSV 导出工具
+const downloadCsv = (filename, headers, rows) => {
+  const BOM = '\uFEFF'
+  const csvContent = BOM + [
+    headers.join(','),
+    ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
+  ].join('\n')
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+  const link = document.createElement('a')
+  link.href = URL.createObjectURL(blob)
+  link.download = filename
+  link.click()
+  URL.revokeObjectURL(link.href)
+}
+
+// 导出服务订单
+const exportServiceOrders = () => {
+  const headers = ['订单号', '服务名称', '服务描述', '卖家', '单价(元)', '数量', '状态', '下单时间']
+  const rows = serviceOrders.value.map(o => [
+    o.orderNo, o.serviceName, o.serviceDesc, o.seller,
+    o.price, o.quantity, o.status, o.createTime
+  ])
+  downloadCsv('服务商品订单.csv', headers, rows)
+}
+
+// 导出悬赏订单
+const exportDemandOrders = () => {
+  const headers = ['订单号', '需求标题', '需求描述', '需求类型', '需求方', '预算最低(元)', '预算最高(元)', '状态', '下单时间']
+  const rows = demandOrders.value.map(o => [
+    o.orderNo, o.demandTitle, o.demandDesc, o.demandType,
+    o.publisher, o.budgetMin, o.budgetMax, o.status, o.createTime
+  ])
+  downloadCsv('需求悬赏订单.csv', headers, rows)
 }
 </script>
 
