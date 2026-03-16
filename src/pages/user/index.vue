@@ -9,56 +9,96 @@
         theme="light"
       >
         <div class="sidebar-content">
-            <div class="sidebar-header">
-              <MenuOutlined class="collapse-icon" @click="collapsed = !collapsed" />
-              <span v-if="!collapsed" class="sidebar-title">图标logo</span>
-            </div>
-            <a-menu mode="inline" theme="light" :selected-keys="selectedKeys" class="sidebar-menu">
-              <a-menu-item key="home" @click="onMenuClick('home', 'home')">
-                <template #icon><HomeOutlined /></template>
-                <span>首页</span>
+          <div class="sidebar-header">
+            <MenuOutlined
+              class="collapse-icon"
+              @click="collapsed = !collapsed"
+            />
+            <span v-if="!collapsed" class="sidebar-title">图标logo</span>
+          </div>
+          <a-menu
+            mode="inline"
+            theme="light"
+            :selected-keys="selectedKeys"
+            class="sidebar-menu"
+          >
+            <a-menu-item key="home" @click="onMenuClick('home', 'home')">
+              <template #icon><HomeOutlined /></template>
+              <span>首页</span>
+            </a-menu-item>
+            <a-menu-item
+              key="service"
+              @click="onMenuClick('service-market', 'service')"
+            >
+              <template #icon><ShopOutlined /></template>
+              <span>服务市场</span>
+            </a-menu-item>
+            <a-menu-item
+              key="reward"
+              @click="onMenuClick('demand-bounty', 'reward')"
+            >
+              <template #icon><MoneyCollectOutlined /></template>
+              <span>需求悬赏</span>
+            </a-menu-item>
+            <a-menu-item
+              key="forum"
+              @click="onMenuClick('tech-forum', 'forum')"
+            >
+              <template #icon><CommentOutlined /></template>
+              <span>技术论坛</span>
+            </a-menu-item>
+          </a-menu>
+          <div class="sidebar-bottom">
+            <a-menu
+              mode="inline"
+              theme="light"
+              :selected-keys="selectedKeys"
+              class="sidebar-menu"
+            >
+              <a-menu-item
+                key="subscribe"
+                @click="onMenuClick('orders', 'subscribe')"
+              >
+                <template #icon><ShoppingCartOutlined /></template>
+                <span>订单</span>
               </a-menu-item>
-              <a-menu-item key="service" @click="onMenuClick('service-market', 'service')">
-                <template #icon><ShopOutlined /></template>
-                <span>服务市场</span>
+              <a-menu-item
+                key="follow"
+                @click="onMenuClick('following', 'follow')"
+              >
+                <template #icon><StarOutlined /></template>
+                <span>订阅</span>
               </a-menu-item>
-              <a-menu-item key="reward" @click="onMenuClick('demand-bounty', 'reward')">
-                <template #icon><MoneyCollectOutlined /></template>
-                <span>需求悬赏</span>
+              <a-menu-item
+                key="collect"
+                @click="onMenuClick('favorites', 'collect')"
+              >
+                <template #icon><HeartOutlined /></template>
+                <span>收藏</span>
               </a-menu-item>
-              <a-menu-item key="forum" @click="onMenuClick('tech-forum', 'forum')">
-                <template #icon><CommentOutlined /></template>
-                <span>技术论坛</span>
+              <a-menu-item
+                key="history"
+                @click="onMenuClick('history', 'history')"
+              >
+                <template #icon><HistoryOutlined /></template>
+                <span>历史</span>
+              </a-menu-item>
+              <a-menu-item
+                key="profile"
+                @click="onMenuClick('profile', 'profile')"
+              >
+                <template #icon><UserOutlined /></template>
+                <span>个人中心</span>
+              </a-menu-item>
+              <a-menu-item
+                key="create"
+                @click="onMenuClick('creator-center', 'create')"
+              >
+                <template #icon><EditOutlined /></template>
+                <span>创作中心</span>
               </a-menu-item>
             </a-menu>
-            <div class="sidebar-bottom">
-              <a-menu mode="inline" theme="light" :selected-keys="selectedKeys" class="sidebar-menu">
-                <a-menu-item key="subscribe" @click="onMenuClick('orders', 'subscribe')">
-                  <template #icon><ShoppingCartOutlined /></template>
-                  <span>订购</span>
-                </a-menu-item>
-                <a-menu-item key="follow" @click="onMenuClick('following', 'follow')">
-                  <template #icon><StarOutlined /></template>
-                  <span>订阅</span>
-                </a-menu-item>
-                <a-menu-item key="collect" @click="onMenuClick('favorites', 'collect')">
-                  <template #icon><HeartOutlined /></template>
-                  <span>收藏</span>
-                </a-menu-item>
-                <a-menu-item key="history" @click="onMenuClick('history', 'history')">
-                  <template #icon><HistoryOutlined /></template>
-                  <span>历史</span>
-                </a-menu-item>
-                <a-menu-item key="profile" @click="onMenuClick('profile', 'profile')">
-                  <template #icon><UserOutlined /></template>
-                  <span>个人中心</span>
-                </a-menu-item>
-                <a-menu-item key="create" @click="onMenuClick('creator-center', 'create')">
-                  <template #icon><EditOutlined /></template>
-                  <span>创作中心</span>
-                </a-menu-item>
-              </a-menu>
-            </div>
+          </div>
         </div>
       </a-layout-sider>
 
@@ -71,7 +111,9 @@
               <template #content>
                 <div class="avatar-popup">
                   <div class="avatar-popup-header">
-                    <a-avatar :size="48" style="background-color: #87d068">{{ username }}</a-avatar>
+                    <a-avatar :size="48" style="background-color: #87d068">{{
+                      username
+                    }}</a-avatar>
                     <div class="avatar-popup-info">
                       <div class="avatar-popup-name">{{ username }}</div>
                       <div class="avatar-popup-stats">
@@ -82,54 +124,146 @@
                     </div>
                   </div>
                   <div class="avatar-popup-menu">
-                    <div class="avatar-popup-item" @click="onMenuClick('orders', 'subscribe')">
+                    <div
+                      class="avatar-popup-item"
+                      @click="onMenuClick('orders', 'subscribe')"
+                    >
                       <ShoppingCartOutlined /> 订购
                     </div>
-                    <div class="avatar-popup-item" @click="onMenuClick('following', 'follow')">
+                    <div
+                      class="avatar-popup-item"
+                      @click="onMenuClick('following', 'follow')"
+                    >
                       <StarOutlined /> 订阅
                     </div>
-                    <div class="avatar-popup-item" @click="onMenuClick('favorites', 'collect')">
+                    <div
+                      class="avatar-popup-item"
+                      @click="onMenuClick('favorites', 'collect')"
+                    >
                       <HeartOutlined /> 收藏
                     </div>
-                    <div class="avatar-popup-item" @click="onMenuClick('history', 'history')">
+                    <div
+                      class="avatar-popup-item"
+                      @click="onMenuClick('history', 'history')"
+                    >
                       <HistoryOutlined /> 历史
                     </div>
-                    <div class="avatar-popup-item" @click="onMenuClick('profile', 'profile')">
+                    <div
+                      class="avatar-popup-item"
+                      @click="onMenuClick('profile', 'profile')"
+                    >
                       <UserOutlined /> 个人中心
                     </div>
-                    <div class="avatar-popup-item" @click="onMenuClick('creator-center', 'create')">
+                    <div
+                      class="avatar-popup-item"
+                      @click="onMenuClick('creator-center', 'create')"
+                    >
                       <EditOutlined /> 创作中心
                     </div>
-                    <div class="avatar-popup-item"><SettingOutlined /> 重置密码</div>
-                    <div class="avatar-popup-item" @click="handleLogout"><LogoutOutlined /> 退出</div>
+                    <div class="avatar-popup-item">
+                      <SettingOutlined /> 重置密码
+                    </div>
+                    <div class="avatar-popup-item" @click="handleLogout">
+                      <LogoutOutlined /> 退出
+                    </div>
                   </div>
                 </div>
               </template>
-              <a-avatar :size="36" style="background-color: #87d068; cursor: pointer">{{ username }}</a-avatar>
+              <a-avatar
+                :size="36"
+                style="background-color: #87d068; cursor: pointer"
+                >{{ username }}</a-avatar
+              >
             </a-popover>
             <span class="header-username">个人中心</span>
             <a-badge :count="totalUnread" :offset="[-6, 0]" size="small">
-              <span class="header-link" @click="router.push('/user/messages')">消息</span>
+              <span class="header-link" @click="router.push('/user/messages')"
+                >消息</span
+              >
             </a-badge>
-            <a-popover placement="bottomRight" trigger="click" v-model:open="createPopoverVisible">
+            <a-popover
+              placement="bottomRight"
+              trigger="click"
+              v-model:open="createPopoverVisible"
+            >
               <template #content>
                 <div class="create-popup">
                   <div class="create-popup-title">创作下拉框</div>
                   <div class="create-box">
                     <div class="create-box-icons">
-                      <div class="create-box-item" @click="createPopoverVisible = false; router.push('/user/write-article')"><EditOutlined class="create-box-icon" /><span>写文章</span></div>
-                      <div v-if="userRole === 'provider'" class="create-box-item" @click="createPopoverVisible = false; router.push('/user/my-services')"><CodeOutlined class="create-box-icon" /><span>我的服务</span></div>
-                      <div class="create-box-item" @click="createPopoverVisible = false; router.push('/user/my-demands')"><FileTextOutlined class="create-box-icon" /><span>我的需求</span></div>
-                      <div class="create-box-item" @click="createPopoverVisible = false; router.push('/user/my-forum')"><CommentOutlined class="create-box-icon" /><span>我的论坛</span></div>
-                      <div v-if="userRole === 'provider'" class="create-box-item" @click="createPopoverVisible = false; router.push('/user/order-manage')"><LockOutlined class="create-box-icon" /><span>订单管理</span></div>
+                      <div
+                        class="create-box-item"
+                        @click="
+                          createPopoverVisible = false;
+                          router.push('/user/write-article');
+                        "
+                      >
+                        <EditOutlined class="create-box-icon" /><span
+                          >写文章</span
+                        >
+                      </div>
+                      <div
+                        v-if="userRole === 'provider'"
+                        class="create-box-item"
+                        @click="
+                          createPopoverVisible = false;
+                          router.push('/user/my-services');
+                        "
+                      >
+                        <CodeOutlined class="create-box-icon" /><span
+                          >我的服务</span
+                        >
+                      </div>
+                      <div
+                        class="create-box-item"
+                        @click="
+                          createPopoverVisible = false;
+                          router.push('/user/my-demands');
+                        "
+                      >
+                        <FileTextOutlined class="create-box-icon" /><span
+                          >我的需求</span
+                        >
+                      </div>
+                      <div
+                        class="create-box-item"
+                        @click="
+                          createPopoverVisible = false;
+                          router.push('/user/my-forum');
+                        "
+                      >
+                        <CommentOutlined class="create-box-icon" /><span
+                          >我的论坛</span
+                        >
+                      </div>
+                      <div
+                        v-if="userRole === 'provider'"
+                        class="create-box-item"
+                        @click="
+                          createPopoverVisible = false;
+                          router.push('/user/order-manage');
+                        "
+                      >
+                        <LockOutlined class="create-box-icon" /><span
+                          >订单管理</span
+                        >
+                      </div>
                     </div>
-                    <div class="create-box-footer" @click="createPopoverVisible = false; onMenuClick('creator-center', 'create')">
+                    <div
+                      class="create-box-footer"
+                      @click="
+                        createPopoverVisible = false;
+                        onMenuClick('creator-center', 'create');
+                      "
+                    >
                       <BulbOutlined /> 进入创作中心 >
                     </div>
                   </div>
                 </div>
               </template>
-              <a-button type="primary" class="create-btn"><PlusOutlined /> 创作</a-button>
+              <a-button type="primary" class="create-btn"
+                ><PlusOutlined /> 创作</a-button
+              >
             </a-popover>
           </div>
         </a-layout-header>
@@ -154,85 +288,110 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, provide, shallowRef } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { ref, onMounted, watch, provide, shallowRef } from "vue";
+import { useRouter, useRoute } from "vue-router";
 import {
-  HomeOutlined, ShopOutlined, MoneyCollectOutlined, CommentOutlined,
-  QuestionCircleOutlined, ShoppingCartOutlined, StarOutlined, HeartOutlined,
-  HistoryOutlined, UserOutlined, EditOutlined, PlusOutlined,
-  LogoutOutlined, SettingOutlined, WalletOutlined, SkinOutlined, FileTextOutlined,
-  MenuOutlined, CodeOutlined, LockOutlined, BulbOutlined, CloseOutlined
-} from '@ant-design/icons-vue'
-import ServiceDetail from './service-detail.vue'
-import DemandDetail from './demand-detail.vue'
-import ForumDetail from './forum-detail.vue'
+  HomeOutlined,
+  ShopOutlined,
+  MoneyCollectOutlined,
+  CommentOutlined,
+  QuestionCircleOutlined,
+  ShoppingCartOutlined,
+  StarOutlined,
+  HeartOutlined,
+  HistoryOutlined,
+  UserOutlined,
+  EditOutlined,
+  PlusOutlined,
+  LogoutOutlined,
+  SettingOutlined,
+  WalletOutlined,
+  SkinOutlined,
+  FileTextOutlined,
+  MenuOutlined,
+  CodeOutlined,
+  LockOutlined,
+  BulbOutlined,
+  CloseOutlined,
+} from "@ant-design/icons-vue";
+import ServiceDetail from "./service-detail.vue";
+import DemandDetail from "./demand-detail.vue";
+import ForumDetail from "./forum-detail.vue";
 
-const router = useRouter()
-const route = useRoute()
-const collapsed = ref(false)
-const selectedKeys = ref(['home'])
-const createPopoverVisible = ref(false)
-const username = ref('')
-const userRole = ref('user') // 用户角色：user 或 provider
-const totalUnread = ref(4) // 模拟未读消息数
+const router = useRouter();
+const route = useRoute();
+const collapsed = ref(false);
+const selectedKeys = ref(["home"]);
+const createPopoverVisible = ref(false);
+const username = ref("");
+const userRole = ref("user"); // 用户角色：user 或 provider
+const totalUnread = ref(4); // 模拟未读消息数
 
 // 详情覆盖层
-const detailVisible = ref(false)
-const detailComponent = shallowRef(null)
-const detailProps = ref({})
+const detailVisible = ref(false);
+const detailComponent = shallowRef(null);
+const detailProps = ref({});
 
 const openDetail = (type, props = {}) => {
-  console.log('openDetail called with:', type, props)
-  const map = { service: ServiceDetail, demand: DemandDetail, forum: ForumDetail }
-  detailComponent.value = map[type]
-  detailProps.value = props
-  console.log('detailProps.value set to:', detailProps.value)
-  detailVisible.value = true
-}
+  console.log("openDetail called with:", type, props);
+  const map = {
+    service: ServiceDetail,
+    demand: DemandDetail,
+    forum: ForumDetail,
+  };
+  detailComponent.value = map[type];
+  detailProps.value = props;
+  console.log("detailProps.value set to:", detailProps.value);
+  detailVisible.value = true;
+};
 const closeDetail = () => {
-  detailVisible.value = false
-  detailComponent.value = null
-  detailProps.value = {}
-}
+  detailVisible.value = false;
+  detailComponent.value = null;
+  detailProps.value = {};
+};
 
-provide('openDetail', openDetail)
-provide('closeDetail', closeDetail)
+provide("openDetail", openDetail);
+provide("closeDetail", closeDetail);
 
 // 根据当前路由设置选中菜单
 const routeKeyMap = {
-  'home': 'home',
-  'service-market': 'service',
-  'demand-bounty': 'reward',
-  'tech-forum': 'forum',
-  'orders': 'subscribe',
-  'following': 'follow',
-  'favorites': 'collect',
-  'history': 'history',
-  'profile': 'profile',
-  'creator-center': 'create',
-  'messages': 'messages'
-}
+  home: "home",
+  "service-market": "service",
+  "demand-bounty": "reward",
+  "tech-forum": "forum",
+  orders: "subscribe",
+  following: "follow",
+  favorites: "collect",
+  history: "history",
+  profile: "profile",
+  "creator-center": "create",
+  messages: "messages",
+};
 
-watch(() => route.path, (path) => {
-  const segment = path.split('/').pop()
-  if (routeKeyMap[segment]) {
-    selectedKeys.value = [routeKeyMap[segment]]
-  }
-}, { immediate: true })
+watch(
+  () => route.path,
+  (path) => {
+    const segment = path.split("/").pop();
+    if (routeKeyMap[segment]) {
+      selectedKeys.value = [routeKeyMap[segment]];
+    }
+  },
+  { immediate: true },
+);
 
 onMounted(() => {
-  username.value = localStorage.getItem('username') || 'U'
-  userRole.value = localStorage.getItem('userRole') || 'user' // 从 localStorage 获取用户角色
-})
+  username.value = localStorage.getItem("username") || "U";
+  userRole.value = localStorage.getItem("userRole") || "user"; // 从 localStorage 获取用户角色
+});
 
 const onMenuClick = (path, key) => {
-  selectedKeys.value = [key]
-  router.push('/user/' + path)
-}
+  selectedKeys.value = [key];
+  router.push("/user/" + path);
+};
 
 const handleLogout = () => {
-  router.push('/logout')
-}
+  router.push("/logout");
+};
 </script>
 
 <style scoped>
@@ -279,9 +438,19 @@ const handleLogout = () => {
   flex-shrink: 0;
 }
 
-.collapse-icon { font-size: 18px; cursor: pointer; color: #333; }
-.sidebar-title { font-size: 15px; font-weight: 600; color: #333; }
-.sidebar-menu { border-right: none; }
+.collapse-icon {
+  font-size: 18px;
+  cursor: pointer;
+  color: #333;
+}
+.sidebar-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+}
+.sidebar-menu {
+  border-right: none;
+}
 
 .header {
   background: #fff;
@@ -294,9 +463,21 @@ const handleLogout = () => {
   border-bottom: 1px solid #f0f0f0;
 }
 
-.header-right { display: flex; align-items: center; gap: 16px; }
-.header-username { font-size: 13px; color: #666; cursor: pointer; }
-.header-link { font-size: 13px; color: #999; cursor: pointer; }
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.header-username {
+  font-size: 13px;
+  color: #666;
+  cursor: pointer;
+}
+.header-link {
+  font-size: 13px;
+  color: #999;
+  cursor: pointer;
+}
 
 .create-btn {
   background: #52c41a;
@@ -305,27 +486,103 @@ const handleLogout = () => {
   align-items: center;
   gap: 4px;
 }
-.create-btn:hover { background: #73d13d; border-color: #73d13d; }
+.create-btn:hover {
+  background: #73d13d;
+  border-color: #73d13d;
+}
 
-.avatar-popup { width: 200px; }
-.avatar-popup-header { display: flex; align-items: center; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid #f0f0f0; }
-.avatar-popup-info { flex: 1; }
-.avatar-popup-name { font-weight: 600; font-size: 14px; color: #333; }
-.avatar-popup-stats { display: flex; gap: 12px; font-size: 11px; color: #999; margin-top: 4px; }
-.avatar-popup-menu { padding-top: 8px; }
-.avatar-popup-item { padding: 8px 0; font-size: 13px; color: #333; cursor: pointer; display: flex; align-items: center; gap: 8px; }
-.avatar-popup-item:hover { color: #1890ff; }
+.avatar-popup {
+  width: 200px;
+}
+.avatar-popup-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0f0f0;
+}
+.avatar-popup-info {
+  flex: 1;
+}
+.avatar-popup-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
+}
+.avatar-popup-stats {
+  display: flex;
+  gap: 12px;
+  font-size: 11px;
+  color: #999;
+  margin-top: 4px;
+}
+.avatar-popup-menu {
+  padding-top: 8px;
+}
+.avatar-popup-item {
+  padding: 8px 0;
+  font-size: 13px;
+  color: #333;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.avatar-popup-item:hover {
+  color: #1890ff;
+}
 
-.create-popup { width: 360px; }
-.create-popup-title { font-size: 15px; font-weight: 600; color: #333; margin-bottom: 12px; }
-.create-box { border: 1px solid #f0f0f0; border-radius: 8px; overflow: hidden; }
-.create-box-icons { display: flex; justify-content: space-around; padding: 20px 12px; }
-.create-box-item { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; color: #666; }
-.create-box-item:hover { color: #1890ff; }
-.create-box-icon { font-size: 22px; }
-.create-box-item span { font-size: 12px; }
-.create-box-footer { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; border-top: 1px solid #f0f0f0; font-size: 13px; color: #666; cursor: pointer; }
-.create-box-footer:hover { color: #1890ff; background: #fafafa; }
+.create-popup {
+  width: 360px;
+}
+.create-popup-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 12px;
+}
+.create-box {
+  border: 1px solid #f0f0f0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+.create-box-icons {
+  display: flex;
+  justify-content: space-around;
+  padding: 20px 12px;
+}
+.create-box-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: #666;
+}
+.create-box-item:hover {
+  color: #1890ff;
+}
+.create-box-icon {
+  font-size: 22px;
+}
+.create-box-item span {
+  font-size: 12px;
+}
+.create-box-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px;
+  border-top: 1px solid #f0f0f0;
+  font-size: 13px;
+  color: #666;
+  cursor: pointer;
+}
+.create-box-footer:hover {
+  color: #1890ff;
+  background: #fafafa;
+}
 
 .main-content {
   background: #f5f5f5;
@@ -365,7 +622,10 @@ const handleLogout = () => {
   border-radius: 4px;
   transition: all 0.2s;
 }
-.detail-close-btn:hover { color: #333; background: #f0f0f0; }
+.detail-close-btn:hover {
+  color: #333;
+  background: #f0f0f0;
+}
 
 .detail-overlay-body {
   flex: 1;
