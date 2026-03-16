@@ -44,6 +44,17 @@
         </a-card>
       </a-col>
     </a-row>
+    <div class="pagination-wrapper">
+      <a-pagination
+        v-model:current="currentPage"
+        v-model:pageSize="pageSize"
+        :total="totalServices"
+        show-size-changer
+        show-quick-jumper
+        :show-total="(total) => `共 ${total} 条`"
+        @change="handlePageChange"
+      />
+    </div>
     <div class="platform-guarantee">
       <div class="guarantee-list">
         <div class="guarantee-item" v-for="item in guaranteeList" :key="item.key">
@@ -83,7 +94,17 @@ const guaranteeList = reactive([
   { key: 'fund', title: '资金更安', desc: '平台担保交易 验收后付', icon: MoneyCollectOutlined, color: '#fa8c16' },
   { key: 'compensation', title: '爽约必有', desc: '交付/离席/爽约有保', icon: CheckCircleOutlined, color: '#eb2f96' }
 ])
-const handleCategoryChange = (key) => { console.log('切换到分�?', key) }
+const currentPage = ref(1)
+const pageSize = ref(12)
+const totalServices = ref(120)
+
+const handlePageChange = (page, size) => {
+  currentPage.value = page
+  pageSize.value = size
+  console.log('分页变化:', page, size)
+}
+
+const handleCategoryChange = (key) => { console.log('切换到分类:', key) }
 </script>
 
 <style scoped>
@@ -107,6 +128,7 @@ const handleCategoryChange = (key) => { console.log('切换到分�?', key) }
 .card-footer { display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding-top: 8px; border-top: 1px solid #f5f5f5; }
 .price { color: #ff4d4f; font-weight: 600; font-size: 14px; }
 .stats { color: #999; }
+.pagination-wrapper { display: flex; justify-content: flex-end; padding: 24px 0; }
 .platform-guarantee { margin-top: auto; padding: 20px 0; border-top: 1px solid #f0f0f0; background: #fafafa; }
 .guarantee-list { display: flex; gap: 32px; justify-content: space-around; flex-wrap: nowrap; }
 .guarantee-item { display: flex; align-items: center; gap: 8px; white-space: nowrap; }

@@ -34,6 +34,17 @@
         </div>
       </div>
     </div>
+    <div class="pagination-wrapper">
+      <a-pagination
+        v-model:current="currentPage"
+        v-model:pageSize="pageSize"
+        :total="totalDemands"
+        show-size-changer
+        show-quick-jumper
+        :show-total="(total) => `共 ${total} 条`"
+        @change="handlePageChange"
+      />
+    </div>
   </div>
 </template>
 
@@ -114,7 +125,7 @@ const serviceList = ref([
 const serviceRows = computed(() => {
   const rows = []
   const list = [...serviceList.value]
-  // 重复3次数据，和图片中展示的行数一�?
+  // 重复3次数据，和图片中展示的行数一致
   const repeatList = [...list, ...list, ...list]
   
   while (repeatList.length) {
@@ -122,6 +133,17 @@ const serviceRows = computed(() => {
   }
   return rows
 })
+
+// 分页相关
+const currentPage = ref(1)
+const pageSize = ref(6)
+const totalDemands = ref(48)
+
+const handlePageChange = (page, size) => {
+  currentPage.value = page
+  pageSize.value = size
+  console.log('需求悬赏分页:', page, size)
+}
 </script>
 
 <style scoped>
@@ -301,5 +323,17 @@ const serviceRows = computed(() => {
   .category-tabs {
     flex-wrap: wrap;
   }
+
+  .pagination-controls {
+    flex-wrap: wrap;
+  }
+}
+
+/* 分页样式 */
+.pagination-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  padding: 20px 0;
+  margin-top: 8px;
 }
 </style>

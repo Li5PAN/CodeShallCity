@@ -46,10 +46,6 @@
             <img v-if="item.cover" :src="item.cover" class="article-cover" alt="" />
           </div>
         </div>
-        <!-- 无更多内容提示 -->
-        <div class="no-more">
-          {{ articleList.length === 0 ? '暂无相关文章' : '没有更多了' }}
-        </div>
       </div>
 
       <!-- 右侧推荐社区 -->
@@ -65,6 +61,18 @@
           </div>
         </div>
       </div>
+    </div>
+    <!-- 分页 -->
+    <div class="pagination-wrapper">
+      <a-pagination
+        v-model:current="currentPage"
+        v-model:pageSize="pageSize"
+        :total="totalArticles"
+        show-size-changer
+        show-quick-jumper
+        :show-total="(total) => `共 ${total} 条`"
+        @change="handlePageChange"
+      />
     </div>
   </div>
 </template>
@@ -93,6 +101,16 @@ const categoryList = ref([
 ])
 
 const activeCategory = ref('all')
+
+const currentPage = ref(1)
+const pageSize = ref(10)
+const totalArticles = ref(86)
+
+const handlePageChange = (page, size) => {
+  currentPage.value = page
+  pageSize.value = size
+  console.log('分页变化:', page, size)
+}
 
 const articleList = ref([
   {
@@ -178,7 +196,7 @@ const communityList = ref([
 .article-meta { display: flex; align-items: center; gap: 12px; font-size: 12px; color: #bbb; }
 .article-cover { width: 100px; height: 75px; border-radius: 6px; object-fit: cover; flex-shrink: 0; }
 
-.no-more { text-align: center; padding: 20px; font-size: 13px; color: #ccc; }
+.pagination-wrapper { display: flex; justify-content: flex-end; padding: 20px 16px; }
 
 /* 右侧栏 */
 .right-sidebar { width: 220px; flex-shrink: 0; }
