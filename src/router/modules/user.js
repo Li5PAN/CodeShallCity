@@ -168,6 +168,12 @@ export default [
         component: () => import("../../pages/user/messages.vue"),
         meta: { title: "消息", icon: "MessageOutlined" },
       },
+      {
+        path: "message/:id",
+        name: "MessageDetail",
+        component: () => import("../../pages/user/message-detail.vue"),
+        meta: { title: "消息详情" },
+      },
     ],
   },
 ];
