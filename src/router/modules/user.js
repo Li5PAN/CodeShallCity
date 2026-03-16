@@ -157,6 +157,12 @@ export default [
         meta: { title: "我的论坛", icon: "CommentOutlined" },
       },
       {
+        path: "order-detail/:id",
+        name: "OrderDetail",
+        component: () => import("../../pages/user/order-detail.vue"),
+        meta: { title: "订单详情", icon: "ShoppingCartOutlined" },
+      },
+      {
         path: "order-manage",
         name: "OrderManage",
         component: () => import("../../pages/user/order-manage.vue"),

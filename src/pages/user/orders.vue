@@ -41,11 +41,11 @@
             <InboxOutlined class="empty-icon" />
             <p>暂无服务订单</p>
           </div>
-          <div class="order-card" v-for="order in serviceOrders" :key="order.id">
+          <div class="order-card" v-for="order in serviceOrders" :key="order.id" @click="viewOrderDetail(order)">
             <div class="order-card-header">
               <span class="order-no">订单号：{{ order.orderNo }}</span>
               <span class="order-time">{{ order.createTime }}</span>
-              <a-tag :color="statusColorMap[order.status]" class="order-status">{{ order.status }}</a-tag>
+              <a-tag :color="statusColorMap[order.status]" class="order-status">{{ statusTextMap[order.status] || order.status }}</a-tag>
             </div>
             <div class="order-card-body">
               <div class="service-cover">
@@ -66,7 +66,7 @@
                 <div class="order-price">¥ {{ order.price }}</div>
                 <div class="order-qty">x {{ order.quantity }}</div>
                 <div class="order-actions">
-                  <a-button size="small" type="link" @click="viewServiceDetail(order.serviceId)">查看详情</a-button>
+                  <a-button size="small" type="link" @click.stop="viewOrderDetail(order)">查看详情</a-button>
                 </div>
               </div>
             </div>
@@ -80,11 +80,11 @@
             <InboxOutlined class="empty-icon" />
             <p>暂无悬赏订单</p>
           </div>
-          <div class="order-card" v-for="order in demandOrders" :key="order.id">
+          <div class="order-card" v-for="order in demandOrders" :key="order.id" @click="viewOrderDetail(order)">
             <div class="order-card-header">
               <span class="order-no">订单号：{{ order.orderNo }}</span>
               <span class="order-time">{{ order.createTime }}</span>
-              <a-tag :color="statusColorMap[order.status]" class="order-status">{{ order.status }}</a-tag>
+              <a-tag :color="statusColorMap[order.status]" class="order-status">{{ statusTextMap[order.status] || order.status }}</a-tag>
             </div>
             <div class="order-card-body">
               <div class="demand-icon">
@@ -106,8 +106,7 @@
                 <div class="order-qty">悬赏金额</div>
                 <div class="order-total">支付<span>¥ {{ order.budgetMin }} ~ {{ order.budgetMax }}</span></div>
                 <div class="order-actions">
-                  <a-button size="small" type="link" @click="viewDemandDetail(order.demandId)">查看详情</a-button>
-                  <a-button v-if="order.status === '进行中'" size="small" type="link">查看进度</a-button>
+                  <a-button size="small" type="link" @click.stop="viewOrderDetail(order)">查看详情</a-button>
                 </div>
               </div>
             </div>
@@ -146,10 +145,39 @@ const handlePageChange = (page, size) => {
 };
 
 const statusColorMap = {
-  已完成: "green",
+  // 英文状态
+  PENDING: "orange",
+  PROCESSING: "blue",
+  DELIVERED: "cyan",
+  COMPLETED: "green",
+  CANCELLED: "default",
+  FAILED: "red",
+  // 中文状态
+  待接单: "orange",
   进行中: "blue",
-  待付款: "orange",
+  待验收: "cyan",
+  已完成: "green",
   已取消: "default",
+  已失败: "red",
+  待付款: "orange",
+};
+
+const statusTextMap = {
+  // 英文状态转中文
+  PENDING: "待接单",
+  PROCESSING: "进行中",
+  DELIVERED: "待验收",
+  COMPLETED: "已完成",
+  CANCELLED: "已取消",
+  FAILED: "已失败",
+  // 中文状态保持不变
+  待接单: "待接单",
+  进行中: "进行中",
+  待验收: "待验收",
+  已完成: "已完成",
+  已取消: "已取消",
+  已失败: "已失败",
+  待付款: "待付款",
 };
 
 // 服务商品订单
@@ -166,7 +194,7 @@ const serviceOrders = ref([
     sellerColor: "#1890ff",
     price: 399,
     quantity: 1,
-    status: "已完成",
+    status: "COMPLETED",
     serviceId: 1,
   },
   {
@@ -181,7 +209,7 @@ const serviceOrders = ref([
     sellerColor: "#52c41a",
     price: 399,
     quantity: 1,
-    status: "已完成",
+    status: "COMPLETED",
     serviceId: 2,
   },
   {
@@ -196,7 +224,7 @@ const serviceOrders = ref([
     sellerColor: "#722ed1",
     price: 299,
     quantity: 1,
-    status: "进行中",
+    status: "PROCESSING",
     serviceId: 3,
   },
 ]);
@@ -214,7 +242,7 @@ const demandOrders = ref([
     publisherColor: "#ff4d4f",
     budgetMin: 3000,
     budgetMax: 5000,
-    status: "进行中",
+    status: "PROCESSING",
     iconColor: "#faad14",
     demandId: 1,
     isMine: true,
@@ -230,7 +258,7 @@ const demandOrders = ref([
     publisherColor: "#13c2c2",
     budgetMin: 10000,
     budgetMax: 15000,
-    status: "已完成",
+    status: "COMPLETED",
     iconColor: "#52c41a",
     demandId: 2,
     isMine: false,
@@ -259,6 +287,15 @@ const viewServiceDetail = (id) => {
 
 const viewDemandDetail = (id) => {
   router.push({ name: "DemandDetail", params: { id } });
+};
+
+const viewOrderDetail = (order) => {
+  // 将订单数据通过 query 传递给详情页
+  router.push({
+    name: "OrderDetail",
+    params: { id: order.id },
+    query: { orderData: JSON.stringify(order) }
+  });
 };
 
 // CSV 导出工具
@@ -313,7 +350,8 @@ const exportDemandOrders = () => {
 .order-list { display: flex; flex-direction: column; gap: 12px; padding: 16px 0; }
 .empty-state { background: #fafafa; border-radius: 8px; padding: 60px; text-align: center; color: #ccc; }
 .empty-icon { font-size: 48px; display: block; margin-bottom: 12px; }
-.order-card { background: #fafafa; border-radius: 8px; overflow: hidden; }
+.order-card { background: #fafafa; border-radius: 8px; overflow: hidden; cursor: pointer; transition: box-shadow 0.2s; }
+.order-card:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
 .order-card-header { display: flex; align-items: center; gap: 16px; padding: 12px 20px; background: #fff; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
 .order-no { color: #666; font-weight: 500; }
 .order-time { color: #999; }
