@@ -414,12 +414,15 @@ const orderDetail = ref(null);
 // 当前用户角色
 const currentUserRole = computed(() => {
   if (!orderDetail.value) return "";
-  if (orderDetail.value.buyer.userId === currentUserId.value) {
-    return "buyer";
+  // 优先使用从列表传入的 myRole
+  if (orderDetail.value.myRole) {
+    const r = orderDetail.value.myRole;
+    // 统一映射：buyer/publisher → buyer，seller/bidder → seller
+    if (r === 'buyer' || r === 'publisher') return 'buyer';
+    if (r === 'seller' || r === 'bidder') return 'seller';
   }
-  if (orderDetail.value.seller.userId === currentUserId.value) {
-    return "seller";
-  }
+  if (orderDetail.value.buyer.userId === currentUserId.value) return "buyer";
+  if (orderDetail.value.seller.userId === currentUserId.value) return "seller";
   return "";
 });
 
@@ -563,13 +566,14 @@ const fetchOrderDetail = async () => {
           status: orderData.status,
           amount: orderData.price,
           createTime: orderData.createTime,
+          myRole: orderData.myRole || 'buyer',
           buyer: {
-            userId: "user123",
-            nickname: orderData.isMine ? "当前用户" : orderData.seller,
+            userId: orderData.myRole === 'buyer' ? currentUserId.value : "other_user",
+            nickname: orderData.myRole === 'seller' ? orderData.buyer || '买家用户' : '我',
             avatar: "",
           },
           seller: {
-            userId: "provider456",
+            userId: orderData.myRole === 'seller' ? currentUserId.value : "other_user",
             nickname: orderData.seller,
             avatar: "",
           },
@@ -579,7 +583,6 @@ const fetchOrderDetail = async () => {
             description: orderData.serviceDesc,
             cover: orderData.cover,
           },
-          // 根据状态添加相应的交付记录
           deliveryList: getDeliveryListByStatus(orderData.status),
         };
       } else {
@@ -591,13 +594,14 @@ const fetchOrderDetail = async () => {
           status: orderData.status,
           amount: orderData.budgetMax,
           createTime: orderData.createTime,
+          myRole: orderData.myRole || 'publisher',
           buyer: {
-            userId: "user123",
-            nickname: orderData.isMine ? "当前用户" : orderData.publisher,
+            userId: orderData.myRole === 'publisher' ? currentUserId.value : "other_user",
+            nickname: orderData.myRole === 'bidder' ? orderData.publisher : '我',
             avatar: "",
           },
           seller: {
-            userId: "provider789",
+            userId: orderData.myRole === 'bidder' ? currentUserId.value : "other_user",
             nickname: orderData.publisher,
             avatar: "",
           },
@@ -605,10 +609,8 @@ const fetchOrderDetail = async () => {
             id: orderData.demandId,
             title: orderData.demandTitle,
             description: orderData.demandDesc,
-            // 需求订单使用图标，没有cover图片
             iconColor: orderData.iconColor || '#faad14',
           },
-          // 根据状态添加相应的交付记录
           deliveryList: getDeliveryListByStatus(orderData.status),
         };
       }

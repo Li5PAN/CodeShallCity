@@ -61,7 +61,7 @@
             <div class="amount-num">¥ {{ order.amount }}</div>
             <div class="amount-label">订单金额</div>
             <div class="order-actions">
-              <a-button v-if="order.status === 'progress' && activeTab === 'sell'" size="small" type="primary" style="background:#52c41a;border-color:#52c41a" @click="confirmDelivery(order)">确认交付</a-button>
+              <a-button v-if="order.status === 'progress' && activeTab === 'sell'" size="small" type="primary" style="background:#52c41a;border-color:#52c41a" @click="openDeliveryModal(order)">确认交付</a-button>
               <a-button v-if="order.status === 'progress' && activeTab === 'buy'" size="small" type="primary" @click="confirmReceive(order)">确认收货</a-button>
               <a-button v-if="order.status === 'done' && activeTab === 'buy' && !order.reviewed" size="small" @click="openReview(order)">评价</a-button>
               <a-button v-if="order.status === 'pending'" size="small" danger @click="cancelOrder(order)">取消</a-button>
@@ -182,13 +182,30 @@
         </div>
       </div>
     </a-modal>
+    <!-- 交付弹窗 -->
+    <a-modal v-model:open="deliveryVisible" title="提交交付" @ok="submitDelivery" ok-text="确认交付" cancel-text="取消" :confirm-loading="deliveryLoading">
+      <div style="margin-top:8px">
+        <div style="margin-bottom:8px;font-size:13px;color:#666">交付说明</div>
+        <a-textarea v-model:value="deliveryForm.note" :rows="4" placeholder="请描述本次交付的内容、成果及注意事项" :maxlength="500" show-count />
+        <div style="margin:12px 0 8px;font-size:13px;color:#666">附件（可选）</div>
+        <a-upload
+          v-model:file-list="deliveryForm.fileList"
+          :before-upload="() => false"
+          multiple
+          :max-count="5"
+        >
+          <a-button size="small"><UploadOutlined /> 上传附件</a-button>
+        </a-upload>
+        <div style="font-size:12px;color:#bbb;margin-top:6px">最多上传5个文件，支持图片、文档、压缩包等</div>
+      </div>
+    </a-modal>
   </div>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, reactive } from 'vue'
 import { message } from 'ant-design-vue'
-import { InboxOutlined } from '@ant-design/icons-vue'
+import { InboxOutlined, UploadOutlined } from '@ant-design/icons-vue'
 
 const activeTab = ref('sell')
 const statusFilter = ref('all')
@@ -236,6 +253,29 @@ const filteredOrders = computed(() => {
 
 const detailVisible = ref(false)
 const detailOrder = ref(null)
+
+const deliveryVisible = ref(false)
+const deliveryLoading = ref(false)
+const deliveryTargetOrder = ref(null)
+const deliveryForm = reactive({ note: "", fileList: [] })
+
+const openDeliveryModal = (order) => {
+  deliveryTargetOrder.value = order
+  deliveryForm.note = ""
+  deliveryForm.fileList = []
+  deliveryVisible.value = true
+}
+
+const submitDelivery = () => {
+  if (!deliveryForm.note.trim()) { message.warning("请填写交付说明"); return; }
+  deliveryLoading.value = true
+  setTimeout(() => {
+    if (deliveryTargetOrder.value) deliveryTargetOrder.value.status = 'done'
+    deliveryLoading.value = false
+    deliveryVisible.value = false
+    message.success("交付成功，等待买家验收")
+  }, 600)
+}
 
 const confirmDelivery = (order) => { order.status = 'done'; message.success('已确认交付') }
 const confirmReceive = (order) => { order.status = 'done'; message.success('已确认收货') }

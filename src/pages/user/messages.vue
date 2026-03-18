@@ -309,7 +309,18 @@ const batchDelete = () => {
 };
 
 const goDetail = (msg) => {
-  router.push({ name: "MessageDetail", params: { id: msg.id } });
+  markRead(msg);
+  if (msg.bizType === "ORDER" && msg.bizId) {
+    router.push({ name: "OrderDetail", params: { id: msg.bizId } });
+  } else if (msg.bizType === "DEMAND" && msg.bizId) {
+    router.push({ name: "DemandDetail", params: { id: msg.bizId } });
+  } else if (msg.bizType === "POST" && msg.bizId) {
+    router.push({ name: "ForumDetail", params: { id: msg.bizId } });
+  } else if (msg.bizType === "SERVICE" && msg.bizId) {
+    router.push({ name: "ServiceDetail", params: { id: msg.bizId } });
+  } else {
+    router.push({ name: "MessageDetail", params: { id: msg.id } });
+  }
 };
 </script>
 

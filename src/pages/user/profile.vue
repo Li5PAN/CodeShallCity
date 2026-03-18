@@ -117,6 +117,11 @@
                     size="small"
                     >{{ serviceStatusMap[item.status]?.text || "-" }}</a-tag
                   >
+                  <div class="service-manage-actions" @click.stop>
+                    <a-button size="small" type="link" @click="editService(item)">编辑</a-button>
+                    <a-button v-if="item.status === 'PUBLISHED'" size="small" type="link" danger @click="toggleServiceStatus(item)">下架</a-button>
+                    <a-button v-else-if="item.status === 'OFFLINE'" size="small" type="link" @click="toggleServiceStatus(item)">上架</a-button>
+                  </div>
                 </div>
                 <div v-if="myServices.length === 0" class="empty-state">
                   暂无服务，去创作中心发布吧
@@ -211,6 +216,7 @@
 <script setup>
 import { ref, reactive } from "vue";
 import { useRouter } from "vue-router";
+import { message } from "ant-design-vue";
 import {
   EyeOutlined,
   LikeOutlined,
@@ -420,6 +426,20 @@ const goDemandDetail = (id) =>
     params: { id },
     query: { from: "my-demands" },
   });
+
+const editService = (item) => {
+  router.push({ name: "CreatorCenter", query: { editServiceId: item.id } });
+};
+
+const toggleServiceStatus = (item) => {
+  if (item.status === "PUBLISHED") {
+    item.status = "OFFLINE";
+    message.success("已下架");
+  } else if (item.status === "OFFLINE") {
+    item.status = "PUBLISHED";
+    message.success("已上架");
+  }
+};
 </script>
 
 <style scoped>
@@ -656,5 +676,11 @@ const goDemandDetail = (id) =>
 }
 .shortcut-icon {
   font-size: 20px;
+}
+
+.service-manage-actions {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
 }
 </style>

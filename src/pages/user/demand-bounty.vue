@@ -1,34 +1,74 @@
 <template>
   <div class="reward-content">
-    <h2 class="page-title">需求悬赏</h2>
+
+    <!-- 搜索栏 -->
     <div class="search-bar">
-      <a-input-search
+      <a-input
         v-model:value="searchValue"
         placeholder="搜索需求"
-        style="width: 400px"
-        @search="handleSearch"
-      />
+        class="search-input"
+        @keyup.enter="handleSearch(searchValue)"
+      >
+        <template #prefix><SearchOutlined class="search-icon" /></template>
+      </a-input>
+      <a-button class="search-btn" @click="handleSearch(searchValue)"
+        >搜索</a-button
+      >
     </div>
-    <div class="category-bar">
-      <div class="category-tabs">
-        <a-tag v-for="item in categoryList" :key="item.key" :class="['category-tag', activeCategory === item.key ? 'active-tag' : '']" @click="activeCategory = item.key">
+
+    <!-- 分类导航栏 -->
+    <div class="category-nav">
+      <div class="category-tags">
+        <div
+          v-for="item in visibleCategories"
+          :key="item.key"
+          class="category-tag"
+          :class="{ active: activeCategory === item.key }"
+          @click="activeCategory = item.key"
+        >
           {{ item.name }}
-        </a-tag>
+        </div>
+        <a-dropdown v-if="hasOverflow" trigger="click">
+          <div class="more-btn">
+            更多
+            <DownOutlined />
+          </div>
+          <template #overlay>
+            <a-menu @click="({ key }) => activeCategory = key">
+              <a-menu-item v-for="item in hiddenCategories" :key="item.key">
+                {{ item.name }}
+              </a-menu-item>
+            </a-menu>
+          </template>
+        </a-dropdown>
       </div>
     </div>
     <div class="service-grid">
       <div class="service-row" v-for="(row, index) in serviceRows" :key="index">
-        <div class="service-card" v-for="item in row" :key="item.id" @click="openDetail('demand', { id: item.id })">
+        <div
+          class="service-card"
+          v-for="item in row"
+          :key="item.id"
+          @click="openDetail('demand', { id: item.id })"
+        >
           <div class="card-header">
             <h4 class="card-title">{{ item.title }}</h4>
-            <a-tag :color="getUrgencyColor(item.urgency)" class="urgency-tag">{{ item.urgency }}</a-tag>
+            <a-tag :color="getUrgencyColor(item.urgency)" class="urgency-tag">{{
+              item.urgency
+            }}</a-tag>
           </div>
           <p class="card-desc">{{ item.desc }}</p>
           <div class="card-footer">
             <a-tag class="type-tag">{{ item.tag }}</a-tag>
             <div class="card-actions">
-              <span class="card-price">¥{{ item.minPrice }} ~ ¥{{ item.maxPrice }}</span>
-              <a class="card-detail" @click.stop="openDetail('demand', { id: item.id })">查看详情 ></a>
+              <span class="card-price"
+                >¥{{ item.minPrice }} ~ ¥{{ item.maxPrice }}</span
+              >
+              <a
+                class="card-detail"
+                @click.stop="openDetail('demand', { id: item.id })"
+                >查看详情 ></a
+              >
             </div>
           </div>
         </div>
@@ -49,109 +89,112 @@
 </template>
 
 <script setup>
-import { ref, computed, inject } from 'vue'
+import { ref, computed, inject } from "vue";
+import { SearchOutlined, DownOutlined } from "@ant-design/icons-vue";
 
-const openDetail = inject('openDetail')
+const openDetail = inject("openDetail");
 
-const searchValue = ref('')
+const searchValue = ref("");
 
 const handleSearch = (value) => {
-  console.log('搜索需求:', value)
-}
+  console.log("搜索需求:", value);
+};
 
 // 获取紧急程度颜色
 const getUrgencyColor = (urgency) => {
   const colorMap = {
-    '紧急': 'orange',
-    '一般': 'blue',
-    '常规': 'default'
-  }
-  return colorMap[urgency] || 'default'
-}
+    紧急: "orange",
+    一般: "blue",
+    常规: "default",
+  };
+  return colorMap[urgency] || "default";
+};
 
 // 分类标签数据
-const categoryList = ref([
-  { key: 'recommend', name: '猜你喜欢' },
-  { key: 'website', name: '网站开发' },
-  { key: 'wechat', name: '微信开发' },
-  { key: 'mini-program', name: '小程序开发'},
-  { key: 'app', name: 'APP开发' }
-])
+const allCategories = [
+  { key: "recommend", name: "全部" },
+  { key: "website", name: "网站开发" },
+  { key: "wechat", name: "微信开发" },
+  { key: "mini-program", name: "小程序开发" },
+  { key: "app", name: "APP开发" },
+];
+const MAX_VISIBLE = 8
+const hasOverflow = computed(() => allCategories.length > MAX_VISIBLE)
+const visibleCategories = computed(() => allCategories.slice(0, MAX_VISIBLE))
+const hiddenCategories = computed(() => allCategories.slice(MAX_VISIBLE))
 
-// 当前选中的分�?
-const activeCategory = ref('recommend')
+// 当前选中的分类
+const activeCategory = ref("recommend");
 
 // 模拟服务数据（和图片一致）
 const serviceList = ref([
   {
     id: 1,
-    title: 'MiniMax-M2.1: MiniMax-AI开源大模型，赋能高效智能应用开发',
-    desc: '基于最新AI技术，提供高效的智能应用开发解决方案，支持多种场景应用，帮助企业快速构建智能化系统',
-    tag: 'Python',
+    title: "MiniMax-M2.1: MiniMax-AI开源大模型，赋能高效智能应用开发",
+    desc: "基于最新AI技术，提供高效的智能应用开发解决方案，支持多种场景应用，帮助企业快速构建智能化系统",
+    tag: "Python",
     minPrice: 3000,
     maxPrice: 5000,
-    urgency: '紧急'
+    urgency: "紧急",
   },
   {
     id: 2,
-    title: 'PaddleOCR-VL: 开源视觉语言OCR工具，多模态识别提升文档处理效率',
-    desc: '专业的OCR识别工具开发需求，需要支持多语言识别和文档智能处理，提升企业文档数字化效率',
-    tag: 'Python',
+    title: "PaddleOCR-VL: 开源视觉语言OCR工具，多模态识别提升文档处理效率",
+    desc: "专业的OCR识别工具开发需求，需要支持多语言识别和文档智能处理，提升企业文档数字化效率",
+    tag: "Python",
     minPrice: 2500,
     maxPrice: 4500,
-    urgency: '一般'
+    urgency: "一般",
   },
   {
     id: 3,
-    title: 'CHATERMAI：开启云资源氛围管理新篇章！',
-    desc: '云资源管理平台开发，需要实现资源监控、自动化部署、成本优化等功能，提升云资源使用效率',
-    tag: '人工智能',
+    title: "CHATERMAI：开启云资源氛围管理新篇章！",
+    desc: "云资源管理平台开发，需要实现资源监控、自动化部署、成本优化等功能，提升云资源使用效率",
+    tag: "人工智能",
     minPrice: 5000,
     maxPrice: 8000,
-    urgency: '紧急'
+    urgency: "紧急",
   },
   {
     id: 4,
-    title: '欧拉操作系统内核开源，助力开发者获取源码与技术',
-    desc: '操作系统内核开发与优化项目，需要深入理解Linux内核机制，进行性能优化和功能扩展',
-    tag: 'C',
+    title: "欧拉操作系统内核开源，助力开发者获取源码与技术",
+    desc: "操作系统内核开发与优化项目，需要深入理解Linux内核机制，进行性能优化和功能扩展",
+    tag: "C",
     minPrice: 8000,
     maxPrice: 15000,
-    urgency: '一般'
-  }
-])
+    urgency: "一般",
+  },
+]);
 
 // 将服务列表按每行2个分组，重复展示模拟多行效果
 const serviceRows = computed(() => {
-  const rows = []
-  const list = [...serviceList.value]
+  const rows = [];
+  const list = [...serviceList.value];
   // 重复3次数据，和图片中展示的行数一致
-  const repeatList = [...list, ...list, ...list]
-  
+  const repeatList = [...list, ...list, ...list];
+
   while (repeatList.length) {
-    rows.push(repeatList.splice(0, 2))
+    rows.push(repeatList.splice(0, 2));
   }
-  return rows
-})
+  return rows;
+});
 
 // 分页相关
-const currentPage = ref(1)
-const pageSize = ref(6)
-const totalDemands = ref(48)
+const currentPage = ref(1);
+const pageSize = ref(6);
+const totalDemands = ref(48);
 
 const handlePageChange = (page, size) => {
-  currentPage.value = page
-  pageSize.value = size
-  console.log('需求悬赏分页:', page, size)
-}
+  currentPage.value = page;
+  pageSize.value = size;
+  console.log("需求悬赏分页:", page, size);
+};
 </script>
 
 <style scoped>
 /* 核心内容容器 */
 .reward-content {
   width: 100%;
-  padding: 20px;
-  box-sizing: border-box;
 }
 
 /* 页面标题 */
@@ -163,38 +206,111 @@ const handlePageChange = (page, size) => {
 }
 
 /* 搜索栏 */
-.search-bar {
-  margin-bottom: 20px;
+/* 页面标题 */
+.page-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1f2f3e;
+  margin: 0 0 16px;
+  line-height: 1.4;
 }
 
-/* 分类标签�?*/
-.category-bar {
+/* 搜索栏 */
+.search-bar {
   display: flex;
   align-items: center;
-  margin-bottom: 20px;
-  border-bottom: 1px solid #e8e8e8;
-  padding-bottom: 8px;
+  max-width: 600px;
+  margin-bottom: 16px;
+}
+.search-input {
+  flex: 1;
+  height: 40px;
+  border-radius: 20px 0 0 20px;
+  background: #f5f7fa;
+  border-color: #e6e8ec;
+  border-right: none;
+}
+.search-input:focus {
+  border-color: #52c41a;
+  box-shadow: none;
+}
+.search-icon {
+  color: #bfbfbf;
+  font-size: 14px;
+}
+.search-btn {
+  height: 40px;
+  width: 80px;
+  border-radius: 0 20px 20px 0;
+  background: #52c41a;
+  border-color: #52c41a;
+  color: #fff;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.search-btn:hover {
+  background: #389e0d;
+  border-color: #389e0d;
+  color: #fff;
 }
 
-.category-tabs {
+/* 分类导航 */
+.category-nav {
+  margin-bottom: 24px;
+}
+.category-tags {
   display: flex;
-  gap: 20px;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
 }
-
 .category-tag {
-  font-size: 16px;
-  padding: 4px 8px;
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 18px;
+  background: #f5f7fa;
+  color: #5e6d82;
+  border-radius: 30px;
+  font-size: 14px;
   cursor: pointer;
-  border: none;
-  background: transparent;
+  white-space: nowrap;
   transition: all 0.2s;
 }
+.category-tag:hover { background: #e9ecef; }
+.category-tag.active {
+  background: #52c41a;
+  color: #fff;
+  font-weight: 600;
+  box-shadow: 0 4px 8px rgba(82, 196, 26, 0.2);
+}
 
-/* 选中标签样式（红色文�?底部红线�?*/
-.active-tag {
-  color: rgb(199, 81, 42);
-  border-bottom: 2px solid rgb(255, 253, 253);
-  font-weight: 500;
+.more-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 18px;
+  background: #f5f7fa;
+  color: #5e6d82;
+  border-radius: 30px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.more-btn:hover { background: #e9ecef; color: #52c41a; }
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .page-title {
+    font-size: 20px;
+  }
+  .search-bar {
+    max-width: 100%;
+  }
+  .category-tags {
+    flex-wrap: wrap;
+    overflow: visible;
+  }
 }
 
 .category-more {
@@ -232,7 +348,7 @@ const handlePageChange = (page, size) => {
 }
 
 .service-card:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   border-color: #1890ff;
 }
 
@@ -319,7 +435,7 @@ const handlePageChange = (page, size) => {
   .service-row {
     flex-direction: column;
   }
-  
+
   .category-tabs {
     flex-wrap: wrap;
   }

@@ -77,7 +77,7 @@
               size="large"
               class="join-btn"
               ghost
-              @click="handleJoin"
+              @click="bidModalVisible = true"
               :disabled="hasJoined"
               >{{ hasJoined ? "已参与" : "参与投标" }}</a-button
             >
@@ -114,6 +114,27 @@
                 <div class="provider-meta">
                   <span class="provider-orders">{{ p.orders }}单已完成</span>
                 </div>
+                <!-- 投标详情：仅需求发布者可见 -->
+                <div class="bid-detail" v-if="fromMyDemands">
+                  <div class="bid-row">
+                    <span class="bid-label">报价</span>
+                    <span class="bid-price">¥ {{ p.bidPrice }}</span>
+                    <span class="bid-label" style="margin-left:16px">交付天数</span>
+                    <span class="bid-value">{{ p.deliveryDays }} 天</span>
+                  </div>
+                  <div class="bid-row">
+                    <span class="bid-label">投标描述</span>
+                    <span class="bid-value bid-desc">{{ p.bidDesc }}</span>
+                  </div>
+                  <div class="bid-row" v-if="p.attachments && p.attachments.length">
+                    <span class="bid-label">附件材料</span>
+                    <span class="bid-value">
+                      <a v-for="f in p.attachments" :key="f.name" class="bid-attachment">
+                        <PaperClipOutlined /> {{ f.name }}
+                      </a>
+                    </span>
+                  </div>
+                </div>
               </div>
               <a-button
                 v-if="fromMyDemands"
@@ -121,6 +142,7 @@
                 size="small"
                 ghost
                 class="contact-btn"
+                @click="handleSelectWinner(p)"
                 >选择中标</a-button
               >
             </div>
@@ -190,12 +212,39 @@
       v-model:open="publishModalVisible"
       :initialData="publishInitialData"
     />
+
+    <!-- 投标弹窗 -->
+    <a-modal v-model:open="bidModalVisible" title="参与投标" ok-text="提交投标" cancel-text="取消" @ok="handleBidSubmit" :confirm-loading="bidLoading">
+      <a-form layout="vertical" style="margin-top: 8px">
+        <a-form-item label="报价（元）" required>
+          <a-input-number v-model:value="bidForm.price" :min="demand.budgetMin" :max="demand.budgetMax" style="width: 100%" :placeholder="`预算范围 ${demand.budgetMin} ~ ${demand.budgetMax} 元`" />
+        </a-form-item>
+        <a-form-item label="预计交付天数" required>
+          <a-input-number v-model:value="bidForm.days" :min="1" :max="365" style="width: 100%" placeholder="请输入交付天数" />
+        </a-form-item>
+        <a-form-item label="投标描述" required>
+          <a-textarea v-model:value="bidForm.desc" :rows="4" placeholder="介绍您的方案、经验和优势" :maxlength="500" show-count />
+        </a-form-item>
+        <a-form-item label="附件材料（可选）">
+          <a-upload v-model:file-list="bidForm.attachments" :before-upload="() => false" multiple :max-count="5">
+            <a-button size="small"><PaperClipOutlined /> 上传方案文档</a-button>
+          </a-upload>
+          <div style="font-size:12px;color:#bbb;margin-top:4px">支持 PDF、Word、ZIP 等，最多5个文件</div>
+        </a-form-item>
+      </a-form>
+    </a-modal>
+
+    <!-- 选择中标确认弹窗 -->
+    <a-modal v-model:open="winnerModal.visible" title="确认选择中标" ok-text="确认中标" cancel-text="取消" @ok="confirmSelectWinner" :confirm-loading="winnerModal.loading">
+      <p>确定选择该服务商中标吗？</p>
+      <p style="color: #999; font-size: 13px">选择后将生成订单并进入交付流程。</p>
+    </a-modal>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, inject } from "vue";
-import { useRoute } from "vue-router";
+import { ref, computed, inject, reactive } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { Modal, message } from "ant-design-vue";
 import {
   CheckCircleOutlined,
@@ -205,6 +254,7 @@ import {
   HeartOutlined,
   EyeOutlined,
   FileTextOutlined,
+  PaperClipOutlined,
 } from "@ant-design/icons-vue";
 import DemandPublishModal from "../../components/DemandPublishModal.vue";
 
@@ -213,6 +263,7 @@ const props = defineProps({
   from: { type: String, default: "" },
 });
 const route = useRoute();
+const router = useRouter();
 const closeDetail = inject("closeDetail", () => {});
 
 const collected = ref(false);
@@ -223,24 +274,61 @@ const fromFavorites = computed(() => props.from === "favorites");
 
 const hasJoined = ref(false);
 
-const handleJoin = () => {
-  Modal.confirm({
-    title: "确认参与",
-    content: "确定要参与投标吗？",
-    okText: "确定",
-    cancelText: "取消",
-    onOk() {
-      const username = localStorage.getItem("username") || "我";
-      providers.value.push({
-        id: Date.now(),
-        name: username,
-        orders: 0,
-        color: "#722ed1",
-      });
-      hasJoined.value = true;
-      message.success("已成功参与投标");
-    },
-  });
+// 投标弹窗
+const bidModalVisible = ref(false);
+const bidLoading = ref(false);
+const bidForm = reactive({ price: null, days: null, desc: "", attachments: [] });
+
+const handleBidSubmit = () => {
+  if (!bidForm.price) { message.warning("请输入报价"); return; }
+  if (!bidForm.days) { message.warning("请输入交付天数"); return; }
+  if (!bidForm.desc.trim()) { message.warning("请填写投标描述"); return; }
+  bidLoading.value = true;
+  setTimeout(() => {
+    const username = localStorage.getItem("username") || "我";
+    providers.value.push({ id: Date.now(), name: username, orders: 0, color: "#722ed1" });
+    hasJoined.value = true;
+    bidLoading.value = false;
+    bidModalVisible.value = false;
+    Object.assign(bidForm, { price: null, days: null, desc: "", attachments: [] });
+    message.success("投标成功，等待需求方选择");
+  }, 600);
+};
+
+// 选择中标弹窗
+const winnerModal = reactive({ visible: false, loading: false, provider: null });
+
+const handleSelectWinner = (provider) => {
+  winnerModal.provider = provider;
+  winnerModal.visible = true;
+};
+
+const confirmSelectWinner = () => {
+  winnerModal.loading = true;
+  fetch("/api/demand/select-bid", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      demandId: demand.value.orderNo || demandId.value,
+      bidId: winnerModal.provider.id,
+    }),
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      winnerModal.loading = false;
+      winnerModal.visible = false;
+      if (data.code === 0 || data.code === 200) {
+        message.success("已选中中标，订单已创建，进入交付流程");
+        router.push("/user/orders");
+      } else {
+        message.error(data.message || "选中中标失败，请重试");
+      }
+    })
+    .catch(() => {
+      winnerModal.loading = false;
+      winnerModal.visible = false;
+      message.error("网络错误，请重试");
+    });
 };
 
 const openSimilarDemand = () => {
@@ -350,9 +438,21 @@ const demandMap = {
 const demand = computed(() => demandMap[demandId.value] || demandMap[1]);
 
 const providers = ref([
-  { id: 1, name: "xxx公司", orders: 320, color: "#1890ff" },
-  { id: 2, name: "技术工作室", orders: 180, color: "#52c41a" },
-  { id: 3, name: "云端科技", orders: 95, color: "#faad14" },
+  {
+    id: 1, name: "xxx公司", orders: 320, color: "#1890ff",
+    bidPrice: 4200, deliveryDays: 14, bidDesc: "我们有丰富的AI项目经验，曾为多家企业落地大模型应用，可提供完整源码及部署文档。",
+    attachments: [{ name: "方案文档.pdf" }, { name: "案例展示.zip" }],
+  },
+  {
+    id: 2, name: "技术工作室", orders: 180, color: "#52c41a",
+    bidPrice: 3800, deliveryDays: 10, bidDesc: "专注AI开发5年，熟悉MiniMax API，可快速交付，支持后续维护。",
+    attachments: [{ name: "技术方案.docx" }],
+  },
+  {
+    id: 3, name: "云端科技", orders: 95, color: "#faad14",
+    bidPrice: 4800, deliveryDays: 20, bidDesc: "团队具备完整的大模型应用开发能力，提供高质量交付，含测试报告。",
+    attachments: [],
+  },
 ]);
 
 const guarantees = ref([
@@ -587,6 +687,47 @@ const guarantees = ref([
 .contact-btn {
   border-color: #1890ff;
   color: #1890ff;
+}
+
+.bid-detail {
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: #f6f8ff;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.bid-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  font-size: 13px;
+}
+.bid-label {
+  color: #999;
+  flex-shrink: 0;
+  min-width: 56px;
+}
+.bid-price {
+  color: #ff4d4f;
+  font-weight: 600;
+}
+.bid-value {
+  color: #333;
+  flex: 1;
+}
+.bid-desc {
+  line-height: 1.6;
+}
+.bid-attachment {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: 10px;
+  color: #1890ff;
+  font-size: 12px;
+  cursor: pointer;
 }
 
 .sidebar-card {

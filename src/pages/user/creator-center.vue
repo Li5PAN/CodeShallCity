@@ -93,10 +93,10 @@
                 <span v-if="item.applies !== undefined"><TeamOutlined /> {{ item.applies }}</span>
               </div>
               <div class="dynamic-actions">
-                <a-button v-if="item.statusText === '草稿'" type="link" size="small">继续编辑</a-button>
-                <a-button v-else-if="item.statusText === '审核中'" type="link" size="small" disabled>查看进度</a-button>
-                <a-button v-else-if="item.statusText === '已发布' || item.statusText === '已上架'" type="link" size="small">查看详情</a-button>
-                <a-button v-else-if="item.statusText === '招募中' || item.statusText === '进行中'" type="link" size="small">管理</a-button>
+                <a-button v-if="item.statusText === '草稿'" type="link" size="small" @click="editDraft(item)">继续编辑</a-button>
+                <a-button v-else-if="item.statusText === '审核中'" type="link" size="small" @click="viewProgress(item)">查看进度</a-button>
+                <a-button v-else-if="item.statusText === '已发布' || item.statusText === '已上架'" type="link" size="small" @click="viewContent(item)">查看详情</a-button>
+                <a-button v-else-if="item.statusText === '招募中' || item.statusText === '进行中'" type="link" size="small" @click="viewContent(item)">管理</a-button>
               </div>
             </div>
             <div v-if="recentItems.length === 0" class="empty-state">
@@ -154,6 +154,23 @@
               </a-button>
             </div>
           </template>
+        </div>
+
+        <!-- 快捷导航 -->
+        <div class="creator-card quick-nav-card">
+          <div class="card-title">快捷导航</div>
+          <div class="quick-nav-grid">
+            <div
+              v-for="item in quickNavItems"
+              :key="item.name"
+              class="quick-nav-item"
+              :title="item.label"
+              @click="router.push(item.path)"
+            >
+              <component :is="item.icon" class="quick-nav-icon" />
+              <span class="quick-nav-label">{{ item.label }}</span>
+            </div>
+          </div>
         </div>
 
         <!-- 创作工具推荐 -->
@@ -417,6 +434,7 @@ import {
   CodeOutlined,
   ExperimentOutlined,
   HighlightOutlined,
+  MessageOutlined,
 } from "@ant-design/icons-vue";
 import DemandPublishModal from "../../components/DemandPublishModal.vue";
 
@@ -564,6 +582,19 @@ const benefits = [
   "参与平台优质服务商激励计划",
 ];
 
+// 快捷导航数据
+const quickNavItems = computed(() => {
+  const items = [
+    { name: "demands", label: "我的需求", icon: TrophyOutlined, path: "/user/my-demands" },
+    { name: "forum", label: "我的论坛", icon: MessageOutlined, path: "/user/my-forum" },
+    { name: "orders", label: "订单管理", icon: ShoppingCartOutlined, path: "/user/orders" },
+  ];
+  if (isProvider.value) {
+    items.unshift({ name: "services", label: "我的服务", icon: ShopOutlined, path: "/user/my-services" });
+  }
+  return items;
+});
+
 // 创作工具推荐
 const tools = [
   { name: "Markdown编辑器", icon: EditOutlined, url: "https://markdown.com.cn" },
@@ -572,6 +603,35 @@ const tools = [
   { name: "在线作图", icon: HighlightOutlined, url: "https://draw.io" },
 ];
 const openTool = (url) => { window.open(url, "_blank"); };
+
+const editDraft = (item) => {
+  if (recentType.value === "article") {
+    router.push({ name: "WriteArticle", query: { id: item.id, draft: 1 } });
+  } else if (recentType.value === "demand") {
+    router.push({ name: "DemandBounty", query: { id: item.id, draft: 1 } });
+  }
+  // 服务草稿复用发布服务弹窗（带 id）
+};
+
+const viewProgress = (item) => {
+  if (recentType.value === "article") {
+    router.push({ name: "MyForumDetail", params: { id: item.id } });
+  } else if (recentType.value === "service") {
+    router.push({ name: "ServiceDetail", params: { id: item.id } });
+  } else if (recentType.value === "demand") {
+    router.push({ name: "MyDemandDetail", params: { id: item.id } });
+  }
+};
+
+const viewContent = (item) => {
+  if (recentType.value === "article") {
+    router.push({ name: "MyForumDetail", params: { id: item.id } });
+  } else if (recentType.value === "service") {
+    router.push({ name: "ServiceDetail", params: { id: item.id } });
+  } else if (recentType.value === "demand") {
+    router.push({ name: "MyDemandDetail", params: { id: item.id } });
+  }
+};
 
 // 申请表单
 const applyForm = reactive({
@@ -744,6 +804,17 @@ const submitApply = () => {
 .provider-workspace .provider-stat-num { font-size: 20px; font-weight: 700; color: #333; }
 .provider-workspace .provider-stat-label { font-size: 12px; color: #999; margin-top: 4px; }
 .provider-workspace .manage-btn { background: #52c41a; border-color: #52c41a; }
+
+/* 快捷导航 */
+.quick-nav-card .quick-nav-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.quick-nav-card .quick-nav-item {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 14px 8px; border-radius: 8px; background: #fafafa;
+  cursor: pointer; transition: all 0.2s;
+}
+.quick-nav-card .quick-nav-item:hover { background: #f0f9eb; }
+.quick-nav-card .quick-nav-icon { font-size: 20px; color: #52c41a; }
+.quick-nav-card .quick-nav-label { font-size: 13px; color: #555; }
 
 /* 创作工具推荐 */
 .tools-card .tools-list { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
