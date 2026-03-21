@@ -116,7 +116,6 @@
 
             <template v-else-if="column.key === 'action'">
               <div class="action-buttons">
-                <a-button type="link" size="small" @click="openAuditDetail(record)">详情</a-button>
                 <template v-if="record.status === 'PENDING'">
                 <a-button
                   type="link"
