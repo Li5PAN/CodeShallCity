@@ -115,20 +115,7 @@
 
             <template v-else-if="column.key === 'action'">
               <div class="action-buttons">
-                <template v-if="record.status === 'PENDING'">
-                <a-button
-                  type="link"
-                  size="small"
-                  style="color: #52c41a"
-                  @click="openProviderAuditModal(record, 'approve')"
-                >通过</a-button>
-                <a-button
-                  type="link"
-                  size="small"
-                  danger
-                  @click="openProviderAuditModal(record, 'reject')"
-                >驳回</a-button>
-                </template>
+                <a-button type="link" size="small" @click="openAuditDetail(record)">详情</a-button>
               </div>
             </template>
           </template>
@@ -192,29 +179,33 @@
           size="small"
           :row-key="(r) => r.auditId"
         />
+
+        <template v-if="auditDetail.data?.status === 'PENDING'">
+          <a-divider style="margin: 16px 0" />
+          <div class="audit-action-bar">
+            <a-form layout="vertical" class="audit-action-form">
+              <a-form-item label="审核备注" style="margin-bottom: 0">
+                <a-textarea
+                  v-model:value="auditDetail.remark"
+                  placeholder="请填写审核备注（驳回时必填原因）"
+                  :rows="2"
+                  :maxlength="200"
+                  show-count
+                />
+              </a-form-item>
+            </a-form>
+            <div class="audit-action-buttons">
+              <a-button type="primary" style="background-color: #52c41a; border-color: #52c41a" @click="handleProviderAudit('approve')">
+                通过
+              </a-button>
+              <a-button danger @click="handleProviderAudit('reject')">
+                驳回
+              </a-button>
+            </div>
+          </div>
+        </template>
       </div>
       <div v-else class="empty-tip">暂无详情数据</div>
-    </a-modal>
-
-    <!-- 审核弹窗 -->
-    <a-modal
-      v-model:open="auditModal.visible"
-      :title="auditModal.type === 'approve' ? '通过认证' : '驳回认证'"
-      @ok="handleProviderAudit"
-      ok-text="确认"
-      cancel-text="取消"
-    >
-      <a-form layout="vertical">
-        <a-form-item :label="auditModal.type === 'approve' ? '审核备注（选填）' : '驳回原因（必填）'">
-          <a-textarea
-            v-model:value="auditModal.remark"
-            :placeholder="auditModal.type === 'approve' ? '填写审核备注' : '请填写驳回原因'"
-            :rows="4"
-            :maxlength="200"
-            show-count
-          />
-        </a-form-item>
-      </a-form>
     </a-modal>
 
     <!-- 修改角色弹窗 -->
@@ -396,16 +387,10 @@ const providerAuditList = ref([
   }
 ])
 
-const auditModal = ref({
-  visible: false,
-  type: 'approve',
-  remark: '',
-  target: null
-})
-
 const auditDetail = ref({
   visible: false,
-  data: null
+  data: null,
+  remark: ''
 })
 
 const roleModal = ref({
@@ -521,32 +506,24 @@ const openAuditDetail = (record) => {
 
   auditDetail.value = {
     visible: true,
-    data: mockDetailByApplyId[record.applyId] || null
+    data: mockDetailByApplyId[record.applyId] || null,
+    remark: ''
   }
 }
 
-const openProviderAuditModal = (record, type) => {
-  auditModal.value = {
-    visible: true,
-    type,
-    remark: '',
-    target: record
-  }
-}
-
-const handleProviderAudit = () => {
-  if (auditModal.value.type === 'reject' && !auditModal.value.remark.trim()) {
+const handleProviderAudit = (type) => {
+  if (type === 'reject' && !auditDetail.value.remark.trim()) {
     message.warning('请填写驳回原因')
     return
   }
 
-  const target = auditModal.value.target
-  if (target) {
-    target.status = auditModal.value.type === 'approve' ? 'APPROVED' : 'REJECTED'
-    message.success(auditModal.value.type === 'approve' ? '认证已通过' : '认证已驳回')
+  const record = providerAuditList.value.find(item => item.applyId === auditDetail.value.data?.applyId)
+  if (record) {
+    record.status = type === 'approve' ? 'APPROVED' : 'REJECTED'
+    message.success(type === 'approve' ? '认证已通过' : '认证已驳回')
   }
 
-  auditModal.value.visible = false
+  auditDetail.value.visible = false
 }
 </script>
 
@@ -586,4 +563,8 @@ const handleProviderAudit = () => {
 .files-list { display: flex; flex-direction: column; gap: 6px; }
 .file-item a { word-break: break-all; }
 .empty-tip { color: #999; padding: 8px 0; }
+
+.audit-action-bar { display: flex; gap: 16px; align-items: flex-end; }
+.audit-action-form { flex: 1; }
+.audit-action-buttons { display: flex; gap: 8px; flex-shrink: 0; }
 </style>
