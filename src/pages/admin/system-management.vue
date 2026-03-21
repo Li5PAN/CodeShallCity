@@ -13,13 +13,6 @@
     <div v-if="activeTab === 'operation'" class="tab-content">
       <div class="filter-bar">
         <input v-model="opFilter.user" class="filter-input" placeholder="用户名" />
-        <select v-model="opFilter.type" class="filter-select">
-          <option value="">全部操作类型</option>
-          <option value="create">新增</option>
-          <option value="update">修改</option>
-          <option value="delete">删除</option>
-          <option value="audit">审核</option>
-        </select>
         <input v-model="opFilter.dateFrom" type="date" class="filter-input" />
         <span class="filter-sep">至</span>
         <input v-model="opFilter.dateTo" type="date" class="filter-input" />
@@ -28,15 +21,18 @@
       </div>
       <table class="data-table">
         <thead>
-          <tr><th>操作人</th><th>操作类型</th><th>操作内容</th><th>IP地址</th><th>操作时间</th><th>操作</th></tr>
+          <tr><th>日志编号</th><th>操作人</th><th>操作模块</th><th>操作名</th><th>操作内容</th><th>操作时间</th><th>业务编号</th><th>操作IP</th><th>操作</th></tr>
         </thead>
         <tbody>
           <tr v-for="log in opLogs" :key="log.id">
+            <td>{{ log.id }}</td>
             <td>{{ log.user }}</td>
-            <td><span :class="['op-tag', opTagClass(log.type)]">{{ opTypeLabel(log.type) }}</span></td>
+            <td>{{ log.module }}</td>
+            <td>{{ log.operationName }}</td>
             <td class="content-cell">{{ log.content }}</td>
-            <td>{{ log.ip }}</td>
             <td>{{ log.time }}</td>
+            <td>{{ log.businessId }}</td>
+            <td>{{ log.ip }}</td>
             <td><button class="btn-link" @click="viewDetail(log)">详情</button></td>
           </tr>
         </tbody>
@@ -112,29 +108,49 @@
       </a-table>
     </div>
 
-    <!-- 详情弹窗 -->
+    <!-- 操作日志详情（与设计图一致：详情标题、全屏、键值表样式） -->
     <a-modal
       v-model:open="detailModal.show"
-      title="日志详情"
-      @ok="detailModal.show = false"
-      ok-text="关闭"
-      :cancel-button-props="{ style: { display: 'none' } }"
-      width="600px"
+      :width="detailModal.fullscreen ? '100%' : 680"
+      :wrap-class-name="detailModal.fullscreen ? 'op-detail-modal op-detail-modal--fullscreen' : 'op-detail-modal'"
+      :footer="null"
+      :mask-closable="true"
+      destroy-on-close
+      :centered="!detailModal.fullscreen"
+      @cancel="closeDetailModal"
     >
-      <div class="detail-content">
-        <a-descriptions :column="1" bordered size="small">
-          <a-descriptions-item v-for="(value, key) in detailModal.data" :key="key" :label="key">
-            {{ value }}
-          </a-descriptions-item>
-        </a-descriptions>
+      <template #title>
+        <div class="op-detail-header-inner">
+          <span class="op-detail-title-text">详情</span>
+          <button
+            type="button"
+            class="op-detail-fs-trigger"
+            aria-label="全屏切换"
+            @click.stop="detailModal.fullscreen = !detailModal.fullscreen"
+          >
+            <FullscreenOutlined v-if="!detailModal.fullscreen" />
+            <FullscreenExitOutlined v-else />
+          </button>
+        </div>
+      </template>
+      <div class="op-detail-body">
+        <div
+          v-for="row in detailModal.rows"
+          :key="row.label"
+          class="op-detail-row"
+        >
+          <div class="op-detail-label">{{ row.label }}</div>
+          <div class="op-detail-value">{{ row.value }}</div>
+        </div>
       </div>
     </a-modal>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, computed } from 'vue'
+import { ref, reactive, computed, watch } from 'vue'
 import { message } from 'ant-design-vue'
+import { FullscreenOutlined, FullscreenExitOutlined } from '@ant-design/icons-vue'
 
 const tabs = [
   { key: 'operation', label: '操作日志' },
@@ -165,10 +181,76 @@ const loginPagination = ref({
 })
 
 const opLogs = ref([
-  { id: 1, user: '管理员', type: 'audit', content: '审核通过服务商认证：张三', ip: '192.168.1.1', time: '2025-06-03 10:22:11' },
-  { id: 2, user: '管理员', type: 'delete', content: '删除文章：Vue3最佳实践', ip: '192.168.1.1', time: '2025-06-03 09:15:44' },
-  { id: 3, user: '管理员', type: 'update', content: '修改用户角色：李四 → 服务商', ip: '192.168.1.2', time: '2025-06-02 16:30:00' },
-  { id: 4, user: '管理员', type: 'create', content: '新增公告：平台升级通知', ip: '192.168.1.1', time: '2025-06-01 14:00:00' }
+  {
+    id: 9195,
+    operatorId: 1,
+    user: '芋道源码',
+    type: 'create',
+    content: '创建了角色【管理员】',
+    ip: '0:0:0:0:0:0:0:1',
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36 Edg/145.0.0.0',
+    module: 'SYSTEM 角色',
+    operationName: '创建角色',
+    requestUrl: 'POST /admin-api/system/role/create',
+    time: '2026-03-02 14:18:07',
+    businessId: 162
+  },
+  {
+    id: 9194,
+    operatorId: 1,
+    user: '管理员',
+    type: 'audit',
+    content: '审核通过服务商认证：张三',
+    ip: '192.168.1.1',
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    module: '服务商认证',
+    operationName: '审核通过',
+    requestUrl: 'POST /admin-api/provider/audit',
+    time: '2025-06-03 10:22:11',
+    businessId: 901
+  },
+  {
+    id: 9193,
+    operatorId: 1,
+    user: '管理员',
+    type: 'delete',
+    content: '删除文章：Vue3最佳实践',
+    ip: '192.168.1.1',
+    userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
+    module: '内容管理',
+    operationName: '删除文章',
+    requestUrl: 'DELETE /admin-api/article/1001',
+    time: '2025-06-03 09:15:44',
+    businessId: 1001
+  },
+  {
+    id: 9192,
+    operatorId: 1,
+    user: '管理员',
+    type: 'update',
+    content: '修改用户角色：李四 → 服务商',
+    ip: '192.168.1.2',
+    userAgent: 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/118.0.0.0 Safari/537.36',
+    module: '用户管理',
+    operationName: '更新用户',
+    requestUrl: 'PUT /admin-api/user/role',
+    time: '2025-06-02 16:30:00',
+    businessId: 502
+  },
+  {
+    id: 9191,
+    operatorId: 1,
+    user: '管理员',
+    type: 'create',
+    content: '新增公告：平台升级通知',
+    ip: '192.168.1.1',
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
+    module: '公告',
+    operationName: '创建公告',
+    requestUrl: 'POST /admin-api/notice/create',
+    time: '2025-06-01 14:00:00',
+    businessId: 88
+  }
 ])
 
 const loginLogs = ref([
@@ -234,7 +316,23 @@ const loginLogs = ref([
   }
 ])
 
-const detailModal = reactive({ show: false, data: null })
+const detailModal = reactive({
+  show: false,
+  fullscreen: false,
+  rows: []
+})
+
+const operationLogDetailRows = (log) => [
+  { label: '日志主键', value: log.id },
+  { label: '操作人编号', value: log.operatorId },
+  { label: '操作人名字', value: log.user },
+  { label: '操作人 IP', value: log.ip },
+  { label: '操作名', value: log.operationName ?? '—' },
+  { label: '操作内容', value: log.content },
+  { label: '请求 URL', value: log.requestUrl ?? '—' },
+  { label: '操作时间', value: log.time },
+  { label: '业务编号', value: log.businessId ?? '—' }
+]
 
 const filteredLoginLogs = computed(() => {
   let list = loginLogs.value
@@ -259,28 +357,23 @@ const filteredLoginLogs = computed(() => {
   return list
 })
 
-const opTagClass = t => ({ create: 'op-tag--blue', update: 'op-tag--yellow', delete: 'op-tag--red', audit: 'op-tag--green' }[t])
-const opTypeLabel = t => ({ create: '新增', update: '修改', delete: '删除', audit: '审核' }[t])
 
-const viewDetail = (log) => { 
-  detailModal.data = log
-  detailModal.show = true 
-}
-
-const viewLoginDetail = (log) => {
-  detailModal.data = {
-    '日志编号': log.id,
-    '登录账号': log.user,
-    '登录密码': log.password,
-    '登录类型': log.loginType,
-    '浏览器': log.device,
-    '设备详情': log.deviceDetail,
-    'IP地址': log.ip,
-    '登录状态': log.success ? '成功' : '失败',
-    '登录时间': log.time
-  }
+const viewDetail = (log) => {
+  detailModal.rows = operationLogDetailRows(log)
   detailModal.show = true
 }
+
+const closeDetailModal = () => {
+  detailModal.show = false
+  detailModal.fullscreen = false
+}
+
+watch(
+  () => detailModal.show,
+  (open) => {
+    if (!open) detailModal.fullscreen = false
+  }
+)
 
 const handleLoginSearch = () => {
   message.info('搜索功能已触发')
@@ -321,11 +414,6 @@ const resetLoginFilter = () => {
 .data-table tr:last-child td { border-bottom: none; }
 .content-cell { max-width: 240px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-.op-tag { padding: 2px 8px; border-radius: 10px; font-size: 12px; }
-.op-tag--blue { background: #dbeafe; color: #1d4ed8; }
-.op-tag--yellow { background: #fef9c3; color: #ca8a04; }
-.op-tag--red { background: #fee2e2; color: #dc2626; }
-.op-tag--green { background: #dcfce7; color: #16a34a; }
 
 .status-tag { padding: 2px 8px; border-radius: 10px; font-size: 12px; }
 .status-tag--green { background: #dcfce7; color: #16a34a; }
@@ -338,6 +426,65 @@ const resetLoginFilter = () => {
 .modal-mask { position: fixed; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; z-index: 100; }
 .modal { background: #fff; border-radius: 10px; padding: 24px; width: 480px; }
 .modal-title { font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+.op-detail-header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding-right: 36px;
+  box-sizing: border-box;
+}
+.op-detail-title-text { font-size: 16px; font-weight: 600; color: rgba(0, 0, 0, 0.88); }
+.op-detail-fs-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: rgba(0, 0, 0, 0.45);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: color 0.2s, background 0.2s;
+}
+.op-detail-fs-trigger:hover { color: rgba(0, 0, 0, 0.88); background: rgba(0, 0, 0, 0.04); }
+
+.op-detail-body {
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  overflow: hidden;
+  font-size: 14px;
+  line-height: 1.5715;
+}
+.op-detail-row {
+  display: flex;
+  align-items: stretch;
+  border-bottom: 1px solid #ebeef5;
+}
+.op-detail-row:last-child { border-bottom: none; }
+.op-detail-label {
+  flex: 0 0 140px;
+  max-width: 40%;
+  padding: 12px 16px;
+  background: #f5f7fa;
+  color: rgba(0, 0, 0, 0.65);
+  text-align: right;
+  border-right: 1px solid #ebeef5;
+  box-sizing: border-box;
+}
+.op-detail-value {
+  flex: 1;
+  min-width: 0;
+  padding: 12px 16px;
+  background: #fff;
+  color: rgba(0, 0, 0, 0.88);
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
 .detail-content { max-height: 400px; overflow-y: auto; }
 .modal-footer { display: flex; justify-content: flex-end; margin-top: 16px; }
 
@@ -352,4 +499,24 @@ const resetLoginFilter = () => {
 .device-info { display: flex; flex-direction: column; gap: 2px; }
 .device-text { font-size: 13px; color: #333; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 300px; }
 .device-detail { font-size: 12px; color: #999; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 300px; }
+</style>
+
+<style>
+/* 详情弹窗 wrap-class 挂在 body 下，需非 scoped */
+.ant-modal-wrap.op-detail-modal--fullscreen .ant-modal {
+  top: 0;
+  max-width: 100vw;
+  padding-bottom: 0;
+  margin: 0;
+}
+.ant-modal-wrap.op-detail-modal--fullscreen .ant-modal-content {
+  display: flex;
+  flex-direction: column;
+  max-height: 100vh;
+  border-radius: 0;
+}
+.ant-modal-wrap.op-detail-modal--fullscreen .ant-modal-body {
+  flex: 1;
+  overflow: auto;
+}
 </style>

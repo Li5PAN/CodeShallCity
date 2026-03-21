@@ -47,9 +47,6 @@
 
         <template v-else-if="column.key === 'action'">
           <div class="action-buttons">
-            <a-button type="link" size="small" @click="viewNotice(record)"
-              >详情</a-button
-            >
             <a-button type="link" size="small" @click="openNoticeForm(record)"
               >编辑</a-button
             >
@@ -61,6 +58,12 @@
             >
               <a-button type="link" size="small" danger>删除</a-button>
             </a-popconfirm>
+            <a-button
+              type="link"
+              size="small"
+              danger
+              @click="Modal.confirm({ title: '确认推送', content: '确定要推送该公告吗？', okText: '推送', cancelText: '取消', onOk() { const n = noticeList.find(x => x.id === record.id); if (n) n.pushStatus = true; message.success('推送成功'); } })"
+            >推送</a-button>
           </div>
         </template>
       </template>
@@ -84,6 +87,17 @@
             show-count
           />
         </a-form-item>
+        <a-form-item label="推送范围" required>
+          <a-select
+            v-model:value="noticeForm.noticeType"
+            placeholder="请选择推送范围"
+            style="width: 100%"
+          >
+            <a-select-option value="1">全部用户</a-select-option>
+            <a-select-option value="2">普通用户</a-select-option>
+            <a-select-option value="3">服务提供者</a-select-option>
+          </a-select>
+        </a-form-item>
         <a-form-item label="公告内容" required>
           <a-textarea
             v-model:value="noticeForm.content"
@@ -93,11 +107,14 @@
             show-count
           />
         </a-form-item>
-        <a-form-item label="生效时间">
-          <a-input
+        <a-form-item label="生效时间" required>
+          <a-date-picker
             v-model:value="noticeForm.effectAt"
             style="width: 100%"
-            placeholder="例如：2026-03-01"
+            show-time
+            format="YYYY-MM-DD HH:mm:ss"
+            value-format="YYYY-MM-DD HH:mm:ss"
+            placeholder="请选择生效时间"
           />
         </a-form-item>
         <a-form-item label="状态">
@@ -114,7 +131,8 @@
 
 <script setup>
 import { ref, reactive, computed } from "vue";
-import { message } from "ant-design-vue";
+import dayjs from "dayjs";
+import { message, Modal } from "ant-design-vue";
 
 const noticeStatusTab = ref("all");
 const noticeSearch = ref("");
@@ -142,24 +160,27 @@ const noticeList = ref([
     title: "建好网站公告：2018-07-01 系统更新维护通知",
     content:
       "为了提升系统性能和用户体验，我们将在2018年7月1日进行系统维护更新...",
+    noticeType: "1",
     active: true,
-    effectAt: "2026-03-01",
+    effectAt: "2026-03-01 09:00:00",
     publishAt: "2026-02-28 17:03:40",
   },
   {
     id: 2,
     title: "平台功能升级公告",
     content: "平台将新增多项功能，包括智能推荐、数据分析等，敬请期待...",
+    noticeType: "1",
     active: true,
-    effectAt: "2026-03-05",
+    effectAt: "2026-03-05 10:00:00",
     publishAt: "2026-03-04 10:20:15",
   },
   {
     id: 3,
     title: "春节放假通知",
     content: "春节期间客服工作时间调整通知，祝大家新春快乐...",
+    noticeType: "1",
     active: false,
-    effectAt: "2026-01-28",
+    effectAt: "2026-01-28 00:00:00",
     publishAt: "2026-01-20 09:30:00",
   },
 ]);
@@ -168,8 +189,9 @@ const noticeForm = reactive({
   show: false,
   id: null,
   title: "",
+  noticeType: undefined,
   content: "",
-  effectAt: "",
+  effectAt: null,
   active: true,
 });
 
@@ -195,18 +217,29 @@ const viewNotice = (notice) => {
   message.info(`查看公告详情：${notice.title}`);
 };
 
+const toDayjs = (val) => {
+  if (!val) return null;
+  if (dayjs.isDayjs(val)) return val;
+  return dayjs(val);
+};
+
 const openNoticeForm = (n) => {
   noticeForm.show = true;
   noticeForm.id = n?.id || null;
   noticeForm.title = n?.title || "";
+  noticeForm.noticeType = n?.noticeType || undefined;
   noticeForm.content = n?.content || "";
-  noticeForm.effectAt = n?.effectAt || "";
+  noticeForm.effectAt = n?.effectAt ? toDayjs(n.effectAt) : null;
   noticeForm.active = n?.active ?? true;
 };
 
 const submitNotice = () => {
   if (!noticeForm.title.trim()) {
     message.warning("请输入公告标题");
+    return;
+  }
+  if (!noticeForm.noticeType) {
+    message.warning("请选择推送范围");
     return;
   }
   if (!noticeForm.content.trim()) {
@@ -222,8 +255,9 @@ const submitNotice = () => {
     const notice = noticeList.value.find((n) => n.id === noticeForm.id);
     if (notice) {
       notice.title = noticeForm.title;
+      notice.noticeType = noticeForm.noticeType;
       notice.content = noticeForm.content;
-      notice.effectAt = noticeForm.effectAt;
+      notice.effectAt = noticeForm.effectAt.format("YYYY-MM-DD HH:mm:ss");
       notice.active = noticeForm.active;
       message.success("公告已更新");
     }
@@ -231,8 +265,9 @@ const submitNotice = () => {
     noticeList.value.unshift({
       id: Date.now(),
       title: noticeForm.title,
+      noticeType: noticeForm.noticeType,
       content: noticeForm.content,
-      effectAt: noticeForm.effectAt,
+      effectAt: noticeForm.effectAt.format("YYYY-MM-DD HH:mm:ss"),
       active: noticeForm.active,
       publishAt: new Date().toLocaleString("zh-CN"),
     });
