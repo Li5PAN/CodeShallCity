@@ -83,7 +83,6 @@
 
             <template v-else-if="column.key === 'action'">
               <div class="action-buttons">
-                <a-button type="link" size="small" @click="viewUser(record)">详情</a-button>
                 <a-button type="link" size="small" @click="editRole(record)">修改角色</a-button>
                 <a-button
                   type="link"

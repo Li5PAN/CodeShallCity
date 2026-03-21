@@ -107,9 +107,6 @@
           </template>
 
           <template v-else-if="column.key === 'action'">
-            <a-button type="link" size="small" @click="viewLoginDetail(record)">
-              详情
-            </a-button>
           </template>
         </template>
       </a-table>
@@ -157,7 +154,6 @@ const loginColumns = [
   { title: '浏览器', key: 'device', width: '25%' },
   { title: '登录状态', key: 'status', width: '10%' },
   { title: '登录时间', dataIndex: 'time', key: 'time', width: '13%' },
-  { title: '操作', key: 'action', width: '5%' }
 ]
 
 const loginPagination = ref({
