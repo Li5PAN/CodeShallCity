@@ -27,7 +27,7 @@
         <span class="header-title">{{ currentTitle }}</span>
         <div class="header-actions">
           <span class="admin-name">管理员</span>
-          <router-link to="/logout" class="logout-btn">退出登录</router-link>
+          <button class="logout-btn" @click="handleLogout">退出登录</button>
         </div>
       </header>
 
@@ -41,9 +41,11 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { Modal } from 'ant-design-vue'
 
 const route = useRoute()
+const router = useRouter()
 
 const menuItems = [
   { path: '/admin/home', label: '数据概览', icon: '📊' },
@@ -56,6 +58,19 @@ const menuItems = [
 ]
 
 const currentTitle = computed(() => route.meta?.title || '后台管理')
+
+const handleLogout = () => {
+  Modal.confirm({
+    title: '退出系统',
+    content: '确定要退出系统吗？',
+    okText: '确定',
+    cancelText: '取消',
+    onOk: () => {
+      localStorage.clear()
+      router.push('/login')
+    }
+  })
+}
 </script>
 
 <style scoped>
