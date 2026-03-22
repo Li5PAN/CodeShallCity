@@ -1,9 +1,9 @@
 <template>
   <a-modal
     v-model:open="visible"
-    title="发布悬赏需求"
+    :title="initialData ? '编辑悬赏' : '发布悬赏需求'"
     width="600px"
-    ok-text="提交"
+    :ok-text="initialData ? '保存修改' : '提交'"
     cancel-text="取消"
     @ok="handleSubmit"
   >
@@ -107,7 +107,7 @@ import { message } from "ant-design-vue";
 
 const props = defineProps({
   open: { type: Boolean, default: false },
-  initialData: { type: Object, default: null },
+  editingDemand: { type: Object, default: null },
 });
 const emit = defineEmits(["update:open", "success"]);
 
@@ -149,21 +149,24 @@ const resetForm = () => {
 watch(
   () => props.open,
   (val) => {
-    if (val && props.initialData) {
-      Object.assign(form, {
-        title: props.initialData.title || "",
-        desc: props.initialData.desc || "",
-        category: props.initialData.category || undefined,
-        budgetMin: props.initialData.budgetMin || null,
-        budgetMax: props.initialData.budgetMax || null,
-        publishDate: props.initialData.publishDate || null,
-        deadline: props.initialData.deadline || null,
-        urgency: props.initialData.urgency || "一般",
-      });
-    } else if (val) {
-      resetForm();
+    if (val) {
+      if (props.editingDemand) {
+        // 编辑模式：填充表单数据
+        Object.assign(form, {
+          title: props.editingDemand.title || "",
+          desc: props.editingDemand.desc || "",
+          category: props.editingDemand.type || props.editingDemand.category || undefined,
+          budgetMin: props.editingDemand.budgetMin || null,
+          budgetMax: props.editingDemand.budgetMax || null,
+          publishDate: props.editingDemand.publishTime || props.editingDemand.publishDate || null,
+          deadline: props.editingDemand.deadline || null,
+          urgency: props.editingDemand.urgency || "一般",
+        });
+      } else {
+        resetForm();
+      }
     }
-  },
+  }
 );
 
 const handleSubmit = () => {
@@ -183,9 +186,21 @@ const handleSubmit = () => {
     message.warning("最小金额不能大于最大金额");
     return;
   }
+
+  const resultData = {
+    ...form,
+    id: props.editingDemand?.id || null,
+    isEdit: !!props.editingDemand,
+  };
+
   visible.value = false;
-  emit("success", { ...form });
+  emit("success", resultData);
   resetForm();
-  message.success("悬赏发布成功");
+
+  if (props.editingDemand) {
+    message.success("修改已保存");
+  } else {
+    message.success("悬赏发布成功");
+  }
 };
 </script>

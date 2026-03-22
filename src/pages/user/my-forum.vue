@@ -56,7 +56,7 @@
         <div class="article-right">
           <a-tag :color="statusMap[item.status].color" size="small">{{ statusMap[item.status].text }}</a-tag>
           <div class="article-actions">
-            <a-button size="small" @click.stop="router.push('/user/write-article')">编辑</a-button>
+            <a-button size="small" @click.stop="handleEdit(item)">编辑</a-button>
             <a-popconfirm title="确认删除该文章？" ok-text="删除" cancel-text="取消" @confirm="deleteItem(item.id)">
               <a-button size="small" danger @click.stop>删除</a-button>
             </a-popconfirm>
@@ -111,6 +111,14 @@ const deleteItem = (id) => {
   articles.value = articles.value.filter(a => a.id !== id)
   statCards.value[0].value = articles.value.length
   message.success('已删除')
+}
+
+const handleEdit = (item) => {
+  if (item.status === 'draft') {
+    router.push({ name: "WriteArticle", query: { id: item.id, draft: 1 } });
+  } else {
+    router.push({ name: "WriteArticle", query: { id: item.id, edit: 1 } });
+  }
 }
 </script>
 

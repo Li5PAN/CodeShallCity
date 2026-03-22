@@ -64,45 +64,180 @@
           </div>
         </div>
 
-        <!-- 创作动态 -->
-        <div class="creator-card dynamic-card">
+        <!-- 我的内容管理 - 与独立页面一致的样式 -->
+        <div class="creator-card content-manage-card">
           <div class="card-title-row">
-            <span class="card-title">创作动态</span>
-            <a-radio-group
-              v-model:value="recentType"
-              size="small"
-              button-style="solid"
-            >
-              <a-radio-button value="article">文章</a-radio-button>
-              <a-radio-button v-if="isProvider" value="service">服务</a-radio-button>
-              <a-radio-button value="demand">悬赏</a-radio-button>
-            </a-radio-group>
+            <span class="card-title">内容管理</span>
           </div>
-          <div class="dynamic-list">
-            <div class="dynamic-item" v-for="item in recentItems" :key="item.id">
-              <div class="dynamic-info">
-                <div class="dynamic-title">{{ item.title }}</div>
-                <div class="dynamic-meta">
-                  <a-tag size="small" :color="item.statusColor">{{ item.statusText }}</a-tag>
-                  <span class="dynamic-time">{{ item.time }}</span>
+
+          <a-tabs v-model:activeKey="contentTab">
+            <!-- 我的文章 -->
+            <a-tab-pane key="article" tab="我的文章">
+              <!-- 筛选栏 -->
+              <div class="filter-bar">
+                <a-tabs v-model:activeKey="articleStatusFilter" class="status-tabs">
+                  <a-tab-pane key="all" tab="全部" />
+                  <a-tab-pane key="published" tab="已发布" />
+                  <a-tab-pane key="draft" tab="草稿" />
+                  <a-tab-pane key="review" tab="审核中" />
+                </a-tabs>
+                <a-select v-model:value="articleSortBy" style="width:110px" size="small">
+                  <a-select-option value="time">最新发布</a-select-option>
+                  <a-select-option value="read">阅读最多</a-select-option>
+                  <a-select-option value="like">获赞最多</a-select-option>
+                </a-select>
+                <a-input-search v-model:value="articleSearchKeyword" placeholder="搜索文章" style="width:200px" />
+              </div>
+
+              <div class="article-list">
+                <div v-if="filteredArticles.length === 0" class="empty-state">
+                  <EditOutlined style="font-size:48px;color:#e0e0e0" />
+                  <p>暂无文章，去写一篇吧</p>
+                </div>
+
+                <div class="article-item" v-for="item in filteredArticles" :key="item.id">
+                  <img v-if="item.cover" :src="item.cover" class="article-cover" @click="goForumDetail(item.id)" style="cursor: pointer" />
+                  <div class="article-info" @click="goForumDetail(item.id)" style="cursor: pointer">
+                    <div class="article-title">{{ item.title }}</div>
+                    <div class="article-desc">{{ item.desc }}</div>
+                    <div class="article-meta">
+                      <a-tag size="small" color="blue">{{ item.category }}</a-tag>
+                      <span><EyeOutlined /> {{ item.readCount }}</span>
+                      <span><LikeOutlined /> {{ item.likeCount }}</span>
+                      <span><MessageOutlined /> {{ item.commentCount }}</span>
+                      <span class="article-time">{{ item.publishTime }}</span>
+                    </div>
+                  </div>
+                  <div class="article-right">
+                    <a-tag :color="articleStatusMap[item.status]?.color || 'default'" size="small">{{ articleStatusMap[item.status]?.text || item.status }}</a-tag>
+                    <div class="article-actions">
+                      <a-button size="small" @click.stop="handleEditArticle(item)">编辑</a-button>
+                      <a-popconfirm title="确认删除该文章？" ok-text="删除" cancel-text="取消" @confirm="deleteArticle(item.id)">
+                        <a-button size="small" danger @click.stop>删除</a-button>
+                      </a-popconfirm>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div class="dynamic-stats">
-                <span v-if="item.reads !== undefined"><EyeOutlined /> {{ item.reads }}</span>
-                <span v-if="item.orders !== undefined"><ShoppingCartOutlined /> {{ item.orders }}</span>
-                <span v-if="item.applies !== undefined"><TeamOutlined /> {{ item.applies }}</span>
+            </a-tab-pane>
+
+            <!-- 我的服务（仅服务商） -->
+            <a-tab-pane key="service" tab="我的服务" v-if="isProvider">
+              <!-- 筛选栏 -->
+              <div class="filter-bar">
+                <a-tabs v-model:activeKey="serviceStatusFilter" class="status-tabs">
+                  <a-tab-pane key="all" tab="全部" />
+                  <a-tab-pane key="on" tab="已上架" />
+                  <a-tab-pane key="off" tab="已下架" />
+                  <a-tab-pane key="review" tab="审核中" />
+                </a-tabs>
+                <a-input-search v-model:value="serviceSearchKeyword" placeholder="搜索服务名称" style="width:200px" />
               </div>
-              <div class="dynamic-actions">
-                <a-button v-if="item.statusText === '草稿'" type="link" size="small" @click="editDraft(item)">继续编辑</a-button>
-                <a-button v-else-if="item.statusText === '审核中'" type="link" size="small" @click="viewProgress(item)">查看进度</a-button>
-                <a-button v-else-if="item.statusText === '已发布' || item.statusText === '已上架'" type="link" size="small" @click="viewContent(item)">查看详情</a-button>
-                <a-button v-else-if="item.statusText === '招募中' || item.statusText === '进行中'" type="link" size="small" @click="viewContent(item)">管理</a-button>
+
+              <div class="service-list">
+                <div v-if="filteredServices.length === 0" class="empty-state">
+                  <ShopOutlined style="font-size:48px;color:#e0e0e0" />
+                  <p>暂无服务，去发布吧</p>
+                </div>
+
+                <div class="service-item" v-for="item in filteredServices" :key="item.id">
+                  <img :src="item.cover" class="service-cover" />
+                  <div class="service-info">
+                    <div class="service-title">{{ item.title }}</div>
+                    <div class="service-desc">{{ item.desc }}</div>
+                    <div class="service-tags">
+                      <a-tag v-for="tag in item.tags" :key="tag" size="small" color="blue">{{ tag }}</a-tag>
+                      <a-tag size="small" color="orange">{{ item.category }}</a-tag>
+                    </div>
+                    <div class="service-meta">
+                      <span>更新时间：{{ item.updateTime }}</span>
+                    </div>
+                  </div>
+                  <div class="service-data">
+                    <div class="data-item">
+                      <div class="data-num">{{ item.orders }}</div>
+                      <div class="data-label">成交订单</div>
+                    </div>
+                    <div class="data-item">
+                      <div class="data-num">{{ item.rating }}</div>
+                      <div class="data-label">评分</div>
+                    </div>
+                  </div>
+                  <div class="service-price">¥ {{ item.price }}</div>
+                  <div class="service-status">
+                    <a-badge :status="serviceStatusBadgeMap[item.status]?.badge" :text="serviceStatusBadgeMap[item.status]?.text" />
+                  </div>
+                  <div class="service-actions">
+                    <a-button size="small" @click="editService(item)">编辑</a-button>
+                    <a-button
+                      size="small"
+                      :type="item.status === 'on' ? 'default' : 'primary'"
+                      :danger="item.status === 'on'"
+                      :disabled="item.status === 'review'"
+                      @click="toggleServiceStatus(item)"
+                    >
+                      {{ item.status === 'on' ? '下架' : '上架' }}
+                    </a-button>
+                    <a-popconfirm title="确认删除该服务？" ok-text="删除" cancel-text="取消" @confirm="deleteService(item.id)">
+                      <a-button size="small" danger>删除</a-button>
+                    </a-popconfirm>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div v-if="recentItems.length === 0" class="empty-state">
-              暂无内容
-            </div>
-          </div>
+            </a-tab-pane>
+
+            <!-- 我的需求 -->
+            <a-tab-pane key="demand" tab="我的需求">
+              <!-- 筛选栏 -->
+              <div class="filter-bar">
+                <a-tabs v-model:activeKey="demandStatusFilter" class="status-tabs">
+                  <a-tab-pane key="all" tab="全部" />
+                  <a-tab-pane key="open" tab="招募中" />
+                  <a-tab-pane key="progress" tab="进行中" />
+                  <a-tab-pane key="done" tab="已完成" />
+                  <a-tab-pane key="closed" tab="已关闭" />
+                </a-tabs>
+                <a-input-search v-model:value="demandSearchKeyword" placeholder="搜索悬赏标题" style="width:200px" />
+              </div>
+
+              <div class="demand-list">
+                <div v-if="filteredDemands.length === 0" class="empty-state">
+                  <TrophyOutlined style="font-size:48px;color:#e0e0e0" />
+                  <p>暂无悬赏需求</p>
+                </div>
+
+                <div class="demand-item" v-for="item in filteredDemands" :key="item.id">
+                  <div class="demand-main" style="cursor: pointer;">
+                    <div class="demand-title" @click="goDemandDetail(item.id)">{{ item.title }}</div>
+                    <div class="demand-desc">{{ item.desc }}</div>
+                    <div class="demand-tags">
+                      <a-tag size="small" color="orange">{{ item.type }}</a-tag>
+                      <a-tag size="small" :color="getDemandUrgencyColor(item.urgency)">{{ item.urgency }}</a-tag>
+                    </div>
+                    <div class="demand-meta">
+                      <span>发布时间：{{ item.publishTime }}</span>
+                      <span>截止时间：{{ item.deadline }}</span>
+                      <span>报名人数：<strong>{{ item.applyCount }}</strong> 人</span>
+                    </div>
+                  </div>
+                  <div class="demand-right">
+                    <div class="demand-budget">¥ {{ item.budgetMin }} ~ ¥ {{ item.budgetMax }}</div>
+                    <div class="demand-status">
+                      <a-badge :status="demandStatusBadgeMap[item.status]?.badge" :text="demandStatusBadgeMap[item.status]?.text" />
+                    </div>
+                    <div class="demand-actions">
+                      <a-button size="small" @click.stop="goDemandDetail(item.id)">查看详情</a-button>
+                      <a-button size="small" v-if="item.status === 'PENDING'" @click.stop="editDemand(item)">编辑</a-button>
+                      <a-button size="small" v-if="item.status === 'PENDING'" @click.stop="item.status = 'CLOSED'; message.success('已关闭')">关闭</a-button>
+                      <a-popconfirm title="确认删除？" ok-text="删除" cancel-text="取消" @confirm="deleteDemand(item.id)">
+                        <a-button size="small" danger @click.stop>删除</a-button>
+                      </a-popconfirm>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </a-tab-pane>
+          </a-tabs>
         </div>
       </div>
 
@@ -189,15 +324,16 @@
     <!-- 发布需求 Modal -->
     <DemandPublishModal
       v-model:open="demandModalVisible"
+      :editingDemand="editingDemand"
       @success="onDemandSuccess"
     />
 
     <!-- 发布服务 Modal -->
     <a-modal
       v-model:open="serviceModalVisible"
-      title="发布新服务"
+      :title="editingService ? '编辑服务' : '发布新服务'"
       width="600px"
-      ok-text="提交审核"
+      :ok-text="editingService ? '保存修改' : '提交审核'"
       cancel-text="取消"
       @ok="submitService"
     >
@@ -442,15 +578,167 @@ const router = useRouter();
 const applyVisible = ref(false);
 const userRole = ref(localStorage.getItem("userRole") || "user");
 const isProvider = ref(userRole.value === "provider");
-const recentType = ref("article");
+const contentTab = ref("article");
 
-// 监听 recentType，如果切换到 service 但不是 provider，则切回 article
-import { watch } from "vue";
-watch(recentType, (val) => {
-  if (val === "service" && !isProvider.value) {
-    recentType.value = "article";
-  }
+// 服务编辑状态
+const editingService = ref(null);
+const serviceForm = reactive({
+  title: '', desc: '', category: undefined, price: null,
+  deliveryDays: 7, tags: [], detail: '', coverUrl: '', goodsImages: [],
 });
+
+// 文章筛选
+const articleStatusFilter = ref('all')
+const articleSearchKeyword = ref('')
+const articleSortBy = ref('time')
+const articleStatusMap = {
+  published: { text: '已发布', color: 'green' },
+  draft: { text: '草稿', color: 'default' },
+  review: { text: '审核中', color: 'orange' }
+}
+
+// 服务筛选
+const serviceStatusFilter = ref('all')
+const serviceSearchKeyword = ref('')
+const serviceStatusBadgeMap = {
+  on: { badge: 'success', text: '已上架' },
+  off: { badge: 'default', text: '已下架' },
+  review: { badge: 'processing', text: '审核中' }
+}
+
+// 需求筛选
+const demandStatusFilter = ref('all')
+const demandSearchKeyword = ref('')
+const demandStatusBadgeMap = {
+  PENDING: { badge: 'success', text: '待接单' },
+  PROCESSING: { badge: 'processing', text: '进行中' },
+  COMPLETED: { badge: 'default', text: '已完成' },
+  CLOSED: { badge: 'error', text: '已关闭' },
+  CANCELLED: { badge: 'error', text: '已取消' }
+}
+
+// 文章数据
+const myArticles = ref([
+  { id: 1, title: '深入解析CPU调度：操作系统的核心资源分配机制', desc: '本文系统解析了CPU调度机制，分析其必要性、核心目标和经典算法...', category: '操作系统', cover: 'https://placehold.co/100x70/1890ff/FFFFFF?text=OS', status: 'published', readCount: '1.5k', likeCount: 34, commentCount: 12, publishTime: '2026-02-27' },
+  { id: 2, title: 'Vue3 Composition API 最佳实践总结', desc: '深入讲解 Vue3 组合式 API 的使用技巧，包括 setup、响应式、生命周期等核心概念...', category: 'Vue', cover: 'https://placehold.co/100x70/42b883/FFFFFF?text=Vue3', status: 'published', readCount: '2.3k', likeCount: 67, commentCount: 23, publishTime: '2026-02-20' },
+  { id: 3, title: 'Docker容器化部署实战指南', desc: '从Docker基础到生产环境部署，手把手带你完成容器化改造...', category: '运维', cover: 'https://placehold.co/100x70/0db7ed/FFFFFF?text=Docker', status: 'draft', readCount: 0, likeCount: 0, commentCount: 0, publishTime: '2026-02-15' },
+  { id: 4, title: 'AI大模型大师秘籍：2025AI技术全景揭秘', desc: '本文系统介绍了AI大模型的学习路径，分为四个阶段循序渐进...', category: '人工智能', cover: 'https://placehold.co/100x70/52c41a/FFFFFF?text=AI', status: 'published', readCount: '2.1k', likeCount: 47, commentCount: 18, publishTime: '2026-02-10' },
+  { id: 5, title: 'Spring Boot 3.x 新特性全解析', desc: 'Spring Boot 3.x 带来了众多重磅更新，包括虚拟线程、原生镜像等...', category: 'Java', cover: 'https://placehold.co/100x70/ff4d4f/FFFFFF?text=Java', status: 'review', readCount: 0, likeCount: 0, commentCount: 0, publishTime: '2026-03-01' },
+  { id: 6, title: 'MySQL 索引优化实战：从慢查询到毫秒响应', desc: '通过真实案例讲解MySQL索引设计原则，EXPLAIN分析，慢查询优化...', category: '数据库', cover: 'https://placehold.co/100x70/FF6600/FFFFFF?text=MySQL', status: 'published', readCount: '3.2k', likeCount: 156, commentCount: 42, publishTime: '2026-01-25' }
+])
+
+// 服务数据
+const myServices = ref([
+  { id: 1, title: 'Java大厂面试课，一套搞定offer', desc: '覆盖Java基础、JVM、并发、分布式等核心考点，配套面试模拟', price: 399, orders: 128, rating: '4.9', cover: 'https://placehold.co/120x80/FFD700/000000?text=Java', tags: ['平台保障', '商家认证'], category: 'Java', status: 'on', updateTime: '2026-02-25' },
+  { id: 2, title: 'Vue3 + TypeScript 企业级实战', desc: '从零搭建企业级前端项目，涵盖架构设计、性能优化、工程化实践', price: 299, orders: 86, rating: '4.8', cover: 'https://placehold.co/120x80/42b883/FFFFFF?text=Vue3', tags: ['平台保障'], category: 'Vue/React', status: 'on', updateTime: '2026-02-18' },
+  { id: 3, title: 'Docker + K8s 容器化部署实战', desc: '从Docker基础到Kubernetes集群管理，企业级DevOps实践', price: 499, orders: 0, rating: '-', cover: 'https://placehold.co/120x80/0db7ed/FFFFFF?text=Docker', tags: ['平台保障', '源码解析'], category: '运维部署', status: 'review', updateTime: '2026-03-01' },
+])
+
+// 需求数据
+const myDemands = ref([
+  { id: 1, title: 'MiniMax-M2.1 智能客服系统开发', desc: '需要基于MiniMax大模型开发一套智能客服系统，支持多轮对话、意图识别', budgetMin: 3000, budgetMax: 5000, type: '人工智能', urgency: '紧急', applyCount: 12, publishTime: '2026-03-03', deadline: '2026-03-31', status: 'PENDING' },
+  { id: 2, title: 'React Native 跨平台移动端应用', desc: '开发一款电商类App，需要支持iOS和Android双端', budgetMin: 10000, budgetMax: 15000, type: '移动开发', urgency: '一般', applyCount: 7, publishTime: '2026-02-28', deadline: '2026-04-15', status: 'PROCESSING' },
+  { id: 3, title: 'MySQL 数据库性能优化咨询', desc: '现有系统查询慢，需要专业DBA对数据库进行诊断和优化', budgetMin: 1500, budgetMax: 2500, type: '数据库', urgency: '一般', applyCount: 5, publishTime: '2026-02-10', deadline: '2026-02-28', status: 'COMPLETED' },
+  { id: 4, title: 'Vue3 后台管理系统开发', desc: '基于Vue3+Element Plus开发一套通用后台管理系统', budgetMin: 6000, budgetMax: 10000, type: 'Vue/React', urgency: '紧急', applyCount: 9, publishTime: '2026-03-01', deadline: '2026-04-01', status: 'PENDING' },
+])
+
+// 筛选函数
+const filteredArticles = computed(() => {
+  let list = myArticles.value
+  if (articleStatusFilter.value !== 'all') {
+    list = list.filter(a => a.status === articleStatusFilter.value)
+  }
+  if (articleSearchKeyword.value.trim()) {
+    list = list.filter(a => a.title.includes(articleSearchKeyword.value.trim()))
+  }
+  return list
+})
+
+const filteredServices = computed(() => {
+  let list = myServices.value
+  if (serviceStatusFilter.value !== 'all') {
+    list = list.filter(s => s.status === serviceStatusFilter.value)
+  }
+  if (serviceSearchKeyword.value.trim()) {
+    list = list.filter(s => s.title.includes(serviceSearchKeyword.value.trim()))
+  }
+  return list
+})
+
+const filteredDemands = computed(() => {
+  let list = myDemands.value
+  if (demandStatusFilter.value !== 'all') {
+    list = list.filter(d => d.status === demandStatusFilter.value)
+  }
+  if (demandSearchKeyword.value.trim()) {
+    list = list.filter(d => d.title.includes(demandSearchKeyword.value.trim()))
+  }
+  return list
+})
+
+// 文章操作
+const handleEditArticle = (item) => {
+  if (item.status === 'draft') {
+    router.push({ name: "WriteArticle", query: { id: item.id, draft: 1 } });
+  } else {
+    router.push({ name: "WriteArticle", query: { id: item.id, edit: 1 } });
+  }
+}
+
+const deleteArticle = (id) => {
+  myArticles.value = myArticles.value.filter(a => a.id !== id)
+  message.success('已删除')
+}
+
+const goForumDetail = (id) => router.push({ name: "MyForumDetail", params: { id } });
+
+// 服务操作
+const editService = (item) => {
+  editingService.value = item
+  serviceForm.title = item.title
+  serviceForm.desc = item.desc
+  serviceForm.category = item.category
+  serviceForm.price = item.price
+  serviceForm.tags = [...item.tags]
+  serviceForm.coverUrl = item.cover
+  serviceForm.detail = item.detail || ''
+  serviceForm.deliveryDays = item.deliveryDays || 7
+  serviceModalVisible.value = true
+};
+
+const toggleServiceStatus = (item) => {
+  if (item.status === 'on') {
+    item.status = 'off'
+    message.success('已下架')
+  } else {
+    item.status = 'on'
+    message.success('已上架')
+  }
+}
+
+const deleteService = (id) => {
+  myServices.value = myServices.value.filter(s => s.id !== id)
+  message.success('已删除')
+}
+
+// 需求操作
+const editDemand = (item) => {
+  editingDemand.value = item
+  demandModalVisible.value = true
+}
+
+const deleteDemand = (id) => {
+  myDemands.value = myDemands.value.filter(d => d.id !== id)
+  message.success('已删除')
+}
+
+const goDemandDetail = (id) => router.push({ name: "DemandDetail", params: { id } });
+
+const getDemandUrgencyColor = (urgency) => {
+  const colorMap = { '紧急': 'orange', '一般': 'blue', '常规': 'default' }
+  return colorMap[urgency] || 'default'
+}
+
 const applyFormRef = ref(null);
 
 // 简化公告栏 - 取第一条
@@ -466,7 +754,44 @@ const activeNotice = ref(notices.value[0] || null);
 
 // 发布需求
 const demandModalVisible = ref(false);
-const onDemandSuccess = () => {};
+const editingDemand = ref(null);
+const onDemandSuccess = (data) => {
+  if (data.isEdit) {
+    // 编辑模式：更新需求数据
+    const idx = myDemands.value.findIndex(d => d.id === data.id)
+    if (idx !== -1) {
+      myDemands.value[idx] = {
+        ...myDemands.value[idx],
+        title: data.title,
+        desc: data.desc,
+        type: data.category,
+        category: data.category,
+        budgetMin: data.budgetMin,
+        budgetMax: data.budgetMax,
+        urgency: data.urgency,
+        publishTime: data.publishDate || myDemands.value[idx].publishTime,
+        deadline: data.deadline || myDemands.value[idx].deadline,
+      }
+    }
+  } else {
+    // 新建模式：添加新需求
+    myDemands.value.unshift({
+      id: Date.now(),
+      title: data.title,
+      desc: data.desc,
+      type: data.category,
+      category: data.category,
+      budgetMin: data.budgetMin,
+      budgetMax: data.budgetMax,
+      urgency: data.urgency,
+      status: 'PENDING',
+      applyCount: 0,
+      publishTime: data.publishDate || new Date().toISOString().slice(0, 10),
+      deadline: data.deadline || '待定',
+    })
+  }
+  editingDemand.value = null
+};
 
 // 发布服务
 const serviceModalVisible = ref(false);
@@ -477,10 +802,6 @@ const serviceCategories = [
   "人工智能", "Java", "Python", "Vue/React", "移动开发",
   "数据库", "运维部署", "大数据", "区块链", "其他",
 ];
-const serviceForm = reactive({
-  title: "", desc: "", category: undefined, price: null,
-  deliveryDays: 7, tags: [], detail: "", coverUrl: "", goodsImages: [],
-});
 const serviceCoverRef = ref(null);
 const goodsImgInputRef = ref(null);
 
@@ -518,12 +839,52 @@ const submitService = () => {
   if (!serviceForm.title.trim()) { message.warning("请输入服务标题"); return; }
   if (!serviceForm.category) { message.warning("请选择服务分类"); return; }
   if (!serviceForm.price) { message.warning("请输入服务价格"); return; }
+
+  if (editingService.value) {
+    // 编辑模式：更新服务数据
+    const idx = myServices.value.findIndex(s => s.id === editingService.value.id)
+    if (idx !== -1) {
+      myServices.value[idx] = {
+        ...myServices.value[idx],
+        title: serviceForm.title,
+        desc: serviceForm.desc,
+        category: serviceForm.category,
+        price: serviceForm.price,
+        tags: [...serviceForm.tags],
+        cover: serviceForm.coverUrl || myServices.value[idx].cover,
+        detail: serviceForm.detail,
+        deliveryDays: serviceForm.deliveryDays,
+        updateTime: new Date().toISOString().slice(0, 10)
+      }
+    }
+    message.success('修改已保存')
+  } else {
+    // 新建模式：添加新服务
+    myServices.value.unshift({
+      id: Date.now(),
+      title: serviceForm.title,
+      desc: serviceForm.desc,
+      price: serviceForm.price,
+      cover: serviceForm.coverUrl || `https://placehold.co/120x80/52c41a/FFFFFF?text=新服务`,
+      tags: serviceForm.tags,
+      category: serviceForm.category,
+      status: 'review',
+      orders: 0,
+      rating: '-',
+      detail: serviceForm.detail,
+      deliveryDays: serviceForm.deliveryDays,
+      updateTime: new Date().toISOString().slice(0, 10)
+    })
+    message.success("已提交审核，审核通过后自动上架");
+  }
+
+  // 重置表单
   serviceModalVisible.value = false;
+  editingService.value = null;
   Object.assign(serviceForm, {
     title: "", desc: "", category: undefined, price: null,
     deliveryDays: 7, tags: [], detail: "", coverUrl: "", goodsImages: [],
   });
-  message.success("已提交审核，审核通过后自动上架");
 };
 
 // 创作战绩数据
@@ -603,35 +964,6 @@ const tools = [
   { name: "在线作图", icon: HighlightOutlined, url: "https://draw.io" },
 ];
 const openTool = (url) => { window.open(url, "_blank"); };
-
-const editDraft = (item) => {
-  if (recentType.value === "article") {
-    router.push({ name: "WriteArticle", query: { id: item.id, draft: 1 } });
-  } else if (recentType.value === "demand") {
-    router.push({ name: "DemandBounty", query: { id: item.id, draft: 1 } });
-  }
-  // 服务草稿复用发布服务弹窗（带 id）
-};
-
-const viewProgress = (item) => {
-  if (recentType.value === "article") {
-    router.push({ name: "MyForumDetail", params: { id: item.id } });
-  } else if (recentType.value === "service") {
-    router.push({ name: "ServiceDetail", params: { id: item.id } });
-  } else if (recentType.value === "demand") {
-    router.push({ name: "MyDemandDetail", params: { id: item.id } });
-  }
-};
-
-const viewContent = (item) => {
-  if (recentType.value === "article") {
-    router.push({ name: "MyForumDetail", params: { id: item.id } });
-  } else if (recentType.value === "service") {
-    router.push({ name: "ServiceDetail", params: { id: item.id } });
-  } else if (recentType.value === "demand") {
-    router.push({ name: "MyDemandDetail", params: { id: item.id } });
-  }
-};
 
 // 申请表单
 const applyForm = reactive({
@@ -751,30 +1083,6 @@ const submitApply = () => {
 }
 .stats-card .stat-label { font-size: 12px; color: #999; margin-top: 2px; }
 
-/* 创作动态 - 紧凑布局 + 操作按钮 */
-.dynamic-card .dynamic-list { display: flex; flex-direction: column; }
-.dynamic-card .dynamic-item {
-  display: flex; align-items: center; gap: 12px;
-  padding: 12px 0; border-bottom: 1px solid #f5f5f5;
-}
-.dynamic-card .dynamic-item:last-child { border-bottom: none; }
-.dynamic-card .dynamic-info { flex: 1; min-width: 0; }
-.dynamic-card .dynamic-title {
-  font-size: 14px; color: #333;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.dynamic-card .dynamic-meta {
-  display: flex; align-items: center; gap: 8px;
-  margin-top: 4px; font-size: 12px; color: #bbb;
-}
-.dynamic-card .dynamic-stats {
-  display: flex; gap: 10px; font-size: 12px; color: #bbb;
-  flex-shrink: 0;
-}
-.dynamic-card .dynamic-actions {
-  flex-shrink: 0;
-  margin-left: 8px;
-}
 .empty-state { padding: 24px; text-align: center; color: #ccc; font-size: 13px; }
 
 /* 右侧边栏 */
@@ -851,4 +1159,65 @@ const submitApply = () => {
   cursor: pointer; color: #bbb; font-size: 12px; transition: border-color 0.2s;
 }
 .goods-img-add:hover { border-color: #52c41a; }
+
+/* 内容管理卡片 */
+.content-manage-card :deep(.ant-tabs-bar) { margin-bottom: 0; }
+.content-manage-card :deep(.ant-tabs-content) { background: #fff; border-radius: 0 0 12px 12px; padding: 16px 20px; }
+.content-manage-card :deep(.ant-tabs-tabpane-active) { background: #fff; border-radius: 0 0 12px 12px; }
+
+/* 筛选栏 */
+.filter-bar { background: #fff; border-radius: 8px 8px 0 0; padding: 0 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #f0f0f0; }
+.status-tabs :deep(.ant-tabs-nav) { margin: 0; }
+.status-tabs :deep(.ant-tabs-nav::before) { border: none; }
+.status-tabs :deep(.ant-tabs-nav-operations) { display: none !important; }
+
+/* 文章列表 */
+.article-list { background: #fff; border-radius: 0 0 8px 8px; }
+.article-item { display: flex; align-items: center; gap: 16px; padding: 16px 20px; border-bottom: 1px solid #f5f5f5; }
+.article-item:last-child { border-bottom: none; }
+.article-cover { width: 100px; height: 70px; border-radius: 6px; object-fit: cover; flex-shrink: 0; }
+.article-info { flex: 1; min-width: 0; }
+.article-title { font-size: 15px; font-weight: 600; color: #333; margin-bottom: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
+.article-title:hover { color: #1890ff; }
+.article-desc { font-size: 13px; color: #999; margin-bottom: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.article-meta { display: flex; align-items: center; gap: 14px; font-size: 12px; color: #bbb; }
+.article-time { margin-left: auto; }
+.article-right { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.article-actions { display: flex; gap: 6px; }
+
+/* 服务列表 */
+.service-list { background: #fff; border-radius: 0 0 8px 8px; }
+.service-item { display: flex; align-items: center; gap: 16px; padding: 16px 20px; border-bottom: 1px solid #f5f5f5; }
+.service-item:last-child { border-bottom: none; }
+.service-cover { width: 120px; height: 80px; border-radius: 6px; object-fit: cover; flex-shrink: 0; }
+.service-info { flex: 1; min-width: 0; }
+.service-title { font-size: 15px; font-weight: 600; color: #333; margin-bottom: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.service-desc { font-size: 13px; color: #999; margin-bottom: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.service-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+.service-meta { display: flex; gap: 16px; font-size: 12px; color: #bbb; }
+.service-data { display: flex; gap: 20px; flex-shrink: 0; }
+.data-item { text-align: center; }
+.data-num { font-size: 16px; font-weight: 700; color: #333; }
+.data-label { font-size: 12px; color: #999; margin-top: 2px; }
+.service-price { font-size: 18px; font-weight: 700; color: #ff4d4f; flex-shrink: 0; width: 80px; text-align: right; }
+.service-status { flex-shrink: 0; width: 70px; }
+.service-actions { display: flex; flex-direction: column; gap: 6px; flex-shrink: 0; }
+
+/* 需求列表 */
+.demand-list { background: #fff; border-radius: 0 0 8px 8px; }
+.demand-item { display: flex; align-items: flex-start; gap: 16px; padding: 16px 20px; border-bottom: 1px solid #f5f5f5; }
+.demand-item:last-child { border-bottom: none; }
+.demand-main { flex: 1; min-width: 0; }
+.demand-title { font-size: 15px; font-weight: 600; color: #333; margin-bottom: 6px; cursor: pointer; }
+.demand-title:hover { color: #1890ff; }
+.demand-desc { font-size: 13px; color: #999; margin-bottom: 8px; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.demand-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+.demand-meta { display: flex; gap: 20px; font-size: 12px; color: #bbb; }
+.demand-meta strong { color: #fa8c16; }
+.demand-right { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; min-width: 120px; }
+.demand-budget { font-size: 20px; font-weight: 700; color: #ff4d4f; }
+.demand-actions { display: flex; gap: 6px; }
+
+/* 空状态 */
+.empty-state { padding: 60px; text-align: center; color: #ccc; display: flex; flex-direction: column; align-items: center; gap: 12px; font-size: 14px; }
 </style>

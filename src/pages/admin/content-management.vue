@@ -63,48 +63,10 @@
 
     <!-- 分类管理 -->
     <div v-if="activeTab === 'categories'" class="tab-content">
-      <div class="category-mgmt-top">
-        <div class="category-mgmt-top-left">
-          <span class="section-title">分类管理</span>
-          <div class="forum-cat-beside">
-            <span class="forum-cat-beside-label">论坛管理</span>
-            <!-- <span
-              v-for="c in forumCategories"
-              :key="c.id"
-              class="forum-cat-chip"
-            >{{ c.name }}</span> -->
-          </div>
-        </div>
-        <button type="button" class="btn-primary" @click="openForumCategoryModal('add')">
-          + 新增
-        </button>
-      </div>
-
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>分类名称</th>
-            <th>分类描述</th>
-            <th>版主</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="cat in forumCategories" :key="cat.id">
-            <td>{{ cat.name }}</td>
-            <td>{{ cat.description || '—' }}</td>
-            <td>{{ formatModeratorSummary(cat.moderators) }}</td>
-            <td class="action-cell">
-              <button type="button" class="btn-link" @click="openForumCategoryModal('edit', cat)">编辑</button>
-              <button type="button" class="btn-link btn-link--red" @click="deleteForumCategory(cat)">删除</button>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-
-      <div class="category-section category-section--service">
+      <!-- 服务分类 -->
+      <div class="category-section">
         <div class="section-header">
-          <span class="section-title">服务 / 需求分类</span>
+          <span class="section-title">服务分类</span>
           <button type="button" class="btn-primary" @click="openAddServiceCategory">
             + 新增
           </button>
@@ -118,8 +80,65 @@
               <button type="button" class="btn-link btn-link--red" @click="deleteServiceCategory(cat)">删除</button>
             </div>
           </div>
+          <div v-if="serviceCategories.length === 0" class="empty-tip">暂无服务分类</div>
         </div>
       </div>
+
+      <!-- 需求分类 -->
+      <div class="category-section category-section--demand">
+        <div class="section-header">
+          <span class="section-title">需求分类</span>
+          <button type="button" class="btn-primary" @click="openAddDemandCategory">
+            + 新增
+          </button>
+        </div>
+        <div class="tree-list">
+          <div class="tree-item" v-for="cat in demandCategories" :key="cat.id">
+            <span class="tree-icon">📋</span>
+            <span class="tree-name">{{ cat.name }}</span>
+            <div class="tree-actions">
+              <button type="button" class="btn-link" @click="editDemandCategory(cat)">编辑</button>
+              <button type="button" class="btn-link btn-link--red" @click="deleteDemandCategory(cat)">删除</button>
+            </div>
+          </div>
+          <div v-if="demandCategories.length === 0" class="empty-tip">暂无需求分类</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 论坛管理 -->
+    <div v-if="activeTab === 'forum'" class="tab-content">
+      <div class="toolbar">
+        <input
+          v-model="forumSearch"
+          class="search-input"
+          placeholder="搜索分类名称"
+        />
+        <button type="button" class="btn-primary" @click="openForumCategoryModal('add')">
+          + 新增分类
+        </button>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>分类名称</th>
+            <th>分类描述</th>
+            <th>版主</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="cat in filteredForumCategories" :key="cat.id">
+            <td>{{ cat.name }}</td>
+            <td>{{ cat.description || '—' }}</td>
+            <td>{{ formatModeratorSummary(cat.moderators) }}</td>
+            <td class="action-cell">
+              <button type="button" class="btn-link" @click="openForumCategoryModal('edit', cat)">编辑</button>
+              <button type="button" class="btn-link btn-link--red" @click="deleteForumCategory(cat)">删除</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <!-- 论坛分类：新建 / 编辑 -->
@@ -186,6 +205,54 @@
       <div class="forum-cat-modal-actions">
         <a-button @click="closeForumCategoryModal">取消</a-button>
         <a-button type="primary" @click="submitForumCategory">保存</a-button>
+      </div>
+    </a-modal>
+
+    <!-- 服务分类：新建 / 编辑 -->
+    <a-modal
+      v-model:open="serviceCatModal.open"
+      :title="serviceCatModal.mode === 'add' ? '新增服务分类' : '编辑服务分类'"
+      :width="400"
+      :footer="null"
+      destroy-on-close
+    >
+      <div class="cat-form">
+        <div class="cat-form-item">
+          <label class="cat-form-label"><span class="cat-form-req">*</span>分类名称</label>
+          <a-input
+            v-model:value="serviceCatModal.name"
+            placeholder="请输入分类名称"
+            allow-clear
+          />
+        </div>
+      </div>
+      <div class="cat-modal-actions">
+        <a-button @click="serviceCatModal.open = false">取消</a-button>
+        <a-button type="primary" @click="submitServiceCategory">保存</a-button>
+      </div>
+    </a-modal>
+
+    <!-- 需求分类：新建 / 编辑 -->
+    <a-modal
+      v-model:open="demandCatModal.open"
+      :title="demandCatModal.mode === 'add' ? '新增需求分类' : '编辑需求分类'"
+      :width="400"
+      :footer="null"
+      destroy-on-close
+    >
+      <div class="cat-form">
+        <div class="cat-form-item">
+          <label class="cat-form-label"><span class="cat-form-req">*</span>分类名称</label>
+          <a-input
+            v-model:value="demandCatModal.name"
+            placeholder="请输入分类名称"
+            allow-clear
+          />
+        </div>
+      </div>
+      <div class="cat-modal-actions">
+        <a-button @click="demandCatModal.open = false">取消</a-button>
+        <a-button type="primary" @click="submitDemandCategory">保存</a-button>
       </div>
     </a-modal>
 
@@ -312,10 +379,12 @@ import { Button, message, Modal } from "ant-design-vue";
 const tabs = [
   { key: "articles", label: "文章管理" },
   { key: "categories", label: "分类管理" },
+  { key: "forum", label: "论坛管理" },
 ];
 const activeTab = ref("articles");
 
 const articleSearch = ref("");
+const forumSearch = ref("");
 const selectAll = ref(false);
 const selectedArticles = ref([]);
 
@@ -334,6 +403,14 @@ const filteredArticleList = computed(() => {
   return articleList.value.filter(a =>
     a.title.toLowerCase().includes(keyword) ||
     a.author.toLowerCase().includes(keyword)
+  );
+});
+
+// 过滤后的论坛分类
+const filteredForumCategories = computed(() => {
+  if (!forumSearch.value) return forumCategories.value;
+  return forumCategories.value.filter(c =>
+    c.name.toLowerCase().includes(forumSearch.value.toLowerCase())
   );
 });
 
@@ -498,6 +575,12 @@ const serviceCategories = ref([
   { id: 1, name: "前端开发" },
   { id: 2, name: "后端开发" },
   { id: 3, name: "UI设计" },
+]);
+
+const demandCategories = ref([
+  { id: 101, name: "网站建设" },
+  { id: 102, name: "APP开发" },
+  { id: 103, name: "小程序开发" },
 ]);
 
 const forumCategories = ref([
@@ -675,11 +758,17 @@ const deleteForumCategory = (cat) => {
 };
 
 const openAddServiceCategory = () => {
-  message.info("服务分类新增可对接后台接口后实现");
+  resetServiceCatModal();
+  serviceCatModal.mode = 'add';
+  serviceCatModal.open = true;
 };
 
 const editServiceCategory = (cat) => {
-  message.info(`编辑服务分类：${cat.name}（可对接表单）`);
+  resetServiceCatModal();
+  serviceCatModal.mode = 'edit';
+  serviceCatModal.editingId = cat.id;
+  serviceCatModal.name = cat.name;
+  serviceCatModal.open = true;
 };
 
 const deleteServiceCategory = (cat) => {
@@ -691,6 +780,120 @@ const deleteServiceCategory = (cat) => {
     okType: "danger",
     onOk() {
       serviceCategories.value = serviceCategories.value.filter(
+        (c) => c.id !== cat.id
+      );
+      message.success("已删除");
+    },
+  });
+};
+
+// 需求分类弹窗
+const serviceCatModal = reactive({
+  open: false,
+  mode: 'add', // 'add' | 'edit'
+  editingId: null,
+  name: '',
+  type: 'service', // 'service' | 'demand'
+});
+
+const demandCatModal = reactive({
+  open: false,
+  mode: 'add',
+  editingId: null,
+  name: '',
+});
+
+const resetServiceCatModal = () => {
+  serviceCatModal.mode = 'add';
+  serviceCatModal.editingId = null;
+  serviceCatModal.name = '';
+};
+
+const resetDemandCatModal = () => {
+  demandCatModal.mode = 'add';
+  demandCatModal.editingId = null;
+  demandCatModal.name = '';
+};
+
+const nextServiceCategoryId = () => {
+  const ids = serviceCategories.value.map(c => c.id);
+  return ids.length ? Math.max(...ids) + 1 : 1;
+};
+
+const nextDemandCategoryId = () => {
+  const ids = demandCategories.value.map(c => c.id);
+  return ids.length ? Math.max(...ids) + 1 : 1;
+};
+
+const submitServiceCategory = () => {
+  const name = serviceCatModal.name.trim();
+  if (!name) {
+    message.warning('请输入分类名称');
+    return;
+  }
+  if (serviceCatModal.mode === 'add') {
+    serviceCategories.value.push({
+      id: nextServiceCategoryId(),
+      name,
+    });
+    message.success('新增成功');
+  } else {
+    const cat = serviceCategories.value.find(c => c.id === serviceCatModal.editingId);
+    if (cat) {
+      cat.name = name;
+    }
+    message.success('保存成功');
+  }
+  serviceCatModal.open = false;
+  resetServiceCatModal();
+};
+
+const submitDemandCategory = () => {
+  const name = demandCatModal.name.trim();
+  if (!name) {
+    message.warning('请输入分类名称');
+    return;
+  }
+  if (demandCatModal.mode === 'add') {
+    demandCategories.value.push({
+      id: nextDemandCategoryId(),
+      name,
+    });
+    message.success('新增成功');
+  } else {
+    const cat = demandCategories.value.find(c => c.id === demandCatModal.editingId);
+    if (cat) {
+      cat.name = name;
+    }
+    message.success('保存成功');
+  }
+  demandCatModal.open = false;
+  resetDemandCatModal();
+};
+
+const openAddDemandCategory = () => {
+  resetDemandCatModal();
+  demandCatModal.mode = 'add';
+  demandCatModal.open = true;
+};
+
+const editDemandCategory = (cat) => {
+  resetDemandCatModal();
+  demandCatModal.mode = 'edit';
+  demandCatModal.editingId = cat.id;
+  demandCatModal.name = cat.name;
+  demandCatModal.open = true;
+};
+
+const deleteDemandCategory = (cat) => {
+  Modal.confirm({
+    title: "确认删除",
+    content: `确定要删除「${cat.name}」吗？`,
+    okText: "确认",
+    cancelText: "取消",
+    okType: "danger",
+    onOk() {
+      demandCategories.value = demandCategories.value.filter(
         (c) => c.id !== cat.id
       );
       message.success("已删除");
@@ -1066,6 +1269,11 @@ const submitAuditFromDetail = (type) => {
   flex-direction: column;
   gap: 12px;
 }
+.category-section--demand {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid #e8e8e8;
+}
 .section-header {
   display: flex;
   align-items: center;
@@ -1101,6 +1309,41 @@ const submitAuditFromDetail = (type) => {
 .tree-actions {
   display: flex;
   gap: 8px;
+}
+
+.empty-tip {
+  padding: 20px;
+  text-align: center;
+  color: #999;
+  font-size: 14px;
+}
+
+/* 分类弹窗 */
+.cat-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.cat-form-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cat-form-label {
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.88);
+}
+.cat-form-req {
+  color: #ff4d4f;
+  margin-right: 4px;
+}
+.cat-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #f0f0f0;
 }
 
 .status-tag {

@@ -174,8 +174,8 @@ const handleAppeal = (result) => {
 .detail-view { display: flex; flex-direction: column; gap: 16px; }
 
 .detail-header { display: flex; align-items: center; gap: 16px; }
-.btn-back { background: none; border: 1px solid #e0e0e0; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 14px; color: #555; transition: all 0.2s; }
-.btn-back:hover { background: #f0f0f0; }
+.btn-back { background: #4f46e5; border: none; padding: 6px 16px; border-radius: 6px; cursor: pointer; font-size: 14px; color: #fff; transition: all 0.2s; }
+.btn-back:hover { background: #4338ca; }
 .detail-title { font-size: 16px; font-weight: 600; color: #1a1a2e; }
 
 .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }

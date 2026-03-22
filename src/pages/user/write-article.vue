@@ -34,7 +34,7 @@
     <!-- 发布抽屉 -->
     <a-drawer
       v-model:open="publishDrawerVisible"
-      title="发布文章"
+      :title="isEditMode ? '更新文章' : '发布文章'"
       placement="right"
       width="400"
       :footer-style="{ textAlign: 'right' }"
@@ -114,7 +114,7 @@
           type="primary"
           style="background: #52c41a; border-color: #52c41a"
           @click="handlePublish"
-          >确认发布</a-button
+          >{{ isEditMode ? '确认更新' : '确认发布' }}</a-button
         >
       </template>
     </a-drawer>
@@ -145,6 +145,14 @@ const tagInputRef = ref(null);
 const coverInputRef = ref(null);
 let vditorInstance = null;
 
+// 判断是否为编辑模式
+const isEditMode = ref(false);
+const editingArticleId = ref(null);
+const isDraftMode = ref(false);
+
+// 文章数据（用于编辑已发布的文章）
+const articleData = ref(null);
+
 const categories = [
   "人工智能",
   "Java",
@@ -166,7 +174,45 @@ const publishForm = reactive({
   visibility: "public",
 });
 
+// 模拟文章数据（实际项目中应从API获取）
+const mockArticles = {
+  1: { id: 1, title: "深入解析CPU调度：操作系统的核心资源分配机制", category: "操作系统", tags: ["CPU", "调度", "操作系统"], coverUrl: "", content: "这是已发布文章的内容..." },
+  2: { id: 2, title: "Vue3 Composition API 最佳实践总结", category: "Vue", tags: ["Vue3", "Composition API"], coverUrl: "", content: "Vue3 Composition API 最佳实践..." },
+  3: { id: 3, title: "Docker容器化部署实战指南", category: "运维", tags: ["Docker", "容器化"], coverUrl: "", content: "草稿内容..." },
+};
+
 onMounted(() => {
+  // 判断是编辑草稿还是编辑已发布文章
+  isDraftMode.value = route.query.draft === "1";
+  isEditMode.value = route.query.edit === "1";
+  editingArticleId.value = route.query.id;
+
+  // 如果是编辑模式，加载文章数据
+  if (editingArticleId.value) {
+    const articleId = parseInt(editingArticleId.value);
+
+    // 编辑草稿：尝试从草稿存储加载
+    if (isDraftMode.value) {
+      const draftKey = `article_draft_${articleId}`;
+      const storedDraft = localStorage.getItem(draftKey);
+      if (storedDraft) {
+        articleData.value = JSON.parse(storedDraft);
+      }
+    }
+
+    // 编辑已发布文章：从文章数据加载
+    if (isEditMode.value && !articleData.value) {
+      articleData.value = mockArticles[articleId];
+    }
+
+    if (articleData.value) {
+      title.value = articleData.value.title || "";
+      publishForm.category = articleData.value.category;
+      publishForm.tags = [...(articleData.value.tags || [])];
+      publishForm.coverUrl = articleData.value.coverUrl || "";
+    }
+  }
+
   vditorInstance = new Vditor("vditor", {
     height: "100%",
     mode: "sv",
@@ -203,12 +249,17 @@ onMounted(() => {
     ],
     cache: { enable: false },
     after: () => {
-      // 如果是编辑模式，从路由参数或 localStorage 恢复内容
-      const draft = localStorage.getItem("article_draft");
-      if (draft) {
-        const parsed = JSON.parse(draft);
-        title.value = parsed.title || "";
-        vditorInstance.setValue(parsed.content || "");
+      // 编辑模式：从文章数据或草稿恢复内容
+      if (articleData.value && articleData.value.content) {
+        vditorInstance.setValue(articleData.value.content);
+      } else {
+        // 新建草稿：从 localStorage 恢复
+        const draft = localStorage.getItem("article_draft");
+        if (draft) {
+          const parsed = JSON.parse(draft);
+          title.value = parsed.title || "";
+          vditorInstance.setValue(parsed.content || "");
+        }
       }
     },
   });
@@ -227,9 +278,31 @@ const handleSaveDraft = () => {
     return;
   }
   saving.value = true;
+  const content = vditorInstance?.getValue() || "";
+
+  // 如果是编辑已发布文章，保存为草稿
+  if (isEditMode.value && editingArticleId.value) {
+    const draftKey = `article_draft_${editingArticleId.value}`;
+    const draft = {
+      id: editingArticleId.value,
+      title: title.value,
+      content: content,
+      category: publishForm.category,
+      tags: [...publishForm.tags],
+      coverUrl: publishForm.coverUrl,
+    };
+    localStorage.setItem(draftKey, JSON.stringify(draft));
+    setTimeout(() => {
+      saving.value = false;
+      message.success("已保存");
+    }, 600);
+    return;
+  }
+
+  // 原有的草稿保存逻辑
   const draft = {
     title: title.value,
-    content: vditorInstance?.getValue() || "",
+    content: content,
   };
   localStorage.setItem("article_draft", JSON.stringify(draft));
   setTimeout(() => {
@@ -252,6 +325,17 @@ const handlePublish = () => {
     message.warning("文章内容不能为空");
     return;
   }
+
+  // 编辑已发布文章
+  if (isEditMode.value && editingArticleId.value) {
+    // 清除对应的草稿
+    localStorage.removeItem(`article_draft_${editingArticleId.value}`);
+    message.success("文章更新成功");
+    publishDrawerVisible.value = false;
+    router.push("/user/tech-forum");
+    return;
+  }
+
   // 清除草稿
   localStorage.removeItem("article_draft");
   message.success("文章发布成功");

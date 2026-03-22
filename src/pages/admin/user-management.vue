@@ -171,15 +171,6 @@
 
         <a-divider style="margin: 16px 0" />
 
-        <div class="detail-section-title">审核历史</div>
-        <a-table
-          :columns="auditHistoryColumns"
-          :data-source="auditDetail.data.auditHistory || []"
-          :pagination="false"
-          size="small"
-          :row-key="(r) => r.auditId"
-        />
-
         <template v-if="auditDetail.data?.status === 'PENDING'">
           <a-divider style="margin: 16px 0" />
           <div class="audit-action-bar">
@@ -281,14 +272,6 @@ const auditColumns = [
   { title: '申请时间', dataIndex: 'applyTime', key: 'applyTime', width: '18%' },
   { title: '状态', key: 'status', width: '12%' },
   { title: '操作', key: 'action', width: '16%' }
-]
-
-const auditHistoryColumns = [
-  { title: '审核ID', dataIndex: 'auditId', key: 'auditId', width: '14%' },
-  { title: '审核人', dataIndex: 'auditor', key: 'auditor', width: '16%' },
-  { title: '结果', dataIndex: 'result', key: 'result', width: '14%' },
-  { title: '原因', dataIndex: 'reason', key: 'reason', width: '36%' },
-  { title: '审核时间', dataIndex: 'auditTime', key: 'auditTime', width: '20%' }
 ]
 
 const userPagination = ref({
@@ -475,16 +458,7 @@ const openAuditDetail = (record) => {
         "http://example.com/cert.pdf"
       ],
       applyTime: "2026-03-16 10:23:45",
-      status: "PENDING",
-      auditHistory: [
-        {
-          auditId: 5001,
-          auditor: "admin01",
-          result: "REJECTED",
-          reason: "材料不全，请补充身份证照片",
-          auditTime: "2026-03-15 14:30:00"
-        }
-      ]
+      status: "PENDING"
     },
     10002: {
       applyId: 10002,
@@ -499,8 +473,7 @@ const openAuditDetail = (record) => {
         "http://example.com/idcard2.jpg"
       ],
       applyTime: "2026-03-15 14:30:00",
-      status: "PENDING",
-      auditHistory: []
+      status: "PENDING"
     }
   }
 

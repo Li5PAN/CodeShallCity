@@ -175,7 +175,7 @@
                 >{{ username }}</a-avatar
               >
             </a-popover>
-            <span class="header-username">个人中心</span>
+            <span class="header-username" @click="router.push('/user/profile')" style="cursor:pointer">个人中心</span>
             <a-badge :count="totalUnread" :offset="[-6, 0]" size="small">
               <span class="header-link" @click="router.push('/user/messages')"
                 >消息</span
