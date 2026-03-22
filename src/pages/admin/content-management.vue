@@ -66,7 +66,7 @@
       <!-- 服务分类 -->
       <div class="category-section">
         <div class="section-header">
-          <span class="section-title">服务分类</span>
+          <span class="section-title">服务/需求分类</span>
           <button type="button" class="btn-primary" @click="openAddServiceCategory">
             + 新增
           </button>
@@ -81,27 +81,6 @@
             </div>
           </div>
           <div v-if="serviceCategories.length === 0" class="empty-tip">暂无服务分类</div>
-        </div>
-      </div>
-
-      <!-- 需求分类 -->
-      <div class="category-section category-section--demand">
-        <div class="section-header">
-          <span class="section-title">需求分类</span>
-          <button type="button" class="btn-primary" @click="openAddDemandCategory">
-            + 新增
-          </button>
-        </div>
-        <div class="tree-list">
-          <div class="tree-item" v-for="cat in demandCategories" :key="cat.id">
-            <span class="tree-icon">📋</span>
-            <span class="tree-name">{{ cat.name }}</span>
-            <div class="tree-actions">
-              <button type="button" class="btn-link" @click="editDemandCategory(cat)">编辑</button>
-              <button type="button" class="btn-link btn-link--red" @click="deleteDemandCategory(cat)">删除</button>
-            </div>
-          </div>
-          <div v-if="demandCategories.length === 0" class="empty-tip">暂无需求分类</div>
         </div>
       </div>
     </div>
@@ -364,7 +343,7 @@
           ></textarea>
           <div class="audit-actions">
             <button class="btn-success" @click="submitAuditFromDetail('pass')">通过</button>
-            <button class="btn-danger" @click="submitAuditFromDetail('reject')">驳回</button>
+            <a-button class="btn-danger" @click="submitAuditFromDetail('reject')">驳回</a-button>
           </div>
         </div>
       </div>
@@ -376,7 +355,7 @@
 import { ref, reactive, computed } from "vue";
 import { Button, message, Modal } from "ant-design-vue";
 
-                      const tabs = [
+const tabs = [
   { key: "articles", label: "文章管理" },
   { key: "categories", label: "分类管理" },
   { key: "forum", label: "论坛管理" },
@@ -577,11 +556,6 @@ const serviceCategories = ref([
   { id: 3, name: "UI设计" },
 ]);
 
-const demandCategories = ref([
-  { id: 101, name: "网站建设" },
-  { id: 102, name: "APP开发" },
-  { id: 103, name: "小程序开发" },
-]);
 
 const forumCategories = ref([
   {
@@ -820,10 +794,7 @@ const nextServiceCategoryId = () => {
   return ids.length ? Math.max(...ids) + 1 : 1;
 };
 
-const nextDemandCategoryId = () => {
-  const ids = demandCategories.value.map(c => c.id);
-  return ids.length ? Math.max(...ids) + 1 : 1;
-};
+
 
 const submitServiceCategory = () => {
   const name = serviceCatModal.name.trim();
@@ -848,58 +819,7 @@ const submitServiceCategory = () => {
   resetServiceCatModal();
 };
 
-const submitDemandCategory = () => {
-  const name = demandCatModal.name.trim();
-  if (!name) {
-    message.warning('请输入分类名称');
-    return;
-  }
-  if (demandCatModal.mode === 'add') {
-    demandCategories.value.push({
-      id: nextDemandCategoryId(),
-      name,
-    });
-    message.success('新增成功');
-  } else {
-    const cat = demandCategories.value.find(c => c.id === demandCatModal.editingId);
-    if (cat) {
-      cat.name = name;
-    }
-    message.success('保存成功');
-  }
-  demandCatModal.open = false;
-  resetDemandCatModal();
-};
 
-const openAddDemandCategory = () => {
-  resetDemandCatModal();
-  demandCatModal.mode = 'add';
-  demandCatModal.open = true;
-};
-
-const editDemandCategory = (cat) => {
-  resetDemandCatModal();
-  demandCatModal.mode = 'edit';
-  demandCatModal.editingId = cat.id;
-  demandCatModal.name = cat.name;
-  demandCatModal.open = true;
-};
-
-const deleteDemandCategory = (cat) => {
-  Modal.confirm({
-    title: "确认删除",
-    content: `确定要删除「${cat.name}」吗？`,
-    okText: "确认",
-    cancelText: "取消",
-    okType: "danger",
-    onOk() {
-      demandCategories.value = demandCategories.value.filter(
-        (c) => c.id !== cat.id
-      );
-      message.success("已删除");
-    },
-  });
-};
 
 const auditModal = reactive({
   show: false,
