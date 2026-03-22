@@ -376,7 +376,7 @@
 import { ref, reactive, computed } from "vue";
 import { Button, message, Modal } from "ant-design-vue";
 
-const tabs = [
+                      const tabs = [
   { key: "articles", label: "文章管理" },
   { key: "categories", label: "分类管理" },
   { key: "forum", label: "论坛管理" },

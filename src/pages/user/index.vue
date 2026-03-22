@@ -290,6 +290,7 @@
 <script setup>
 import { ref, onMounted, watch, provide, shallowRef } from "vue";
 import { useRouter, useRoute } from "vue-router";
+import { Modal } from "ant-design-vue";
 import {
   HomeOutlined,
   ShopOutlined,
@@ -390,7 +391,16 @@ const onMenuClick = (path, key) => {
 };
 
 const handleLogout = () => {
-  router.push("/logout");
+  Modal.confirm({
+    title: '退出登录',
+    content: '确定要退出系统吗？',
+    okText: '确定',
+    cancelText: '取消',
+    onOk: () => {
+      localStorage.clear();
+      router.push("/login");
+    }
+  });
 };
 </script>
 

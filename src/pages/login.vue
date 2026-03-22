@@ -43,6 +43,7 @@
 <script setup>
 import { reactive, ref } from "vue";
 import { useRouter } from "vue-router";
+import { message } from "ant-design-vue";
 
 const router = useRouter();
 const loading = ref(false);
@@ -67,13 +68,13 @@ const handleLogin = () => {
     const account = accounts[formState.username];
 
     if (!account) {
-      alert("用户名不存在");
+      message.error("用户名不存在");
       loading.value = false;
       return;
     }
 
     if (account.password !== formState.password) {
-      alert("密码错误");
+      message.error("密码错误");
       loading.value = false;
       return;
     }
@@ -83,9 +84,7 @@ const handleLogin = () => {
     localStorage.setItem("userRole", account.role);
     localStorage.setItem("username", formState.username);
 
-    alert("登录成功");
-
-    // 跳转到对应页面
+    // 直接跳转到首页
     router.push(account.redirect);
     loading.value = false;
   }, 500);
