@@ -90,29 +90,34 @@
             <a-tab-pane key="article" tab="我的文章">
               <!-- 筛选栏 -->
               <div class="filter-bar">
-                <a-tabs
-                  v-model:activeKey="articleStatusFilter"
-                  class="status-tabs"
-                >
-                  <a-tab-pane key="all" tab="全部" />
-                  <a-tab-pane key="published" tab="已发布" />
-                  <a-tab-pane key="draft" tab="草稿" />
-                  <a-tab-pane key="review" tab="审核中" />
-                </a-tabs>
-                <a-select
-                  v-model:value="articleSortBy"
-                  style="width: 110px"
-                  size="small"
-                >
-                  <a-select-option value="time">最新发布</a-select-option>
-                  <a-select-option value="read">阅读最多</a-select-option>
-                  <a-select-option value="like">获赞最多</a-select-option>
-                </a-select>
-                <a-input-search
-                  v-model:value="articleSearchKeyword"
-                  placeholder="搜索文章"
-                  style="width: 200px"
-                />
+                <div class="filter-left">
+                  <a-tabs
+                    v-model:activeKey="articleStatusFilter"
+                    class="status-tabs"
+                  >
+                    <a-tab-pane key="all" tab="全部" />
+                    <a-tab-pane key="published" tab="已发布" />
+                    <a-tab-pane key="draft" tab="草稿" />
+                    <a-tab-pane key="review" tab="审核中" />
+                  </a-tabs>
+                </div>
+                <div class="filter-right">
+                  <a-select
+                    v-model:value="articleSortBy"
+                    size="small"
+                    class="sort-select"
+                  >
+                    <a-select-option value="time">最新发布</a-select-option>
+                    <a-select-option value="read">阅读最多</a-select-option>
+                    <a-select-option value="like">获赞最多</a-select-option>
+                  </a-select>
+                  <a-input-search
+                    v-model:value="articleSearchKeyword"
+                    placeholder="搜索文章"
+                    size="small"
+                    class="search-input"
+                  />
+                </div>
               </div>
 
               <div class="article-list">
@@ -282,21 +287,26 @@
             <a-tab-pane key="demand" tab="我的需求">
               <!-- 筛选栏 -->
               <div class="filter-bar">
-                <a-tabs
-                  v-model:activeKey="demandStatusFilter"
-                  class="status-tabs"
-                >
-                  <a-tab-pane key="all" tab="全部" />
-                  <a-tab-pane key="open" tab="待接单" />
-                  <a-tab-pane key="progress" tab="进行中" />
-                  <a-tab-pane key="done" tab="已完成" />
-                  <a-tab-pane key="closed" tab="已关闭" />
-                </a-tabs>
-                <a-input-search
-                  v-model:value="demandSearchKeyword"
-                  placeholder="搜索需求标题"
-                  style="width: 200px"
-                />
+                <div class="filter-left">
+                  <a-tabs
+                    v-model:activeKey="demandStatusFilter"
+                    class="status-tabs"
+                  >
+                    <a-tab-pane key="all" tab="全部" />
+                    <a-tab-pane key="open" tab="待接单" />
+                    <a-tab-pane key="progress" tab="进行中" />
+                    <a-tab-pane key="done" tab="已完成" />
+                    <a-tab-pane key="closed" tab="已关闭" />
+                  </a-tabs>
+                </div>
+                <div class="filter-right">
+                  <a-input-search
+                    v-model:value="demandSearchKeyword"
+                    placeholder="搜索需求标题"
+                    size="small"
+                    class="search-input"
+                  />
+                </div>
               </div>
 
               <div class="demand-list">
@@ -1066,7 +1076,7 @@ const deleteDemand = (id) => {
 };
 
 const goDemandDetail = (id) =>
-  router.push({ path: `/user/demand-detail/${id}?from=my-demands` });
+  router.push({ path: `/user/my-demand-detail/${id}` });
 
 const getDemandUrgencyColor = (urgency) => {
   const colorMap = { 紧急: "orange", 一般: "blue", 常规: "default" };
@@ -1899,11 +1909,25 @@ const submitApply = () => {
 .filter-bar {
   background: #fff;
   border-radius: 8px 8px 0 0;
-  padding: 0 20px;
+  padding: 12px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid #f0f0f0;
+}
+.filter-left {
+  flex: 1;
+}
+.filter-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.sort-select {
+  width: 110px;
+}
+.search-input {
+  width: 180px;
 }
 .status-tabs :deep(.ant-tabs-nav) {
   margin: 0;
