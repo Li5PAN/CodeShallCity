@@ -1,9 +1,9 @@
 <template>
   <a-modal
     v-model:open="visible"
-    :title="initialData ? '编辑悬赏' : '发布悬赏需求'"
+    :title="editingDemand ? '编辑悬赏' : (initialData ? '发布类似需求' : '发布悬赏需求')"
     width="600px"
-    :ok-text="initialData ? '保存修改' : '提交'"
+    :ok-text="editingDemand ? '保存修改' : '提交'"
     cancel-text="取消"
     @ok="handleSubmit"
   >
@@ -63,17 +63,6 @@
       </a-row>
       <a-row :gutter="16">
         <a-col :span="12">
-          <a-form-item label="发布时间">
-            <a-date-picker
-              v-model:value="form.publishDate"
-              style="width: 100%"
-              placeholder="请选择发布日期"
-              format="YYYY-MM-DD"
-              valueFormat="YYYY-MM-DD"
-            />
-          </a-form-item>
-        </a-col>
-        <a-col :span="12">
           <a-form-item label="截止时间">
             <a-date-picker
               v-model:value="form.deadline"
@@ -107,6 +96,7 @@ import { message } from "ant-design-vue";
 
 const props = defineProps({
   open: { type: Boolean, default: false },
+  initialData: { type: Object, default: null },
   editingDemand: { type: Object, default: null },
 });
 const emit = defineEmits(["update:open", "success"]);
@@ -151,7 +141,6 @@ watch(
   (val) => {
     if (val) {
       if (props.editingDemand) {
-        // 编辑模式：填充表单数据
         Object.assign(form, {
           title: props.editingDemand.title || "",
           desc: props.editingDemand.desc || "",
@@ -161,6 +150,16 @@ watch(
           publishDate: props.editingDemand.publishTime || props.editingDemand.publishDate || null,
           deadline: props.editingDemand.deadline || null,
           urgency: props.editingDemand.urgency || "一般",
+        });
+      } else if (props.initialData) {
+        Object.assign(form, {
+          title: props.initialData.title || "",
+          desc: props.initialData.desc || "",
+          category: props.initialData.category || undefined,
+          budgetMin: props.initialData.budgetMin || null,
+          budgetMax: props.initialData.budgetMax || null,
+          deadline: null,
+          urgency: props.initialData.urgency || "一般",
         });
       } else {
         resetForm();
@@ -191,6 +190,7 @@ const handleSubmit = () => {
     ...form,
     id: props.editingDemand?.id || null,
     isEdit: !!props.editingDemand,
+    isSimilar: !!props.initialData && !props.editingDemand,
   };
 
   visible.value = false;
