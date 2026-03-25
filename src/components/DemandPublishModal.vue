@@ -1,17 +1,19 @@
 <template>
   <a-modal
     v-model:open="visible"
-    :title="editingDemand ? '编辑悬赏' : (initialData ? '发布类似需求' : '发布悬赏需求')"
+    :title="
+      editingDemand ? '编辑悬赏' : initialData ? '发布类似需求' : '发布悬赏需求'
+    "
     width="600px"
     :ok-text="editingDemand ? '保存修改' : '提交'"
     cancel-text="取消"
     @ok="handleSubmit"
   >
     <a-form :model="form" layout="vertical" style="margin-top: 8px">
-      <a-form-item label="悬赏标题" required>
+      <a-form-item label="需求标题" required>
         <a-input
           v-model:value="form.title"
-          placeholder="请输入悬赏标题"
+          placeholder="请输入需求标题"
           :maxlength="80"
           show-count
         />
@@ -144,10 +146,16 @@ watch(
         Object.assign(form, {
           title: props.editingDemand.title || "",
           desc: props.editingDemand.desc || "",
-          category: props.editingDemand.type || props.editingDemand.category || undefined,
+          category:
+            props.editingDemand.type ||
+            props.editingDemand.category ||
+            undefined,
           budgetMin: props.editingDemand.budgetMin || null,
           budgetMax: props.editingDemand.budgetMax || null,
-          publishDate: props.editingDemand.publishTime || props.editingDemand.publishDate || null,
+          publishDate:
+            props.editingDemand.publishTime ||
+            props.editingDemand.publishDate ||
+            null,
           deadline: props.editingDemand.deadline || null,
           urgency: props.editingDemand.urgency || "一般",
         });
@@ -165,12 +173,12 @@ watch(
         resetForm();
       }
     }
-  }
+  },
 );
 
 const handleSubmit = () => {
   if (!form.title.trim()) {
-    message.warning("请输入悬赏标题");
+    message.warning("请输入需求标题");
     return;
   }
   if (!form.category) {
