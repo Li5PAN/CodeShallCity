@@ -151,29 +151,31 @@
                     </div>
                   </div>
                   <div class="article-right">
-                    <a-tag
-                      :color="articleStatusMap[item.status]?.color || 'default'"
-                      size="small"
-                      >{{
-                        articleStatusMap[item.status]?.text || item.status
-                      }}</a-tag
-                    >
-                    <div class="article-actions">
-                      <a-button
+                    <div class="article-top-row">
+                      <a-tag
+                        :color="articleStatusMap[item.status]?.color || 'default'"
                         size="small"
-                        @click.stop="handleEditArticle(item)"
-                        >编辑</a-button
+                        >{{
+                          articleStatusMap[item.status]?.text || item.status
+                        }}</a-tag
                       >
-                      <a-popconfirm
-                        title="确认删除该文章？"
-                        ok-text="删除"
-                        cancel-text="取消"
-                        @confirm="deleteArticle(item.id)"
-                      >
-                        <a-button size="small" danger @click.stop
-                          >删除</a-button
+                      <div class="article-actions">
+                        <a-button
+                          size="small"
+                          @click.stop="handleEditArticle(item)"
+                          >编辑</a-button
                         >
-                      </a-popconfirm>
+                        <a-popconfirm
+                          title="确认删除该文章？"
+                          ok-text="删除"
+                          cancel-text="取消"
+                          @confirm="deleteArticle(item.id)"
+                        >
+                          <a-button size="small" danger @click.stop
+                            >删除</a-button
+                          >
+                        </a-popconfirm>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -231,44 +233,46 @@
                       <span>更新时间：{{ item.updateTime }}</span>
                     </div>
                   </div>
-                  <div class="service-data">
-                    <div class="data-item">
-                      <div class="data-num">{{ item.orders }}</div>
-                      <div class="data-label">成交订单</div>
+                  <div class="service-right-area">
+                    <div class="service-stats">
+                      <div class="data-item">
+                        <div class="data-num">{{ item.orders }}</div>
+                        <div class="data-label">成交订单</div>
+                      </div>
+                      <div class="data-item">
+                        <div class="data-num">{{ item.rating }}</div>
+                        <div class="data-label">评分</div>
+                      </div>
                     </div>
-                    <div class="data-item">
-                      <div class="data-num">{{ item.rating }}</div>
-                      <div class="data-label">评分</div>
+                    <div class="service-price">¥ {{ item.price }}</div>
+                    <div class="service-top-row">
+                      <a-badge
+                        :status="serviceStatusBadgeMap[item.status]?.badge"
+                        :text="serviceStatusBadgeMap[item.status]?.text"
+                      />
+                      <div class="service-actions">
+                        <a-button size="small" @click="editService(item)"
+                          >编辑</a-button
+                        >
+                        <a-button
+                          size="small"
+                          :type="item.status === 'on' ? 'default' : 'primary'"
+                          :danger="item.status === 'on'"
+                          :disabled="item.status === 'review'"
+                          @click="toggleServiceStatus(item)"
+                        >
+                          {{ item.status === "on" ? "下架" : "上架" }}
+                        </a-button>
+                        <a-popconfirm
+                          title="确认删除该服务？"
+                          ok-text="删除"
+                          cancel-text="取消"
+                          @confirm="deleteService(item.id)"
+                        >
+                          <a-button size="small" danger>删除</a-button>
+                        </a-popconfirm>
+                      </div>
                     </div>
-                  </div>
-                  <div class="service-price">¥ {{ item.price }}</div>
-                  <div class="service-status">
-                    <a-badge
-                      :status="serviceStatusBadgeMap[item.status]?.badge"
-                      :text="serviceStatusBadgeMap[item.status]?.text"
-                    />
-                  </div>
-                  <div class="service-actions">
-                    <a-button size="small" @click="editService(item)"
-                      >编辑</a-button
-                    >
-                    <a-button
-                      size="small"
-                      :type="item.status === 'on' ? 'default' : 'primary'"
-                      :danger="item.status === 'on'"
-                      :disabled="item.status === 'review'"
-                      @click="toggleServiceStatus(item)"
-                    >
-                      {{ item.status === "on" ? "下架" : "上架" }}
-                    </a-button>
-                    <a-popconfirm
-                      title="确认删除该服务？"
-                      ok-text="删除"
-                      cancel-text="取消"
-                      @confirm="deleteService(item.id)"
-                    >
-                      <a-button size="small" danger>删除</a-button>
-                    </a-popconfirm>
                   </div>
                 </div>
               </div>
@@ -332,43 +336,43 @@
                     <div class="demand-budget">
                       ¥ {{ item.budgetMin }} ~ ¥ {{ item.budgetMax }}
                     </div>
-                    <div class="demand-status">
+                    <div class="demand-top-row">
                       <a-badge
                         :status="demandStatusBadgeMap[item.status]?.badge"
                         :text="demandStatusBadgeMap[item.status]?.text"
                       />
-                    </div>
-                    <div class="demand-actions">
-                      <a-button
-                        size="small"
-                        @click.stop="goDemandDetail(item.id)"
-                        >查看详情</a-button
-                      >
-                      <a-button
-                        size="small"
-                        v-if="item.status === 'PENDING'"
-                        @click.stop="editDemand(item)"
-                        >编辑</a-button
-                      >
-                      <a-button
-                        size="small"
-                        v-if="item.status === 'PENDING'"
-                        @click.stop="
-                          item.status = 'CLOSED';
-                          message.success('已关闭');
-                        "
-                        >关闭</a-button
-                      >
-                      <a-popconfirm
-                        title="确认删除？"
-                        ok-text="删除"
-                        cancel-text="取消"
-                        @confirm="deleteDemand(item.id)"
-                      >
-                        <a-button size="small" danger @click.stop
-                          >删除</a-button
+                      <div class="demand-actions">
+                        <a-button
+                          size="small"
+                          @click.stop="goDemandDetail(item.id)"
+                          >查看详情</a-button
                         >
-                      </a-popconfirm>
+                        <a-button
+                          size="small"
+                          v-if="item.status === 'PENDING'"
+                          @click.stop="editDemand(item)"
+                          >编辑</a-button
+                        >
+                        <a-button
+                          size="small"
+                          v-if="item.status === 'PENDING'"
+                          @click.stop="
+                            item.status = 'CLOSED';
+                            message.success('已关闭');
+                          "
+                          >关闭</a-button
+                        >
+                        <a-popconfirm
+                          title="确认删除？"
+                          ok-text="删除"
+                          cancel-text="取消"
+                          @confirm="deleteDemand(item.id)"
+                        >
+                          <a-button size="small" danger @click.stop
+                            >删除</a-button
+                          >
+                        </a-popconfirm>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -1062,7 +1066,7 @@ const deleteDemand = (id) => {
 };
 
 const goDemandDetail = (id) =>
-  router.push({ name: "DemandDetail", params: { id } });
+  router.push({ path: `/user/demand-detail/${id}?from=my-demands` });
 
 const getDemandUrgencyColor = (urgency) => {
   const colorMap = { 紧急: "orange", 一般: "blue", 常规: "default" };
@@ -1974,10 +1978,24 @@ const submitApply = () => {
   flex-direction: column;
   align-items: flex-end;
   gap: 8px;
+  min-width: 140px;
+}
+.article-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 .article-actions {
   display: flex;
-  gap: 6px;
+  gap: 10px;
+}
+.article-actions :deep(.ant-btn) {
+  min-width: 56px;
+  padding: 0 12px;
+  height: 28px;
+  font-size: 13px;
 }
 
 /* 服务列表 */
@@ -1987,7 +2005,7 @@ const submitApply = () => {
 }
 .service-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 16px;
   padding: 16px 20px;
   border-bottom: 1px solid #f5f5f5;
@@ -2035,10 +2053,17 @@ const submitApply = () => {
   font-size: 12px;
   color: #bbb;
 }
-.service-data {
+.service-right-area {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  min-width: 180px;
+}
+.service-stats {
   display: flex;
   gap: 20px;
-  flex-shrink: 0;
 }
 .data-item {
   text-align: center;
@@ -2057,19 +2082,23 @@ const submitApply = () => {
   font-size: 18px;
   font-weight: 700;
   color: #ff4d4f;
-  flex-shrink: 0;
-  width: 80px;
-  text-align: right;
 }
-.service-status {
-  flex-shrink: 0;
-  width: 70px;
+.service-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 .service-actions {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  flex-shrink: 0;
+  gap: 10px;
+}
+.service-actions :deep(.ant-btn) {
+  min-width: 56px;
+  padding: 0 12px;
+  height: 28px;
+  font-size: 13px;
 }
 
 /* 需求列表 */
@@ -2132,16 +2161,29 @@ const submitApply = () => {
   flex-direction: column;
   align-items: flex-end;
   gap: 8px;
-  min-width: 120px;
+  min-width: 140px;
 }
 .demand-budget {
   font-size: 20px;
   font-weight: 700;
   color: #ff4d4f;
 }
+.demand-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
 .demand-actions {
   display: flex;
-  gap: 6px;
+  gap: 10px;
+}
+.demand-actions :deep(.ant-btn) {
+  min-width: 56px;
+  padding: 0 12px;
+  height: 28px;
+  font-size: 13px;
 }
 
 /* 空状态 */

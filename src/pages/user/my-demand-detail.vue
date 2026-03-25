@@ -77,17 +77,11 @@
               }}</a-avatar>
               <div class="provider-info">
                 <div class="provider-name">{{ p.name }}</div>
-                <div class="provider-desc">{{ p.desc }}</div>
                 <div class="provider-meta">
-                  <a-rate
-                    :value="p.star"
-                    disabled
-                    allow-half
-                    :style="{ fontSize: '12px' }"
-                  />
                   <span class="provider-orders">{{ p.orders }}单已完成</span>
                 </div>
-                <div class="bid-detail">
+                <!-- 投标详情：仅需求发布者可见 -->
+                <div class="bid-detail" v-if="fromMyDemands">
                   <div class="bid-row">
                     <span class="bid-label">报价</span>
                     <span class="bid-price">¥ {{ p.bidPrice }}</span>
@@ -109,6 +103,7 @@
                 </div>
               </div>
               <a-button
+                v-if="fromMyDemands"
                 type="primary"
                 size="small"
                 ghost
@@ -184,6 +179,9 @@ import {
 const route = useRoute();
 const router = useRouter();
 const demandId = computed(() => parseInt(route.params.id) || 1);
+
+// 当前页面固定为"我的需求"上下文，投标详情始终显示
+const fromMyDemands = true;
 
 // 选择中标弹窗
 const winnerModal = reactive({ visible: false, loading: false, provider: null });

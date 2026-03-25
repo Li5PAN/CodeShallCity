@@ -341,8 +341,8 @@ const openSimilarDemand = () => {
 };
 
 const fromMyDemands = computed(() => {
-  // 检查是否从"我的需求"进入：通过 query 参数或 props
-  return props.from === "my-demands" || route.query.from === "my-demands";
+  // 检查是否从"我的需求"进入：通过 route query 参数
+  return route.query.from === "my-demands";
 });
 const demandId = computed(() => props.id || parseInt(route.params.id) || 1);
 
