@@ -19,11 +19,7 @@
             <span class="meta-author">发布者：{{ demand.publisher }}</span>
             <span class="meta-time">创建时间：{{ demand.createTime }}</span>
             <span class="meta-time">截止时间：{{ demand.deadline }}</span>
-            <a-tag
-              :color="demand.status === '进行中' ? 'green' : 'orange'"
-              class="status-tag"
-              >{{ demand.status }}</a-tag
-            >
+            <a-tag :color="getStatusColor(demand.status)" class="status-tag">{{ getStatusText(demand.status) }}</a-tag>
           </div>
 
           <div class="info-grid">
@@ -360,13 +356,37 @@ const getUrgencyColor = (urgency) => {
   return colorMap[urgency] || "default";
 };
 
+// 获取需求状态颜色
+const getStatusColor = (status) => {
+  const colorMap = {
+    PENDING: 'warning',
+    PROCESSING: 'processing',
+    COMPLETED: 'success',
+    CLOSED: 'error',
+    CANCELLED: 'default'
+  }
+  return colorMap[status] || 'default'
+}
+
+// 获取需求状态文本
+const getStatusText = (status) => {
+  const textMap = {
+    PENDING: '待接单',
+    PROCESSING: '进行中',
+    COMPLETED: '已完成',
+    CLOSED: '已关闭',
+    CANCELLED: '已取消'
+  }
+  return textMap[status] || status
+}
+
 const demandMap = {
   1: {
     orderNo: "100234560",
     publisher: "李明",
     createTime: "2026-03-03 15:02:06",
     deadline: "2026-03-18 23:59:59",
-    status: "进行中",
+    status: "PROCESSING",
     title: "MiniMax-M2.1: MiniMax-AI开源大模型，赋能高效智能应用开发",
     budgetMin: 3000,
     budgetMax: 5000,
@@ -384,7 +404,7 @@ const demandMap = {
     publisher: "王芳",
     createTime: "2026-03-02 10:30:00",
     deadline: "2026-03-22 23:59:59",
-    status: "招募中",
+    status: "PENDING",
     title: "PaddleOCR-VL: 开源视觉语言OCR工具，多模态识别提升文档处理效率",
     budgetMin: 2500,
     budgetMax: 4500,
@@ -402,7 +422,7 @@ const demandMap = {
     publisher: "张伟",
     createTime: "2026-03-01 09:00:00",
     deadline: "2026-03-31 23:59:59",
-    status: "进行中",
+    status: "PROCESSING",
     title: "CHATERMAI：开启云资源氛围管理新篇章！",
     budgetMin: 5000,
     budgetMax: 8000,
@@ -420,7 +440,7 @@ const demandMap = {
     publisher: "赵强",
     createTime: "2026-02-28 14:20:00",
     deadline: "2026-03-25 23:59:59",
-    status: "已完成",
+    status: "COMPLETED",
     title: "欧拉操作系统内核开源，助力开发者获取源码与技术",
     budgetMin: 8000,
     budgetMax: 15000,

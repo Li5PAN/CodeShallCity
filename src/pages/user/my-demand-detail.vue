@@ -17,11 +17,7 @@
             <span class="meta-author">发布者：{{ demand.publisher }}</span>
             <span class="meta-time">创建时间：{{ demand.createTime }}</span>
             <span class="meta-time">截止时间：{{ demand.deadline }}</span>
-            <a-tag
-              :color="demand.status === '进行中' ? 'green' : 'orange'"
-              class="status-tag"
-              >{{ demand.status }}</a-tag
-            >
+            <a-tag :color="getStatusColor(demand.status)" class="status-tag">{{ getStatusText(demand.status) }}</a-tag>
           </div>
 
           <div class="info-grid">
@@ -235,12 +231,36 @@ const getUrgencyColor = (urgency) => {
   return colorMap[urgency] || "default";
 };
 
+// 获取需求状态颜色
+const getStatusColor = (status) => {
+  const colorMap = {
+    PENDING: 'warning',
+    PROCESSING: 'processing',
+    COMPLETED: 'success',
+    CLOSED: 'error',
+    CANCELLED: 'default'
+  }
+  return colorMap[status] || 'default'
+}
+
+// 获取需求状态文本
+const getStatusText = (status) => {
+  const textMap = {
+    PENDING: '待接单',
+    PROCESSING: '进行中',
+    COMPLETED: '已完成',
+    CLOSED: '已关闭',
+    CANCELLED: '已取消'
+  }
+  return textMap[status] || status
+}
+
 const demandMap = {
   1: {
     publisher: "当前用户",
     createTime: "2026-03-03 15:02:06",
     deadline: "2026-03-31 23:59:59",
-    status: "招募中",
+    status: "PENDING",
     title: "MiniMax-M2.1 智能客服系统开发",
     budgetMin: 3000,
     budgetMax: 5000,
@@ -257,7 +277,7 @@ const demandMap = {
     publisher: "当前用户",
     createTime: "2026-02-28 10:30:00",
     deadline: "2026-04-15 23:59:59",
-    status: "进行中",
+    status: "PROCESSING",
     title: "React Native 跨平台移动端应用开发",
     budgetMin: 10000,
     budgetMax: 15000,
@@ -274,7 +294,7 @@ const demandMap = {
     publisher: "当前用户",
     createTime: "2026-02-10 09:00:00",
     deadline: "2026-02-28 23:59:59",
-    status: "已完成",
+    status: "COMPLETED",
     title: "MySQL 数据库性能优化咨询",
     budgetMin: 1500,
     budgetMax: 2500,
@@ -291,7 +311,7 @@ const demandMap = {
     publisher: "当前用户",
     createTime: "2026-03-01 14:20:00",
     deadline: "2026-04-01 23:59:59",
-    status: "招募中",
+    status: "CLOSED",
     title: "Vue3 后台管理系统开发",
     budgetMin: 6000,
     budgetMax: 10000,

@@ -5,7 +5,7 @@
       <!-- Banner区域 -->
       <div class="banner">
         <h1>找专业人做专业事 多快好省</h1>
-        <p>图片logo</p>
+        <p>IT服务平台</p>
       </div>
 
       <!-- 需求悬赏 -->

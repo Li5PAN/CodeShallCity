@@ -83,10 +83,10 @@
         </div>
       </div>
 
-      <!-- 右侧推荐社区 -->
+      <!-- 右侧推荐论坛 -->
       <div class="right-sidebar">
         <div class="sidebar-card">
-          <div class="sidebar-title">推荐社区</div>
+          <div class="sidebar-title">推荐论坛</div>
           <div class="community-list">
             <div class="community-item" v-for="c in communityList" :key="c.key">
               <span class="community-name">{{ c.name }}</span>

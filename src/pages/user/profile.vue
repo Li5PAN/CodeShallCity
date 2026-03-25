@@ -173,7 +173,7 @@
               <div class="filter-bar">
                 <a-tabs v-model:activeKey="demandStatusFilter" class="status-tabs">
                   <a-tab-pane key="all" tab="全部" />
-                  <a-tab-pane key="open" tab="招募中" />
+                  <a-tab-pane key="open" tab="待接单" />
                   <a-tab-pane key="progress" tab="进行中" />
                   <a-tab-pane key="done" tab="已完成" />
                   <a-tab-pane key="closed" tab="已关闭" />

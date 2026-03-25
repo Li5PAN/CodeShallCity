@@ -19,10 +19,11 @@
     <div class="filter-bar">
       <a-tabs v-model:activeKey="statusFilter" class="status-tabs">
         <a-tab-pane key="all" tab="全部" />
-        <a-tab-pane key="open" tab="招募中" />
-        <a-tab-pane key="progress" tab="进行中" />
-        <a-tab-pane key="done" tab="已完成" />
-        <a-tab-pane key="closed" tab="已关闭" />
+        <a-tab-pane key="PENDING" tab="待接单" />
+        <a-tab-pane key="PROCESSING" tab="进行中" />
+        <a-tab-pane key="COMPLETED" tab="已完成" />
+        <a-tab-pane key="CLOSED" tab="已关闭" />
+        <a-tab-pane key="CANCELLED" tab="已取消" />
       </a-tabs>
       <a-input-search v-model:value="searchKeyword" placeholder="搜索悬赏标题" style="width:220px" />
     </div>
@@ -56,7 +57,7 @@
           <div class="demand-actions">
             <a-button size="small" @click.stop="$router.push(`/user/demand-detail/${item.id}?from=my-demands`)">查看详情</a-button>
             <a-button size="small" @click.stop="openDrawer(item)">编辑</a-button>
-            <a-button size="small" v-if="item.status === 'open'" @click.stop="item.status = 'closed'; message.success('已关闭')">关闭</a-button>
+            <a-button size="small" v-if="item.status === 'PENDING'" @click.stop="item.status = 'CLOSED'; message.success('已关闭')">关闭</a-button>
             <a-popconfirm title="确认删除？" ok-text="删除" cancel-text="取消" @confirm="deleteItem(item.id)">
               <a-button size="small" danger @click.stop>删除</a-button>
             </a-popconfirm>
@@ -132,24 +133,25 @@ const editingItem = ref(null)
 const categories = ['人工智能', 'Java', 'Python', 'Vue/React', '移动开发', '数据库', '运维部署', '大数据', '其他']
 
 const statusMap = {
-  open:     { badge: 'success', text: '招募中' },
-  progress: { badge: 'processing', text: '进行中' },
-  done:     { badge: 'default', text: '已完成' },
-  closed:   { badge: 'error', text: '已关闭' }
+  PENDING:    { badge: 'warning', text: '待接单' },
+  PROCESSING: { badge: 'processing', text: '进行中' },
+  COMPLETED:  { badge: 'success', text: '已完成' },
+  CLOSED:     { badge: 'error', text: '已关闭' },
+  CANCELLED:  { badge: 'default', text: '已取消' }
 }
 
 const statCards = ref([
   { label: '发布总数', value: 4, color: '#1890ff' },
-  { label: '招募中', value: 2, color: '#52c41a' },
-  { label: '进行中', value: 1, color: '#fa8c16' },
-  { label: '已完成', value: 1, color: '#722ed1' }
+  { label: '待接单', value: 2, color: '#faad14' },
+  { label: '进行中', value: 1, color: '#1890ff' },
+  { label: '已完成', value: 1, color: '#52c41a' }
 ])
 
 const demands = ref([
-  { id: 1, title: 'MiniMax-M2.1 智能客服系统开发', desc: '需要基于MiniMax大模型开发一套智能客服系统，支持多轮对话、意图识别、知识库接入', budgetMin: 3000, budgetMax: 5000, category: '人工智能', urgency: '紧急', status: 'open', applyCount: 12, publishTime: '2026-03-03', deadline: '2026-03-31', auditStatus: 'approved', auditRemark: '-' },
-  { id: 2, title: 'React Native 跨平台移动端应用开发', desc: '开发一款电商类App，需要支持iOS和Android双端，包含商品浏览、购物车、支付功能', budgetMin: 10000, budgetMax: 15000, category: '移动开发', urgency: '一般', status: 'progress', applyCount: 7, publishTime: '2026-02-28', deadline: '2026-04-15', auditStatus: 'approved', auditRemark: '-' },
-  { id: 3, title: 'MySQL 数据库性能优化咨询', desc: '现有系统查询慢，需要专业DBA对数据库进行诊断和优化，提供优化报告', budgetMin: 1500, budgetMax: 2500, category: '数据库', urgency: '一般', status: 'done', applyCount: 5, publishTime: '2026-02-10', deadline: '2026-02-28', auditStatus: 'approved', auditRemark: '-' },
-  { id: 4, title: 'Vue3 后台管理系统开发', desc: '基于Vue3+Element Plus开发一套通用后台管理系统，包含权限管理、数据可视化', budgetMin: 6000, budgetMax: 10000, category: 'Vue/React', urgency: '紧急', status: 'open', applyCount: 9, publishTime: '2026-03-01', deadline: '2026-04-01', auditStatus: 'rejected', auditRemark: '需求描述不够详细，请补充具体的功能模块和技术要求' }
+  { id: 1, title: 'MiniMax-M2.1 智能客服系统开发', desc: '需要基于MiniMax大模型开发一套智能客服系统，支持多轮对话、意图识别、知识库接入', budgetMin: 3000, budgetMax: 5000, category: '人工智能', urgency: '紧急', status: 'PENDING', applyCount: 12, publishTime: '2026-03-03', deadline: '2026-03-31', auditStatus: 'approved', auditRemark: '-' },
+  { id: 2, title: 'React Native 跨平台移动端应用开发', desc: '开发一款电商类App，需要支持iOS和Android双端，包含商品浏览、购物车、支付功能', budgetMin: 10000, budgetMax: 15000, category: '移动开发', urgency: '一般', status: 'PROCESSING', applyCount: 7, publishTime: '2026-02-28', deadline: '2026-04-15', auditStatus: 'approved', auditRemark: '-' },
+  { id: 3, title: 'MySQL 数据库性能优化咨询', desc: '现有系统查询慢，需要专业DBA对数据库进行诊断和优化，提供优化报告', budgetMin: 1500, budgetMax: 2500, category: '数据库', urgency: '一般', status: 'COMPLETED', applyCount: 5, publishTime: '2026-02-10', deadline: '2026-02-28', auditStatus: 'approved', auditRemark: '-' },
+  { id: 4, title: 'Vue3 后台管理系统开发', desc: '基于Vue3+Element Plus开发一套通用后台管理系统，包含权限管理、数据可视化', budgetMin: 6000, budgetMax: 10000, category: 'Vue/React', urgency: '紧急', status: 'CLOSED', applyCount: 9, publishTime: '2026-03-01', deadline: '2026-04-01', auditStatus: 'rejected', auditRemark: '需求描述不够详细，请补充具体的功能模块和技术要求' }
 ])
 
 const form = reactive({ title: '', desc: '', category: undefined, budgetMin: null, budgetMax: null, publishDate: null, deadline: null, urgency: '一般' })
@@ -180,7 +182,7 @@ const handleSubmit = () => {
     if (idx !== -1) Object.assign(demands.value[idx], { title: form.title, desc: form.desc, category: form.category, budgetMin: form.budgetMin, budgetMax: form.budgetMax, urgency: form.urgency, publishTime: form.publishDate || demands.value[idx].publishTime, deadline: form.deadline || demands.value[idx].deadline })
     message.success('修改已保存')
   } else {
-    demands.value.unshift({ id: Date.now(), title: form.title, desc: form.desc, budgetMin: form.budgetMin, budgetMax: form.budgetMax, category: form.category, urgency: form.urgency, status: 'open', applyCount: 0, publishTime: form.publishDate || new Date().toISOString().slice(0, 10), deadline: form.deadline || '待定' })
+    demands.value.unshift({ id: Date.now(), title: form.title, desc: form.desc, budgetMin: form.budgetMin, budgetMax: form.budgetMax, category: form.category, urgency: form.urgency, status: 'PENDING', applyCount: 0, publishTime: form.publishDate || new Date().toISOString().slice(0, 10), deadline: form.deadline || '待定' })
     statCards.value[0].value++
     statCards.value[1].value++
     message.success('悬赏发布成功')

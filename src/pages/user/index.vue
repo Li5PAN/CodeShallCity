@@ -14,7 +14,7 @@
               class="collapse-icon"
               @click="collapsed = !collapsed"
             />
-            <span v-if="!collapsed" class="sidebar-title">图标logo</span>
+            <span v-if="!collapsed" class="sidebar-title">IT服务平台</span>
           </div>
           <a-menu
             mode="inline"
@@ -175,7 +175,12 @@
                 >{{ username }}</a-avatar
               >
             </a-popover>
-            <span class="header-username" @click="router.push('/user/profile')" style="cursor:pointer">个人中心</span>
+            <span
+              class="header-username"
+              @click="router.push('/user/profile')"
+              style="cursor: pointer"
+              >个人中心</span
+            >
             <a-badge :count="totalUnread" :offset="[-6, 0]" size="small">
               <span class="header-link" @click="router.push('/user/messages')"
                 >消息</span
@@ -392,14 +397,14 @@ const onMenuClick = (path, key) => {
 
 const handleLogout = () => {
   Modal.confirm({
-    title: '退出登录',
-    content: '确定要退出系统吗？',
-    okText: '确定',
-    cancelText: '取消',
+    title: "退出登录",
+    content: "确定要退出系统吗？",
+    okText: "确定",
+    cancelText: "取消",
     onOk: () => {
       localStorage.clear();
       router.push("/login");
-    }
+    },
   });
 };
 </script>
