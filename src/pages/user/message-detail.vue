@@ -226,7 +226,7 @@ onMounted(() => {
 });
 
 const bizRouteMap = {
-  ORDER: (bizId) => ({ name: "Orders" }),
+  ORDER: (bizId) => ({ name: "OrderManage" }),
   DEMAND: (bizId) => ({ name: "DemandDetail", params: { id: bizId } }),
   SERVICE: (bizId) => ({ name: "ServiceDetail", params: { id: bizId } }),
   POST: (bizId) => ({ name: "ForumDetail", params: { id: bizId } }),

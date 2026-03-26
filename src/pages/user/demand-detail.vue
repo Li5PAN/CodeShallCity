@@ -315,7 +315,7 @@ const confirmSelectWinner = () => {
       winnerModal.visible = false;
       if (data.code === 0 || data.code === 200) {
         message.success("已选中中标，订单已创建，进入交付流程");
-        router.push("/user/orders");
+        router.push("/user/order-manage");
       } else {
         message.error(data.message || "选中中标失败，请重试");
       }

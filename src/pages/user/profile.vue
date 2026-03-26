@@ -226,7 +226,7 @@ const shortcuts = [
     label: "我的订单",
     icon: ShoppingCartOutlined,
     color: "#1890ff",
-    action: () => router.push("/user/orders"),
+    action: () => router.push("/user/order-manage"),
   },
   {
     label: "我的收藏",

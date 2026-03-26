@@ -726,7 +726,7 @@ const fetchOrderDetail = async () => {
 
 // 返回列表
 const goBack = () => {
-  router.push({ name: "Orders" });
+  router.push({ name: "OrderManage" });
 };
 
 // 跳转到关联详情

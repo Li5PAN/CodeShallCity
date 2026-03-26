@@ -57,7 +57,7 @@
             >
               <a-menu-item
                 key="subscribe"
-                @click="onMenuClick('orders', 'subscribe')"
+                @click="onMenuClick('order-manage', 'subscribe')"
               >
                 <template #icon><ShoppingCartOutlined /></template>
                 <span>订单</span>
@@ -126,7 +126,7 @@
                   <div class="avatar-popup-menu">
                     <div
                       class="avatar-popup-item"
-                      @click="onMenuClick('orders', 'subscribe')"
+                      @click="onMenuClick('order-manage', 'subscribe')"
                     >
                       <ShoppingCartOutlined /> 订购
                     </div>

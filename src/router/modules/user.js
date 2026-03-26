@@ -73,15 +73,6 @@ export default [
         },
       },
       {
-        path: "orders",
-        name: "Orders",
-        component: () => import("../../pages/user/orders.vue"),
-        meta: {
-          title: "订单",
-          icon: "ShoppingCartOutlined",
-        },
-      },
-      {
         path: "following",
         name: "Following",
         component: () => import("../../pages/user/following.vue"),

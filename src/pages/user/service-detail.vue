@@ -127,7 +127,7 @@ const handleBuy = async () => {
     buyModalVisible.value = false
     buyRemark.value = ''
     closeDetail()
-    router.push('/user/orders')
+    router.push('/user/order-manage')
   } finally {
     buyLoading.value = false
   }

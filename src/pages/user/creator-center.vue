@@ -1434,7 +1434,7 @@ const quickNavItems = computed(() => {
       name: "orders",
       label: "订单管理",
       icon: ShoppingCartOutlined,
-      path: "/user/orders",
+      path: "/user/order-manage",
     },
   ];
   if (isProvider.value) {
