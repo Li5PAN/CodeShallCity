@@ -1,6 +1,5 @@
 <template>
   <div class="order-manage-page">
-    <h2 class="page-title">订单管理</h2>
 
     <!-- 数据概览 -->
     <div class="order-summary">
