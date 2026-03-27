@@ -180,30 +180,30 @@
         <div class="action-buttons">
           <!-- 待接单状态 PENDING -->
           <template v-if="isStatus('PENDING')">
-            <a-button v-if="currentUserRole === 'buyer'" danger @click="showCancelModal">
+            <a-button v-if="currentUserRole === 'buyer'" class="btn-action btn-cancel" @click="showCancelModal">
               取消订单
             </a-button>
-            <a-button v-if="currentUserRole === 'seller'" type="primary" @click="handleAccept">
+            <a-button v-if="currentUserRole === 'seller'" class="btn-action btn-accept" @click="handleAccept">
               接单
             </a-button>
-            <a-button v-if="currentUserRole === 'seller'" danger @click="showRejectModal">
+            <a-button v-if="currentUserRole === 'seller'" class="btn-action btn-reject" @click="showRejectModal">
               拒单
             </a-button>
           </template>
 
           <!-- 进行中状态 PROCESSING -->
           <template v-if="isStatus('PROCESSING')">
-            <a-button v-if="currentUserRole === 'seller'" type="primary" @click="showDeliverModal">
+            <a-button v-if="currentUserRole === 'seller'" class="btn-action btn-deliver" @click="showDeliverModal">
               提交交付
             </a-button>
           </template>
 
           <!-- 待验收状态 DELIVERED -->
           <template v-if="isStatus('DELIVERED')">
-            <a-button v-if="currentUserRole === 'buyer'" type="primary" @click="handleAcceptDelivery">
+            <a-button v-if="currentUserRole === 'buyer'" class="btn-action btn-accept" @click="handleAcceptDelivery">
               验收通过
             </a-button>
-            <a-button v-if="currentUserRole === 'buyer'" danger @click="showRejectDeliveryModal">
+            <a-button v-if="currentUserRole === 'buyer'" class="btn-action btn-reject" @click="showRejectDeliveryModal">
               验收驳回
             </a-button>
           </template>
@@ -216,6 +216,7 @@
           <!-- 申诉按钮：进行中或待验收状态，且没有申诉记录时显示 -->
           <a-button
             v-if="(isStatus('PROCESSING') || isStatus('DELIVERED')) && !hasComplaint"
+            class="btn-action btn-appeal"
             @click="showComplaintModal"
           >
             发起申诉
@@ -1120,11 +1121,77 @@ onMounted(() => {
   border-radius: 8px;
   justify-content: center;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .no-action-tip {
   color: #999;
   font-size: 14px;
+}
+
+/* ===================== 统一操作按钮样式 ===================== */
+.btn-action {
+  height: 34px !important;
+  padding: 0 20px !important;
+  font-size: 14px !important;
+  border-radius: 17px !important;
+  border: 1px solid transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transition: all 0.2s !important;
+  line-height: 32px !important;
+  font-weight: 500 !important;
+}
+.btn-action:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* 接单 / 验收通过 — 绿色填充 */
+.btn-accept {
+  background: #f6ffed !important;
+  border-color: #b7eb8f !important;
+  color: #52c41a !important;
+}
+.btn-accept:hover {
+  background: #52c41a !important;
+  border-color: #52c41a !important;
+  color: #fff !important;
+}
+
+/* 拒单 / 验收驳回 — 红色描边 */
+.btn-reject {
+  border-color: #ffa39e !important;
+  color: #ff4d4f !important;
+}
+.btn-reject:hover {
+  background: #fff1f0 !important;
+  border-color: #ff4d4f !important;
+  color: #ff4d4f !important;
+}
+
+/* 提交交付 — 蓝色描边 */
+.btn-deliver {
+  border-color: #91d5ff !important;
+  color: #1890ff !important;
+}
+.btn-deliver:hover {
+  background: #e6f7ff !important;
+  border-color: #1890ff !important;
+  color: #1890ff !important;
+}
+
+/* 申诉 / 取消 — 橙色描边 */
+.btn-appeal,
+.btn-cancel {
+  border-color: #ffd591 !important;
+  color: #fa8c16 !important;
+}
+.btn-appeal:hover,
+.btn-cancel:hover {
+  background: #fff7e6 !important;
+  border-color: #fa8c16 !important;
+  color: #fa8c16 !important;
 }
 
 @media (max-width: 768px) {

@@ -31,8 +31,9 @@
       </a-tabs>
       <a-input-search
         v-model:value="searchKeyword"
-        placeholder="搜索需求标题"
-        style="width: 220px"
+        placeholder="搜索需求"
+        size="small"
+        style="width: 200px"
       />
     </div>
 

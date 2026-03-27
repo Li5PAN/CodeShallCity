@@ -102,20 +102,11 @@
                   </a-tabs>
                 </div>
                 <div class="filter-right">
-                  <a-select
-                    v-model:value="articleSortBy"
-                    size="small"
-                    class="sort-select"
-                  >
-                    <a-select-option value="time">最新发布</a-select-option>
-                    <a-select-option value="read">阅读最多</a-select-option>
-                    <a-select-option value="like">获赞最多</a-select-option>
-                  </a-select>
                   <a-input-search
                     v-model:value="articleSearchKeyword"
                     placeholder="搜索文章"
                     size="small"
-                    class="search-input"
+                    style="width: 200px"
                   />
                 </div>
               </div>
@@ -158,7 +149,9 @@
                   <div class="article-right">
                     <div class="article-top-row">
                       <a-tag
-                        :color="articleStatusMap[item.status]?.color || 'default'"
+                        :color="
+                          articleStatusMap[item.status]?.color || 'default'
+                        "
                         size="small"
                         >{{
                           articleStatusMap[item.status]?.text || item.status
@@ -202,7 +195,8 @@
                 </a-tabs>
                 <a-input-search
                   v-model:value="serviceSearchKeyword"
-                  placeholder="搜索服务名称"
+                  placeholder="搜索服务"
+                  size="small"
                   style="width: 200px"
                 />
               </div>
@@ -302,9 +296,9 @@
                 <div class="filter-right">
                   <a-input-search
                     v-model:value="demandSearchKeyword"
-                    placeholder="搜索需求标题"
+                    placeholder="搜索需求"
                     size="small"
-                    class="search-input"
+                    style="width: 200px"
                   />
                 </div>
               </div>
@@ -776,7 +770,6 @@ const serviceForm = reactive({
 // 文章筛选
 const articleStatusFilter = ref("all");
 const articleSearchKeyword = ref("");
-const articleSortBy = ref("time");
 const articleStatusMap = {
   published: { text: "已发布", color: "green" },
   draft: { text: "草稿", color: "default" },
@@ -1925,9 +1918,6 @@ const submitApply = () => {
 }
 .sort-select {
   width: 110px;
-}
-.search-input {
-  width: 180px;
 }
 .status-tabs :deep(.ant-tabs-nav) {
   margin: 0;

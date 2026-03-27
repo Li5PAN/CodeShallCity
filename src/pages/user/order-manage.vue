@@ -86,16 +86,17 @@
                   <div class="order-amount-label">订单金额</div>
                   <div class="order-actions" @click.stop>
                     <template v-if="getMyRole(order) === 'seller'">
-                      <a-button v-if="order.status === 'PENDING'" size="small" type="primary" @click="handleAccept(order)">接单</a-button>
-                      <a-button v-if="order.status === 'PENDING'" size="small" danger @click="handleReject(order)">拒单</a-button>
-                      <a-button v-if="order.status === 'PROCESSING'" size="small" type="link" style="color:#52c41a" @click="openDeliveryModal(order)">提交交付</a-button>
+                      <a-button v-if="order.status === 'PENDING'" class="btn-action btn-accept" size="small" @click="handleAccept(order)">接单</a-button>
+                      <a-button v-if="order.status === 'PENDING'" class="btn-action btn-reject" size="small" @click="openRejectModal(order)">拒单</a-button>
+                      <a-button v-if="order.status === 'PROCESSING'" class="btn-action btn-deliver" size="small" @click="openDeliveryModal(order)">提交交付</a-button>
                     </template>
                     <template v-if="getMyRole(order) === 'buyer'">
-                      <a-button v-if="order.status === 'PENDING'" size="small" danger @click="handleCancel(order)">取消</a-button>
-                      <a-button v-if="order.status === 'DELIVERED'" size="small" type="primary" style="background:#52c41a;border-color:#52c41a" @click="handleAcceptDelivery(order)">验收通过</a-button>
-                      <a-button v-if="order.status === 'DELIVERED'" size="small" @click="handleRejectDelivery(order)">验收驳回</a-button>
+                      <a-button v-if="order.status === 'PENDING'" class="btn-action btn-cancel" size="small" @click="handleCancel(order)">取消</a-button>
+                      <a-button v-if="order.status === 'PROCESSING' || order.status === 'DELIVERED'" class="btn-action btn-appeal" size="small" @click="openComplaintModal(order)">申诉</a-button>
+                      <a-button v-if="order.status === 'DELIVERED'" class="btn-action btn-accept" size="small" @click="handleAcceptDelivery(order)">验收通过</a-button>
+                      <a-button v-if="order.status === 'DELIVERED'" class="btn-action btn-reject" size="small" @click="handleRejectDelivery(order)">验收驳回</a-button>
                     </template>
-                    <a-button size="small" type="link" @click="viewDetail(order)">详情</a-button>
+                    <a-button class="btn-action btn-detail" size="small" @click="viewDetail(order)">详情</a-button>
                   </div>
                 </div>
               </div>
@@ -176,15 +177,14 @@
                   <div class="order-amount-label">悬赏金额</div>
                   <div class="order-actions" @click.stop>
                     <template v-if="getDemandRole(order) === 'bidder'">
-                      <a-button v-if="order.status === 'PENDING'" size="small" type="primary" @click="handleAccept(order)">接单</a-button>
-                      <a-button v-if="order.status === 'PENDING'" size="small" danger @click="handleReject(order)">拒单</a-button>
-                      <a-button v-if="order.status === 'PROCESSING'" size="small" type="link" style="color:#52c41a" @click="openDeliveryModal(order)">提交交付</a-button>
+                      <a-button v-if="order.status === 'PROCESSING'" class="btn-action btn-deliver" size="small" @click="openDeliveryModal(order)">提交交付</a-button>
                     </template>
                     <template v-if="getDemandRole(order) === 'publisher'">
-                      <a-button v-if="order.status === 'DELIVERED'" size="small" type="primary" style="background:#52c41a;border-color:#52c41a" @click="handleAcceptDelivery(order)">验收通过</a-button>
-                      <a-button v-if="order.status === 'DELIVERED'" size="small" @click="handleRejectDelivery(order)">验收驳回</a-button>
+                      <a-button v-if="order.status === 'PROCESSING' || order.status === 'DELIVERED'" class="btn-action btn-appeal" size="small" @click="openComplaintModal(order)">申诉</a-button>
+                      <a-button v-if="order.status === 'DELIVERED'" class="btn-action btn-accept" size="small" @click="handleAcceptDelivery(order)">验收通过</a-button>
+                      <a-button v-if="order.status === 'DELIVERED'" class="btn-action btn-reject" size="small" @click="handleRejectDelivery(order)">验收驳回</a-button>
                     </template>
-                    <a-button size="small" type="link" @click="viewDetail(order)">详情</a-button>
+                    <a-button class="btn-action btn-detail" size="small" @click="viewDetail(order)">详情</a-button>
                   </div>
                 </div>
               </div>
@@ -213,6 +213,33 @@
         <div style="margin:12px 0 8px;font-size:13px;color:#666">附件（可选，最多上传5个文件）</div>
         <a-upload v-model:file-list="deliveryForm.fileList" :before-upload="() => false" multiple :max-count="5">
           <a-button size="small"><UploadOutlined /> 上传附件</a-button>
+        </a-upload>
+      </div>
+    </a-modal>
+
+    <!-- 拒单弹窗 -->
+    <a-modal v-model:open="rejectVisible" title="拒单" ok-text="确认拒单" cancel-text="取消" ok-type="danger" @ok="confirmReject" :confirm-loading="rejectLoading" width="500px">
+      <div style="margin-top:8px">
+        <div style="margin-bottom:8px;font-size:13px;color:#666">请填写拒单原因 <span style="color:#ff4d4f">*</span></div>
+        <a-textarea v-model:value="rejectForm.reason" :rows="3" placeholder="请说明拒单的具体原因，以便买家理解" :maxlength="200" show-count />
+      </div>
+    </a-modal>
+
+    <!-- 申诉弹窗 -->
+    <a-modal v-model:open="complaintVisible" title="发起申诉" ok-text="提交申诉" cancel-text="取消" @ok="confirmComplaint" :confirm-loading="complaintLoading" width="580px">
+      <div style="margin-top:8px">
+        <div style="margin-bottom:8px;font-size:13px;color:#666">申诉类型</div>
+        <a-select v-model:value="complaintForm.type" style="width:100%" placeholder="请选择申诉类型">
+          <a-select-option value="REFUND">退款申诉</a-select-option>
+          <a-select-option value="QUALITY">质量问题</a-select-option>
+          <a-select-option value="DELAY">延期问题</a-select-option>
+          <a-select-option value="OTHER">其他</a-select-option>
+        </a-select>
+        <div style="margin:12px 0 8px;font-size:13px;color:#666">申诉说明 <span style="color:#ff4d4f">*</span></div>
+        <a-textarea v-model:value="complaintForm.reason" :rows="4" placeholder="请详细描述申诉原因和诉求" :maxlength="500" show-count />
+        <div style="margin:12px 0 8px;font-size:13px;color:#666">上传凭证（可选）</div>
+        <a-upload v-model:file-list="complaintForm.fileList" :before-upload="() => false" multiple :max-count="3">
+          <a-button size="small"><UploadOutlined /> 上传凭证</a-button>
         </a-upload>
       </div>
     </a-modal>
@@ -630,6 +657,70 @@ const submitDelivery = () => {
   }, 600);
 };
 
+// ========== 拒单弹窗 ==========
+const rejectVisible = ref(false);
+const rejectLoading = ref(false);
+const rejectTargetOrder = ref(null);
+const rejectForm = reactive({ reason: "" });
+
+const openRejectModal = (order) => {
+  rejectTargetOrder.value = order;
+  rejectForm.reason = "";
+  rejectVisible.value = true;
+};
+
+const confirmReject = () => {
+  if (!rejectForm.reason.trim()) { message.warning("请填写拒单原因"); return; }
+  rejectLoading.value = true;
+  setTimeout(() => {
+    if (rejectTargetOrder.value) {
+      const list = rejectTargetOrder.value.orderType === "SERVICE" ? serviceOrders.value : demandOrders.value;
+      const idx = list.findIndex(o => o.id === rejectTargetOrder.value.id);
+      if (idx !== -1) {
+        list[idx].status = "CANCELLED";
+        list[idx].cancelReason = rejectForm.reason;
+      }
+    }
+    rejectLoading.value = false;
+    rejectVisible.value = false;
+    message.success("已拒单，订单已取消");
+  }, 500);
+};
+
+// ========== 申诉弹窗 ==========
+const complaintVisible = ref(false);
+const complaintLoading = ref(false);
+const complaintTargetOrder = ref(null);
+const complaintForm = reactive({ type: "REFUND", reason: "", fileList: [] });
+
+const openComplaintModal = (order) => {
+  complaintTargetOrder.value = order;
+  complaintForm.type = "REFUND";
+  complaintForm.reason = "";
+  complaintForm.fileList = [];
+  complaintVisible.value = true;
+};
+
+const confirmComplaint = () => {
+  if (!complaintForm.reason.trim()) { message.warning("请填写申诉说明"); return; }
+  complaintLoading.value = true;
+  setTimeout(() => {
+    const payload = {
+      orderId: complaintTargetOrder.value.id,
+      orderNo: complaintTargetOrder.value.orderNo,
+      orderType: complaintTargetOrder.value.orderType,
+      type: complaintForm.type,
+      reason: complaintForm.reason,
+      attachments: complaintForm.fileList.map(f => f.url || f.name),
+    };
+    // const res = await axios.post("/api/complaint/create", payload);
+    console.log("提交申诉:", payload);
+    complaintLoading.value = false;
+    complaintVisible.value = false;
+    message.success("申诉已提交，管理员将在1-3个工作日内处理");
+  }, 600);
+};
+
 // ========== 通用操作 ==========
 const handleAccept = (order) => {
   Modal.confirm({
@@ -642,25 +733,6 @@ const handleAccept = (order) => {
       const idx = list.findIndex(o => o.id === order.id);
       if (idx !== -1) list[idx].status = "PROCESSING";
       message.success("已接单，请尽快开始服务");
-    },
-  });
-};
-
-const handleReject = (order) => {
-  Modal.confirm({
-    title: "确认拒单",
-    content: "确定拒绝该订单吗？",
-    okText: "确认拒单",
-    okType: "danger",
-    cancelText: "再想想",
-    onOk() {
-      const list = order.orderType === "SERVICE" ? serviceOrders.value : demandOrders.value;
-      const idx = list.findIndex(o => o.id === order.id);
-      if (idx !== -1) {
-        list[idx].status = "CANCELLED";
-        list[idx].cancelReason = "主动拒单";
-      }
-      message.success("已拒单");
     },
   });
 };
@@ -1019,7 +1091,82 @@ const exportDemandOrders = () => {
   line-height: 1;
 }
 .order-amount-label { font-size: 12px; color: #999; margin-bottom: 8px; }
-.order-actions { display: flex; gap: 4px; margin-top: 4px; justify-content: flex-end; flex-wrap: wrap; }
+.order-actions { display: flex; gap: 6px; margin-top: 4px; justify-content: flex-end; flex-wrap: wrap; }
+
+/* ===================== 统一操作按钮样式 ===================== */
+.btn-action {
+  height: 26px !important;
+  padding: 0 12px !important;
+  font-size: 12px !important;
+  border-radius: 13px !important;
+  border: 1px solid transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  transition: all 0.2s !important;
+  line-height: 24px !important;
+}
+.btn-action:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* 接单 / 验收通过 — 绿色填充 */
+.btn-accept {
+  background: #f6ffed !important;
+  border-color: #b7eb8f !important;
+  color: #52c41a !important;
+}
+.btn-accept:hover {
+  background: #52c41a !important;
+  border-color: #52c41a !important;
+  color: #fff !important;
+}
+
+/* 拒单 / 验收驳回 — 红色描边 */
+.btn-reject {
+  border-color: #ffa39e !important;
+  color: #ff4d4f !important;
+}
+.btn-reject:hover {
+  background: #fff1f0 !important;
+  border-color: #ff4d4f !important;
+  color: #ff4d4f !important;
+}
+
+/* 提交交付 — 蓝色描边 */
+.btn-deliver {
+  border-color: #91d5ff !important;
+  color: #1890ff !important;
+}
+.btn-deliver:hover {
+  background: #e6f7ff !important;
+  border-color: #1890ff !important;
+  color: #1890ff !important;
+}
+
+/* 申诉 / 取消 — 橙色描边 */
+.btn-appeal,
+.btn-cancel {
+  border-color: #ffd591 !important;
+  color: #fa8c16 !important;
+}
+.btn-appeal:hover,
+.btn-cancel:hover {
+  background: #fff7e6 !important;
+  border-color: #fa8c16 !important;
+  color: #fa8c16 !important;
+}
+
+/* 详情 — 灰色描边 */
+.btn-detail {
+  border-color: #d9d9d9 !important;
+  color: #666 !important;
+}
+.btn-detail:hover {
+  background: #fafafa !important;
+  border-color: #999 !important;
+  color: #333 !important;
+}
 
 /* ===================== 分页 ===================== */
 .pagination-wrapper { display: flex; justify-content: flex-end; padding: 16px 0 4px; }

@@ -24,12 +24,7 @@
         <a-tab-pane key="review" tab="审核中" />
       </a-tabs>
       <div style="display:flex;align-items:center;gap:8px">
-        <a-select v-model:value="sortBy" style="width:110px" size="small">
-          <a-select-option value="time">最新发布</a-select-option>
-          <a-select-option value="read">阅读最多</a-select-option>
-          <a-select-option value="like">获赞最多</a-select-option>
-        </a-select>
-        <a-input-search v-model:value="searchKeyword" placeholder="搜索文章" style="width:200px" />
+        <a-input-search v-model:value="searchKeyword" placeholder="搜索文章" style="width:200px" size="small" />
       </div>
     </div>
 
@@ -76,7 +71,6 @@ import { PlusOutlined, EditOutlined, EyeOutlined, LikeOutlined, MessageOutlined 
 const router = useRouter()
 const statusFilter = ref('all')
 const searchKeyword = ref('')
-const sortBy = ref('time')
 
 const statusMap = {
   published: { text: '已发布', color: 'green' },

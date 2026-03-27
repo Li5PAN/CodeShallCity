@@ -3,7 +3,6 @@
     <!-- 顶部操作栏 -->
     <div class="write-toolbar">
       <div class="toolbar-actions">
-        <a-button @click="handleSaveDraft" :loading="saving">保存草稿</a-button>
         <a-button
           type="primary"
           style="background: #52c41a; border-color: #52c41a"
@@ -37,7 +36,6 @@
       :title="isEditMode ? '更新文章' : '发布文章'"
       placement="right"
       width="400"
-      :footer-style="{ textAlign: 'right' }"
     >
       <a-form layout="vertical">
         <a-form-item label="文章分类">
@@ -105,17 +103,18 @@
       </a-form>
 
       <template #footer>
-        <a-button
-          style="margin-right: 8px"
-          @click="publishDrawerVisible = false"
-          >取消</a-button
-        >
-        <a-button
-          type="primary"
-          style="background: #52c41a; border-color: #52c41a"
-          @click="handlePublish"
-          >{{ isEditMode ? '确认更新' : '确认发布' }}</a-button
-        >
+        <div class="drawer-footer">
+          <a-button @click="handleSaveDraft" :loading="saving" class="draft-btn">保存草稿</a-button>
+          <div class="footer-right">
+            <a-button @click="publishDrawerVisible = false">取消</a-button>
+            <a-button
+              type="primary"
+              style="background: #52c41a; border-color: #52c41a"
+              @click="handlePublish"
+              >{{ isEditMode ? "确认更新" : "确认发布" }}</a-button
+            >
+          </div>
+        </div>
       </template>
     </a-drawer>
   </div>
@@ -484,5 +483,19 @@ const onCoverChange = (e) => {
   gap: 8px;
   color: #bbb;
   font-size: 13px;
+}
+
+.drawer-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.draft-btn {
+  color: #52c41a;
+  border-color: #52c41a;
+}
+.draft-btn:hover {
+  color: #73d13d;
+  border-color: #73d13d;
 }
 </style>
