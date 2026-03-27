@@ -1,5 +1,5 @@
 <template>
-  <div class="  ">
+  <div class="my-services-page">
     <div class="page-header">
       <h2 class="page-title">我的服务</h2>
       <a-button
@@ -64,21 +64,12 @@
           </div>
           <div class="service-meta">
             <span>创建时间：{{ item.createTime }}</span>
-            <span>更新时间：{{ item.updateTime }}</span>
           </div>
         </div>
         <div class="service-data">
           <div class="data-item">
             <div class="data-num">{{ item.orders }}</div>
             <div class="data-label">成交订单</div>
-          </div>
-          <div class="data-item">
-            <div class="data-num">{{ item.views }}</div>
-            <div class="data-label">浏览量</div>
-          </div>
-          <div class="data-item">
-            <div class="data-num">{{ item.rating }}</div>
-            <div class="data-label">评分</div>
           </div>
         </div>
         <div class="service-price">¥ {{ item.price }}</div>
@@ -101,14 +92,7 @@
           >
             {{ item.status === "on" ? "下架" : "上架" }}
           </a-button>
-          <a-popconfirm
-            title="确认删除该服务？"
-            ok-text="删除"
-            cancel-text="取消"
-            @confirm="deleteService(item.id)"
-          >
-            <a-button size="small" danger>删除</a-button>
-          </a-popconfirm>
+            <a-button size="small" danger @click="openDeleteServiceModal(item)">删除</a-button>
         </div>
       </div>
     </div>
@@ -239,6 +223,26 @@
         </div>
       </template>
     </a-drawer>
+
+    <!-- 删除服务确认弹窗 -->
+    <a-modal
+      v-model:open="deleteServiceModalVisible"
+      :footer="null"
+      :centered="true"
+      width="360"
+    >
+      <div class="modal-confirm">
+        <div class="modal-confirm-icon">
+          <ExclamationCircleFilled />
+        </div>
+        <p class="modal-confirm-text">确定删除服务「{{ deletingServiceTitle }}」？</p>
+        <p class="modal-confirm-sub">删除后无法恢复</p>
+        <div class="modal-confirm-actions">
+          <a-button size="small" @click="deleteServiceModalVisible = false">取消</a-button>
+          <a-button size="small" danger type="primary" :loading="deleteLoading" @click="confirmDeleteService">删除</a-button>
+        </div>
+      </div>
+    </a-modal>
   </div>
 </template>
 
@@ -250,6 +254,7 @@ import {
   PlusOutlined,
   ShopOutlined,
   PictureOutlined,
+  ExclamationCircleFilled,
 } from "@ant-design/icons-vue";
 
 const route = useRoute();
@@ -262,6 +267,10 @@ const tagInputVisible = ref(false);
 const tagInputValue = ref("");
 const tagInputRef = ref(null);
 const coverInputRef = ref(null);
+const deleteServiceModalVisible = ref(false);
+const deletingServiceTitle = ref("");
+const deletingServiceId = ref(null);
+const deleteLoading = ref(false);
 
 const categories = [
   "人工智能",
@@ -287,7 +296,6 @@ const statCards = ref([
   { label: "已上架", value: 3, color: "#52c41a" },
   { label: "累计成交", value: 286, color: "#ff4d4f" },
   { label: "累计收入", value: "¥ 12,480", color: "#fa8c16" },
-  { label: "平均评分", value: "4.9", color: "#722ed1" },
 ]);
 
 const services = ref([
@@ -301,10 +309,7 @@ const services = ref([
     category: "Java",
     status: "on",
     orders: 128,
-    views: "3.2k",
-    rating: "4.9",
     createTime: "2026-01-10",
-    updateTime: "2026-02-25",
   },
   {
     id: 2,
@@ -316,10 +321,7 @@ const services = ref([
     category: "Vue/React",
     status: "on",
     orders: 86,
-    views: "2.1k",
-    rating: "4.8",
     createTime: "2026-01-20",
-    updateTime: "2026-02-18",
   },
   {
     id: 3,
@@ -331,10 +333,7 @@ const services = ref([
     category: "Python",
     status: "off",
     orders: 42,
-    views: "980",
-    rating: "4.7",
     createTime: "2025-12-05",
-    updateTime: "2026-01-15",
   },
   {
     id: 4,
@@ -346,10 +345,7 @@ const services = ref([
     category: "运维部署",
     status: "review",
     orders: 0,
-    views: "0",
-    rating: "-",
     createTime: "2026-03-01",
-    updateTime: "2026-03-01",
   },
   {
     id: 5,
@@ -361,10 +357,7 @@ const services = ref([
     category: "数据库",
     status: "on",
     orders: 30,
-    views: "1.5k",
-    rating: "4.9",
     createTime: "2026-02-01",
-    updateTime: "2026-02-20",
   },
 ]);
 
@@ -446,7 +439,6 @@ const handleSubmit = () => {
         price: form.price,
         tags: [...form.tags],
         cover: form.coverUrl || services.value[idx].cover,
-        updateTime: new Date().toISOString().slice(0, 10),
       };
     }
     message.success("修改已保存");
@@ -463,10 +455,7 @@ const handleSubmit = () => {
       category: form.category,
       status: "review",
       orders: 0,
-      views: "0",
-      rating: "-",
       createTime: new Date().toISOString().slice(0, 10),
-      updateTime: new Date().toISOString().slice(0, 10),
     });
     statCards.value[0].value++;
     message.success("已提交审核，审核通过后自动上架");
@@ -490,6 +479,25 @@ const deleteService = (id) => {
     (s) => s.status === "on",
   ).length;
   message.success("已删除");
+};
+
+const openDeleteServiceModal = (item) => {
+  deletingServiceId.value = item.id;
+  deletingServiceTitle.value = item.title;
+  deleteServiceModalVisible.value = true;
+};
+const confirmDeleteService = () => {
+  deleteLoading.value = true;
+  setTimeout(() => {
+    services.value = services.value.filter((s) => s.id !== deletingServiceId.value);
+    statCards.value[0].value = services.value.length;
+    statCards.value[1].value = services.value.filter(
+      (s) => s.status === "on",
+    ).length;
+    deleteLoading.value = false;
+    deleteServiceModalVisible.value = false;
+    message.success("已删除");
+  }, 400);
 };
 
 const showTagInput = () => {
@@ -726,5 +734,36 @@ const onCoverChange = (e) => {
   gap: 8px;
   color: #bbb;
   font-size: 13px;
+}
+
+.modal-confirm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 4px 4px;
+  text-align: center;
+}
+
+.modal-confirm-icon {
+  font-size: 36px;
+  color: #faad14;
+  margin-bottom: 10px;
+}
+
+.modal-confirm-text {
+  font-size: 15px;
+  color: #333;
+  margin: 0 0 4px;
+}
+
+.modal-confirm-sub {
+  font-size: 13px;
+  color: #999;
+  margin: 0 0 16px;
+}
+
+.modal-confirm-actions {
+  display: flex;
+  gap: 8px;
 }
 </style>

@@ -99,14 +99,7 @@
               "
               >关闭</a-button
             >
-            <a-popconfirm
-              title="确认删除？"
-              ok-text="删除"
-              cancel-text="取消"
-              @confirm="deleteItem(item.id)"
-            >
-              <a-button size="small" danger @click.stop>删除</a-button>
-            </a-popconfirm>
+            <a-button size="small" danger @click.stop="openDeleteDemandModal(item)">删除</a-button>
           </div>
         </div>
       </div>
@@ -217,6 +210,26 @@
         </div>
       </template>
     </a-drawer>
+
+    <!-- 删除需求确认弹窗 -->
+    <a-modal
+      v-model:open="deleteDemandModalVisible"
+      :footer="null"
+      :centered="true"
+      width="360"
+    >
+      <div class="modal-confirm">
+        <div class="modal-confirm-icon">
+          <ExclamationCircleFilled />
+        </div>
+        <p class="modal-confirm-text">确定删除需求「{{ deletingDemandTitle }}」？</p>
+        <p class="modal-confirm-sub">删除后无法恢复</p>
+        <div class="modal-confirm-actions">
+          <a-button size="small" @click="deleteDemandModalVisible = false">取消</a-button>
+          <a-button size="small" danger type="primary" :loading="deleteLoading" @click="confirmDeleteDemand">删除</a-button>
+        </div>
+      </div>
+    </a-modal>
   </div>
 </template>
 
@@ -224,7 +237,7 @@
 import { ref, reactive, computed, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import { message } from "ant-design-vue";
-import { PlusOutlined, TrophyOutlined } from "@ant-design/icons-vue";
+import { PlusOutlined, TrophyOutlined, ExclamationCircleFilled } from "@ant-design/icons-vue";
 
 const route = useRoute();
 
@@ -232,6 +245,10 @@ const statusFilter = ref("all");
 const searchKeyword = ref("");
 const drawerVisible = ref(false);
 const editingItem = ref(null);
+const deleteDemandModalVisible = ref(false);
+const deletingDemandTitle = ref("");
+const deletingDemandId = ref(null);
+const deleteLoading = ref(false);
 
 const categories = [
   "人工智能",
@@ -424,6 +441,22 @@ const handleSubmit = () => {
   drawerVisible.value = false;
 };
 
+const openDeleteDemandModal = (item) => {
+  deletingDemandId.value = item.id;
+  deletingDemandTitle.value = item.title;
+  deleteDemandModalVisible.value = true;
+};
+const confirmDeleteDemand = () => {
+  deleteLoading.value = true;
+  setTimeout(() => {
+    demands.value = demands.value.filter((d) => d.id !== deletingDemandId.value);
+    statCards.value[0].value = demands.value.length;
+    deleteLoading.value = false;
+    deleteDemandModalVisible.value = false;
+    message.success("已删除");
+  }, 400);
+};
+
 const deleteItem = (id) => {
   demands.value = demands.value.filter((d) => d.id !== id);
   statCards.value[0].value = demands.value.length;
@@ -586,5 +619,36 @@ onMounted(() => {
   flex-wrap: wrap;
   gap: 6px;
   align-items: center;
+}
+
+.modal-confirm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 4px 4px;
+  text-align: center;
+}
+
+.modal-confirm-icon {
+  font-size: 36px;
+  color: #faad14;
+  margin-bottom: 10px;
+}
+
+.modal-confirm-text {
+  font-size: 15px;
+  color: #333;
+  margin: 0 0 4px;
+}
+
+.modal-confirm-sub {
+  font-size: 13px;
+  color: #999;
+  margin: 0 0 16px;
+}
+
+.modal-confirm-actions {
+  display: flex;
+  gap: 8px;
 }
 </style>

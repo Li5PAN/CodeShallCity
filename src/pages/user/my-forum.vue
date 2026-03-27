@@ -42,35 +42,55 @@
           <div class="article-desc">{{ item.desc }}</div>
           <div class="article-meta">
             <a-tag size="small" color="blue">{{ item.category }}</a-tag>
-            <span><EyeOutlined /> {{ item.readCount }}</span>
             <span><LikeOutlined /> {{ item.likeCount }}</span>
             <span><MessageOutlined /> {{ item.commentCount }}</span>
-            <span class="article-time">{{ item.publishTime }}</span>
           </div>
         </div>
         <div class="article-right">
           <a-tag :color="statusMap[item.status].color" size="small">{{ statusMap[item.status].text }}</a-tag>
           <div class="article-actions">
             <a-button size="small" @click.stop="handleEdit(item)">编辑</a-button>
-            <a-popconfirm title="确认删除该文章？" ok-text="删除" cancel-text="取消" @confirm="deleteItem(item.id)">
-              <a-button size="small" danger @click.stop>删除</a-button>
-            </a-popconfirm>
+            <a-button size="small" danger @click.stop="openDeleteArticleModal(item)">删除</a-button>
           </div>
         </div>
       </div>
     </div>
   </div>
+
+  <!-- 删除文章确认弹窗 -->
+  <a-modal
+    v-model:open="deleteArticleModalVisible"
+    :footer="null"
+    :centered="true"
+    width="360"
+  >
+    <div class="modal-confirm">
+      <div class="modal-confirm-icon">
+        <ExclamationCircleFilled />
+      </div>
+      <p class="modal-confirm-text">确定删除文章「{{ deletingArticleTitle }}」？</p>
+      <p class="modal-confirm-sub">删除后无法恢复</p>
+      <div class="modal-confirm-actions">
+        <a-button size="small" @click="deleteArticleModalVisible = false">取消</a-button>
+        <a-button size="small" danger type="primary" :loading="deleteLoading" @click="confirmDeleteArticle">删除</a-button>
+      </div>
+    </div>
+  </a-modal>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
-import { PlusOutlined, EditOutlined, EyeOutlined, LikeOutlined, MessageOutlined } from '@ant-design/icons-vue'
+import { PlusOutlined, EditOutlined, LikeOutlined, MessageOutlined, ExclamationCircleFilled } from '@ant-design/icons-vue'
 
 const router = useRouter()
 const statusFilter = ref('all')
 const searchKeyword = ref('')
+const deleteArticleModalVisible = ref(false)
+const deletingArticleTitle = ref('')
+const deletingArticleId = ref(null)
+const deleteLoading = ref(false)
 
 const statusMap = {
   published: { text: '已发布', color: 'green' },
@@ -80,18 +100,17 @@ const statusMap = {
 
 const statCards = ref([
   { label: '文章总数', value: 6, color: '#1890ff' },
-  { label: '总阅读量', value: '12.5k', color: '#52c41a' },
   { label: '总获赞', value: '3.8k', color: '#ff4d4f' },
   { label: '总评论', value: 286, color: '#722ed1' }
 ])
 
 const articles = ref([
-  { id: 1, title: '深入解析CPU调度：操作系统的核心资源分配机制', desc: '本文系统解析了CPU调度机制，分析其必要性、核心目标和经典算法...', category: '操作系统', cover: 'https://placehold.co/100x70/1890ff/FFFFFF?text=OS', status: 'published', readCount: '1.5k', likeCount: 34, commentCount: 12, publishTime: '2026-02-27' },
-  { id: 2, title: 'Vue3 Composition API 最佳实践总结', desc: '深入讲解 Vue3 组合式 API 的使用技巧，包括 setup、响应式、生命周期等核心概念...', category: 'Vue', cover: 'https://placehold.co/100x70/42b883/FFFFFF?text=Vue3', status: 'published', readCount: '2.3k', likeCount: 67, commentCount: 23, publishTime: '2026-02-20' },
-  { id: 3, title: 'Docker容器化部署实战指南', desc: '从Docker基础到生产环境部署，手把手带你完成容器化改造...', category: '运维', cover: 'https://placehold.co/100x70/0db7ed/FFFFFF?text=Docker', status: 'draft', readCount: 0, likeCount: 0, commentCount: 0, publishTime: '2026-02-15' },
-  { id: 4, title: 'AI大模型大师秘籍：2025AI技术全景揭秘', desc: '本文系统介绍了AI大模型的学习路径，分为四个阶段循序渐进...', category: '人工智能', cover: 'https://placehold.co/100x70/52c41a/FFFFFF?text=AI', status: 'published', readCount: '2.1k', likeCount: 47, commentCount: 18, publishTime: '2026-02-10' },
-  { id: 5, title: 'Spring Boot 3.x 新特性全解析', desc: 'Spring Boot 3.x 带来了众多重磅更新，包括虚拟线程、原生镜像等...', category: 'Java', cover: 'https://placehold.co/100x70/ff4d4f/FFFFFF?text=Java', status: 'review', readCount: 0, likeCount: 0, commentCount: 0, publishTime: '2026-03-01' },
-  { id: 6, title: 'MySQL 索引优化实战：从慢查询到毫秒响应', desc: '通过真实案例讲解MySQL索引设计原则，EXPLAIN分析，慢查询优化...', category: '数据库', cover: 'https://placehold.co/100x70/FF6600/FFFFFF?text=MySQL', status: 'published', readCount: '3.2k', likeCount: 156, commentCount: 42, publishTime: '2026-01-25' }
+  { id: 1, title: '深入解析CPU调度：操作系统的核心资源分配机制', desc: '本文系统解析了CPU调度机制，分析其必要性、核心目标和经典算法...', category: '操作系统', cover: 'https://placehold.co/100x70/1890ff/FFFFFF?text=OS', status: 'published', likeCount: 34, commentCount: 12, publishTime: '2026-02-27' },
+  { id: 2, title: 'Vue3 Composition API 最佳实践总结', desc: '深入讲解 Vue3 组合式 API 的使用技巧，包括 setup、响应式、生命周期等核心概念...', category: 'Vue', cover: 'https://placehold.co/100x70/42b883/FFFFFF?text=Vue3', status: 'published', likeCount: 67, commentCount: 23, publishTime: '2026-02-20' },
+  { id: 3, title: 'Docker容器化部署实战指南', desc: '从Docker基础到生产环境部署，手把手带你完成容器化改造...', category: '运维', cover: 'https://placehold.co/100x70/0db7ed/FFFFFF?text=Docker', status: 'draft', likeCount: 0, commentCount: 0, publishTime: '2026-02-15' },
+  { id: 4, title: 'AI大模型大师秘籍：2025AI技术全景揭秘', desc: '本文系统介绍了AI大模型的学习路径，分为四个阶段循序渐进...', category: '人工智能', cover: 'https://placehold.co/100x70/52c41a/FFFFFF?text=AI', status: 'published', likeCount: 47, commentCount: 18, publishTime: '2026-02-10' },
+  { id: 5, title: 'Spring Boot 3.x 新特性全解析', desc: 'Spring Boot 3.x 带来了众多重磅更新，包括虚拟线程、原生镜像等...', category: 'Java', cover: 'https://placehold.co/100x70/ff4d4f/FFFFFF?text=Java', status: 'review', likeCount: 0, commentCount: 0, publishTime: '2026-03-01' },
+  { id: 6, title: 'MySQL 索引优化实战：从慢查询到毫秒响应', desc: '通过真实案例讲解MySQL索引设计原则，EXPLAIN分析，慢查询优化...', category: '数据库', cover: 'https://placehold.co/100x70/FF6600/FFFFFF?text=MySQL', status: 'published', likeCount: 156, commentCount: 42, publishTime: '2026-01-25' }
 ])
 
 const filteredList = computed(() => {
@@ -105,6 +124,22 @@ const deleteItem = (id) => {
   articles.value = articles.value.filter(a => a.id !== id)
   statCards.value[0].value = articles.value.length
   message.success('已删除')
+}
+
+const openDeleteArticleModal = (item) => {
+  deletingArticleId.value = item.id
+  deletingArticleTitle.value = item.title
+  deleteArticleModalVisible.value = true
+}
+const confirmDeleteArticle = () => {
+  deleteLoading.value = true
+  setTimeout(() => {
+    articles.value = articles.value.filter(a => a.id !== deletingArticleId.value)
+    statCards.value[0].value = articles.value.length
+    deleteLoading.value = false
+    deleteArticleModalVisible.value = false
+    message.success('已删除')
+  }, 400)
 }
 
 const handleEdit = (item) => {
@@ -145,4 +180,35 @@ const handleEdit = (item) => {
 
 .article-right { flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
 .article-actions { display: flex; gap: 6px; }
+
+.modal-confirm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 4px 4px;
+  text-align: center;
+}
+
+.modal-confirm-icon {
+  font-size: 36px;
+  color: #faad14;
+  margin-bottom: 10px;
+}
+
+.modal-confirm-text {
+  font-size: 15px;
+  color: #333;
+  margin: 0 0 4px;
+}
+
+.modal-confirm-sub {
+  font-size: 13px;
+  color: #999;
+  margin: 0 0 16px;
+}
+
+.modal-confirm-actions {
+  display: flex;
+  gap: 8px;
+}
 </style>

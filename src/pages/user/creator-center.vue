@@ -143,7 +143,6 @@
                       <span><EyeOutlined /> {{ item.readCount }}</span>
                       <span><LikeOutlined /> {{ item.likeCount }}</span>
                       <span><MessageOutlined /> {{ item.commentCount }}</span>
-                      <span class="article-time">{{ item.publishTime }}</span>
                     </div>
                   </div>
                   <div class="article-right">
@@ -163,16 +162,9 @@
                           @click.stop="handleEditArticle(item)"
                           >编辑</a-button
                         >
-                        <a-popconfirm
-                          title="确认删除该文章？"
-                          ok-text="删除"
-                          cancel-text="取消"
-                          @confirm="deleteArticle(item.id)"
+                        <a-button size="small" danger @click.stop="openDeleteArticleModal(item)"
+                          >删除</a-button
                         >
-                          <a-button size="small" danger @click.stop
-                            >删除</a-button
-                          >
-                        </a-popconfirm>
                       </div>
                     </div>
                   </div>
@@ -228,19 +220,12 @@
                         item.category
                       }}</a-tag>
                     </div>
-                    <div class="service-meta">
-                      <span>更新时间：{{ item.updateTime }}</span>
-                    </div>
                   </div>
                   <div class="service-right-area">
                     <div class="service-stats">
                       <div class="data-item">
                         <div class="data-num">{{ item.orders }}</div>
                         <div class="data-label">成交订单</div>
-                      </div>
-                      <div class="data-item">
-                        <div class="data-num">{{ item.rating }}</div>
-                        <div class="data-label">评分</div>
                       </div>
                     </div>
                     <div class="service-price">¥ {{ item.price }}</div>
@@ -262,14 +247,7 @@
                         >
                           {{ item.status === "on" ? "下架" : "上架" }}
                         </a-button>
-                        <a-popconfirm
-                          title="确认删除该服务？"
-                          ok-text="删除"
-                          cancel-text="取消"
-                          @confirm="deleteService(item.id)"
-                        >
-                          <a-button size="small" danger>删除</a-button>
-                        </a-popconfirm>
+                        <a-button size="small" danger @click="openDeleteServiceModal(item)">删除</a-button>
                       </div>
                     </div>
                   </div>
@@ -328,7 +306,6 @@
                       >
                     </div>
                     <div class="demand-meta">
-                      <span>发布时间：{{ item.publishTime }}</span>
                       <span>截止时间：{{ item.deadline }}</span>
                       <span
                         >报名人数：<strong>{{ item.applyCount }}</strong>
@@ -366,16 +343,9 @@
                           "
                           >关闭</a-button
                         >
-                        <a-popconfirm
-                          title="确认删除？"
-                          ok-text="删除"
-                          cancel-text="取消"
-                          @confirm="deleteDemand(item.id)"
+                        <a-button size="small" danger @click.stop="openDeleteDemandModal(item)"
+                          >删除</a-button
                         >
-                          <a-button size="small" danger @click.stop
-                            >删除</a-button
-                          >
-                        </a-popconfirm>
                       </div>
                     </div>
                   </div>
@@ -717,6 +687,66 @@
         </a-form>
       </div>
     </a-modal>
+
+    <!-- 删除文章确认弹窗 -->
+    <a-modal
+      v-model:open="deleteArticleModalVisible"
+      :footer="null"
+      :centered="true"
+      width="360"
+    >
+      <div class="modal-confirm">
+        <div class="modal-confirm-icon">
+          <ExclamationCircleFilled />
+        </div>
+        <p class="modal-confirm-text">确定删除文章「{{ deletingArticleTitle }}」？</p>
+        <p class="modal-confirm-sub">删除后无法恢复</p>
+        <div class="modal-confirm-actions">
+          <a-button size="small" @click="deleteArticleModalVisible = false">取消</a-button>
+          <a-button size="small" danger type="primary" :loading="deleteLoading" @click="confirmDeleteArticle">删除</a-button>
+        </div>
+      </div>
+    </a-modal>
+
+    <!-- 删除服务确认弹窗 -->
+    <a-modal
+      v-model:open="deleteServiceModalVisible"
+      :footer="null"
+      :centered="true"
+      width="360"
+    >
+      <div class="modal-confirm">
+        <div class="modal-confirm-icon">
+          <ExclamationCircleFilled />
+        </div>
+        <p class="modal-confirm-text">确定删除服务「{{ deletingServiceTitle }}」？</p>
+        <p class="modal-confirm-sub">删除后无法恢复</p>
+        <div class="modal-confirm-actions">
+          <a-button size="small" @click="deleteServiceModalVisible = false">取消</a-button>
+          <a-button size="small" danger type="primary" :loading="deleteLoading" @click="confirmDeleteService">删除</a-button>
+        </div>
+      </div>
+    </a-modal>
+
+    <!-- 删除需求确认弹窗 -->
+    <a-modal
+      v-model:open="deleteDemandModalVisible"
+      :footer="null"
+      :centered="true"
+      width="360"
+    >
+      <div class="modal-confirm">
+        <div class="modal-confirm-icon">
+          <ExclamationCircleFilled />
+        </div>
+        <p class="modal-confirm-text">确定删除需求「{{ deletingDemandTitle }}」？</p>
+        <p class="modal-confirm-sub">删除后无法恢复</p>
+        <div class="modal-confirm-actions">
+          <a-button size="small" @click="deleteDemandModalVisible = false">取消</a-button>
+          <a-button size="small" danger type="primary" :loading="deleteLoading" @click="confirmDeleteDemand">删除</a-button>
+        </div>
+      </div>
+    </a-modal>
   </div>
 </template>
 
@@ -744,6 +774,7 @@ import {
   ExperimentOutlined,
   HighlightOutlined,
   MessageOutlined,
+  ExclamationCircleFilled,
 } from "@ant-design/icons-vue";
 import DemandPublishModal from "../../components/DemandPublishModal.vue";
 
@@ -880,12 +911,10 @@ const myServices = ref([
     desc: "覆盖Java基础、JVM、并发、分布式等核心考点，配套面试模拟",
     price: 399,
     orders: 128,
-    rating: "4.9",
     cover: "https://placehold.co/120x80/FFD700/000000?text=Java",
     tags: ["平台保障", "商家认证"],
     category: "Java",
     status: "on",
-    updateTime: "2026-02-25",
   },
   {
     id: 2,
@@ -893,12 +922,10 @@ const myServices = ref([
     desc: "从零搭建企业级前端项目，涵盖架构设计、性能优化、工程化实践",
     price: 299,
     orders: 86,
-    rating: "4.8",
     cover: "https://placehold.co/120x80/42b883/FFFFFF?text=Vue3",
     tags: ["平台保障"],
     category: "Vue/React",
     status: "on",
-    updateTime: "2026-02-18",
   },
   {
     id: 3,
@@ -906,12 +933,10 @@ const myServices = ref([
     desc: "从Docker基础到Kubernetes集群管理，企业级DevOps实践",
     price: 499,
     orders: 0,
-    rating: "-",
     cover: "https://placehold.co/120x80/0db7ed/FFFFFF?text=Docker",
     tags: ["平台保障", "源码解析"],
     category: "运维部署",
     status: "review",
-    updateTime: "2026-03-01",
   },
 ]);
 
@@ -1025,6 +1050,21 @@ const deleteArticle = (id) => {
   message.success("已删除");
 };
 
+const openDeleteArticleModal = (item) => {
+  deletingArticleId.value = item.id;
+  deletingArticleTitle.value = item.title;
+  deleteArticleModalVisible.value = true;
+};
+const confirmDeleteArticle = () => {
+  deleteLoading.value = true;
+  setTimeout(() => {
+    myArticles.value = myArticles.value.filter((a) => a.id !== deletingArticleId.value);
+    deleteLoading.value = false;
+    deleteArticleModalVisible.value = false;
+    message.success("已删除");
+  }, 400);
+};
+
 const goForumDetail = (id) =>
   router.push({ name: "MyForumDetail", params: { id } });
 
@@ -1057,6 +1097,21 @@ const deleteService = (id) => {
   message.success("已删除");
 };
 
+const openDeleteServiceModal = (item) => {
+  deletingServiceId.value = item.id;
+  deletingServiceTitle.value = item.title;
+  deleteServiceModalVisible.value = true;
+};
+const confirmDeleteService = () => {
+  deleteLoading.value = true;
+  setTimeout(() => {
+    myServices.value = myServices.value.filter((s) => s.id !== deletingServiceId.value);
+    deleteLoading.value = false;
+    deleteServiceModalVisible.value = false;
+    message.success("已删除");
+  }, 400);
+};
+
 // 需求操作
 const editDemand = (item) => {
   editingDemand.value = item;
@@ -1066,6 +1121,21 @@ const editDemand = (item) => {
 const deleteDemand = (id) => {
   myDemands.value = myDemands.value.filter((d) => d.id !== id);
   message.success("已删除");
+};
+
+const openDeleteDemandModal = (item) => {
+  deletingDemandId.value = item.id;
+  deletingDemandTitle.value = item.title;
+  deleteDemandModalVisible.value = true;
+};
+const confirmDeleteDemand = () => {
+  deleteLoading.value = true;
+  setTimeout(() => {
+    myDemands.value = myDemands.value.filter((d) => d.id !== deletingDemandId.value);
+    deleteLoading.value = false;
+    deleteDemandModalVisible.value = false;
+    message.success("已删除");
+  }, 400);
 };
 
 const goDemandDetail = (id) =>
@@ -1093,6 +1163,16 @@ const activeNotice = ref(notices.value[0] || null);
 // 发布需求
 const demandModalVisible = ref(false);
 const editingDemand = ref(null);
+const deleteArticleModalVisible = ref(false);
+const deleteServiceModalVisible = ref(false);
+const deleteDemandModalVisible = ref(false);
+const deletingArticleTitle = ref("");
+const deletingServiceTitle = ref("");
+const deletingDemandTitle = ref("");
+const deletingArticleId = ref(null);
+const deletingServiceId = ref(null);
+const deletingDemandId = ref(null);
+const deleteLoading = ref(false);
 const onDemandSuccess = (data) => {
   if (data.isEdit) {
     // 编辑模式：更新需求数据
@@ -1215,7 +1295,6 @@ const submitService = () => {
         cover: serviceForm.coverUrl || myServices.value[idx].cover,
         detail: serviceForm.detail,
         deliveryDays: serviceForm.deliveryDays,
-        updateTime: new Date().toISOString().slice(0, 10),
       };
     }
     message.success("修改已保存");
@@ -1233,10 +1312,8 @@ const submitService = () => {
       category: serviceForm.category,
       status: "review",
       orders: 0,
-      rating: "-",
       detail: serviceForm.detail,
       deliveryDays: serviceForm.deliveryDays,
-      updateTime: new Date().toISOString().slice(0, 10),
     });
     message.success("已提交审核，审核通过后自动上架");
   }
@@ -1983,9 +2060,6 @@ const submitApply = () => {
   font-size: 12px;
   color: #bbb;
 }
-.article-time {
-  margin-left: auto;
-}
 .article-right {
   flex-shrink: 0;
   display: flex;
@@ -2060,12 +2134,6 @@ const submitApply = () => {
   gap: 6px;
   flex-wrap: wrap;
   margin-bottom: 8px;
-}
-.service-meta {
-  display: flex;
-  gap: 16px;
-  font-size: 12px;
-  color: #bbb;
 }
 .service-right-area {
   flex-shrink: 0;
@@ -2210,5 +2278,36 @@ const submitApply = () => {
   align-items: center;
   gap: 12px;
   font-size: 14px;
+}
+
+.modal-confirm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 4px 4px;
+  text-align: center;
+}
+
+.modal-confirm-icon {
+  font-size: 36px;
+  color: #faad14;
+  margin-bottom: 10px;
+}
+
+.modal-confirm-text {
+  font-size: 15px;
+  color: #333;
+  margin: 0 0 4px;
+}
+
+.modal-confirm-sub {
+  font-size: 13px;
+  color: #999;
+  margin: 0 0 16px;
+}
+
+.modal-confirm-actions {
+  display: flex;
+  gap: 8px;
 }
 </style>
