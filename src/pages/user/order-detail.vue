@@ -836,13 +836,14 @@ const handleDeliver = async () => {
   }
   actionLoading.value = true;
   try {
-    // const formData = new FormData();
-    // formData.append("orderId", orderId);
-    // formData.append("content", deliverContent.value);
-    // deliverFiles.value.forEach((file) => {
-    //   formData.append("attachments", file.originFileObj);
-    // });
-    // const res = await axios.post("/api/order/deliver", formData);
+    // 模拟上传附件获取 URL 列表
+    const attachments = deliverFiles.value.map((f) => f.url || `https://cdn.example.com/files/${f.name}`);
+    const payload = {
+      orderId: Number(orderId),
+      content: deliverContent.value,
+      attachments,
+    };
+    // const res = await axios.post("/api/order/deliver", payload);
     await new Promise((resolve) => setTimeout(resolve, 500));
     message.success("交付成功");
     deliverModalVisible.value = false;

@@ -719,10 +719,17 @@ const handleRejectDelivery = (order) => {
 };
 
 const viewDetail = (order) => {
+  const isService = order.orderType === "SERVICE";
+  let myRole = "";
+  if (isService) {
+    myRole = order.buyerId === currentUserId.value ? "buyer" : "seller";
+  } else {
+    myRole = order.buyerId === currentUserId.value ? "publisher" : "bidder";
+  }
   router.push({
     name: "OrderDetail",
     params: { id: order.id },
-    query: { orderData: JSON.stringify(order) },
+    query: { orderData: JSON.stringify({ ...order, myRole }) },
   });
 };
 
