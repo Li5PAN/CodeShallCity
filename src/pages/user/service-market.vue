@@ -79,8 +79,17 @@
               >
             </div>
             <div class="card-footer">
-              <span class="price">¥ {{ item.price }}</span>
-              <span class="stats">提供商:李XXX 成交:1000+</span>
+              <div class="footer-left">
+                <span class="price">¥ {{ item.price }}</span>
+                <span class="rating" v-if="item.rating">
+                  <StarFilled style="color: #faad14; font-size: 12px" />
+                  {{ item.rating }}
+                </span>
+              </div>
+              <div class="footer-right">
+                <span class="provider">{{ item.provider }}</span>
+                <span class="orders">成交 {{ item.orders }}+</span>
+              </div>
             </div>
           </div>
         </a-card>
@@ -91,20 +100,23 @@
         v-model:current="currentPage"
         v-model:pageSize="pageSize"
         :total="totalServices"
+        :pageSizeOptions="['8', '12', '24', '48']"
         show-size-changer
         show-quick-jumper
-        :show-total="(total) => `共 ${total} 条`"
+        :show-total="(total) => `共 ${total} 条服务`"
         @change="handlePageChange"
+        @showSizeChange="handlePageChange"
       />
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, reactive, inject, computed } from "vue";
+import { ref, reactive, inject, computed, watch } from "vue";
 import {
   SearchOutlined,
   DownOutlined,
+  StarFilled,
 } from "@ant-design/icons-vue";
 
 const openDetail = inject("openDetail");
@@ -113,18 +125,25 @@ const searchValue = ref("");
 const activeCategory = ref("all");
 
 const handleSearch = (value) => {
-  console.log("搜索服务:", value);
+  currentPage.value = 1;
+  filterServices();
 };
 
 const allCategories = [
   { key: "all", name: "全部" },
-  { key: "big-data", name: "大数云计" },
+  { key: "ai", name: "人工智能" },
+  { key: "big-data", name: "大数据" },
   { key: "algorithm", name: "算法与数据" },
   { key: "data-science", name: "数据科学" },
   { key: "iot", name: "物联网" },
-  { key: "project-management", name: "项目管理与协作工" },
-  { key: "blockchain", name: "区块链技" },
-  { key: "ai", name: "人工智能" },
+  { key: "project-management", name: "项目管理" },
+  { key: "blockchain", name: "区块链" },
+  { key: "cloud", name: "云计算" },
+  { key: "security", name: "安全测试" },
+  { key: "devops", name: "DevOps" },
+  { key: "frontend", name: "前端开发" },
+  { key: "backend", name: "后端开发" },
+  { key: "mobile", name: "移动开发" },
 ];
 
 const MAX_VISIBLE = 8;
@@ -135,56 +154,549 @@ const hiddenCategories = computed(() => allCategories.slice(MAX_VISIBLE));
 const handleCategoryClick = (item) => {
   if (!item) return;
   activeCategory.value = item.key;
-  handleCategoryChange(item.key);
+  currentPage.value = 1;
+  filterServices();
 };
 
-const serviceList = reactive([
+// 完整的服务模拟数据 - 40条
+const allServices = ref([
   {
     id: 1,
-    title: "Java大厂面试�?一套搞定offer",
-    desc: "覆盖Java基础、JVM、并发、分布式等核心考点，配套面试模",
+    title: "Java大厂面试冲刺班",
+    desc: "覆盖Java基础、JVM、并发、分布式等核心考点，配套模拟面试和简历优化",
     price: 399,
     cover: "https://placehold.co/240x120/FFD700/000000?text=Java",
     tags: ["平台保障", "商家认证", "7天无理由"],
+    category: "backend",
+    provider: "李老师",
+    orders: 1258,
+    rating: 4.9,
   },
   {
     id: 2,
-    title: "10天精通MySQL 讲的特别深入的那",
-    desc: "从底层原理到实战优化，涵盖索引、事务、锁机制、分库分",
-    price: 399,
+    title: "MySQL数据库性能优化实战",
+    desc: "从底层原理到实战优化，涵盖索引、事务、锁机制、分库分表等高级话题",
+    price: 499,
     cover: "https://placehold.co/240x120/FF6600/FFFFFF?text=MySQL",
     tags: ["平台保障", "官方认证", "售后答疑"],
+    category: "backend",
+    provider: "数据库老王",
+    orders: 896,
+    rating: 4.8,
   },
   {
     id: 3,
-    title: "颠覆你认知的八股盛宴",
-    desc: "打破传统八股文，结合实战场景讲解，让面试官眼前一",
+    title: "Redis缓存架构设计与实战",
+    desc: "深入讲解Redis数据结构、持久化、集群方案，结合电商场景实战",
     price: 399,
-    cover: "https://via.placeholder.com/240x120/FF4444/FFFFFF?text=八股",
-    tags: ["平台保障", "一对一辅导", "终身更新"],
+    cover: "https://placehold.co/240x120/DC143C/FFFFFF?text=Redis",
+    tags: ["平台保障", "源码解析", "项目实战"],
+    category: "backend",
+    provider: "缓存专家张工",
+    orders: 756,
+    rating: 4.9,
   },
   {
     id: 4,
-    title: "RabbitMQ 2天入门到实战",
+    title: "RabbitMQ消息队列精通班",
     desc: "从安装部署到高可用架构，结合电商场景实现消息队列实战",
     price: 399,
     cover: "https://placehold.co/240x120/0099FF/FFFFFF?text=RabbitMQ",
     tags: ["平台保障", "项目实战", "源码解析"],
+    category: "backend",
+    provider: "架构师小李",
+    orders: 623,
+    rating: 4.7,
+  },
+  {
+    id: 5,
+    title: "Spring Cloud微服务架构实战",
+    desc: "从零构建微服务架构，涵盖注册中心、网关、熔断、配置中心等",
+    price: 699,
+    cover: "https://placehold.co/240x120/52C41A/FFFFFF?text=SpringCloud",
+    tags: ["平台保障", "企业级", "实战项目"],
+    category: "backend",
+    provider: "微服务架构师",
+    orders: 1089,
+    rating: 4.8,
+  },
+  {
+    id: 6,
+    title: "Python数据分析与可视化",
+    desc: "使用Pandas、NumPy、Matplotlib进行数据分析，打造精美数据报表",
+    price: 299,
+    cover: "https://placehold.co/240x120/4169E1/FFFFFF?text=Python",
+    tags: ["平台保障", "数据分析", "可视化"],
+    category: "data-science",
+    provider: "数据分析师小林",
+    orders: 1456,
+    rating: 4.9,
+  },
+  {
+    id: 7,
+    title: "机器学习算法工程师培养计划",
+    desc: "从基础数学到sklearn、TensorFlow，成为合格的AI工程师",
+    price: 1299,
+    cover: "https://placehold.co/240x120/FF8C00/FFFFFF?text=ML",
+    tags: ["平台保障", "AI认证", "实战项目"],
+    category: "ai",
+    provider: "AI研究院",
+    orders: 678,
+    rating: 4.9,
+  },
+  {
+    id: 8,
+    title: "Vue3企业级后台管理系统",
+    desc: "使用Vue3+TypeScript+Element Plus打造生产级后台系统",
+    price: 399,
+    cover: "https://placehold.co/240x120/42B983/FFFFFF?text=Vue3",
+    tags: ["平台保障", "TypeScript", "实战项目"],
+    category: "frontend",
+    provider: "前端架构师阿华",
+    orders: 923,
+    rating: 4.8,
+  },
+  {
+    id: 9,
+    title: "ReactHooks与状态管理精通",
+    desc: "深入理解React Hooks原理，掌握Redux、Zustand等状态管理方案",
+    price: 349,
+    cover: "https://placehold.co/240x120/61DAFB/000000?text=React",
+    tags: ["平台保障", "Hooks", "状态管理"],
+    category: "frontend",
+    provider: "React布道者",
+    orders: 812,
+    rating: 4.7,
+  },
+  {
+    id: 10,
+    title: "Docker+K8s容器化部署专家",
+    desc: "从Docker基础到Kubernetes集群管理，企业级DevOps实践",
+    price: 599,
+    cover: "https://placehold.co/240x120/2496ED/FFFFFF?text=K8s",
+    tags: ["平台保障", "认证课程", "企业内训"],
+    category: "devops",
+    provider: "DevOps工程师老赵",
+    orders: 567,
+    rating: 4.8,
+  },
+  {
+    id: 11,
+    title: "Flask Web开发企业实战",
+    desc: "使用Flask快速构建RESTful API，结合SQLAlchemy和Redis",
+    price: 299,
+    cover: "https://placehold.co/240x120/000000/FFFFFF?text=Flask",
+    tags: ["平台保障", "RESTful", "实战项目"],
+    category: "backend",
+    provider: "全栈工程师小王",
+    orders: 445,
+    rating: 4.6,
+  },
+  {
+    id: 12,
+    title: "Hadoop大数据生态圈精通",
+    desc: "HDFS、MapReduce、Hive、Spark一站式大数据技术栈学习",
+    price: 899,
+    cover: "https://placehold.co/240x120/FF7F50/FFFFFF?text=Hadoop",
+    tags: ["平台保障", "大数据", "认证课程"],
+    category: "big-data",
+    provider: "大数据架构师",
+    orders: 534,
+    rating: 4.8,
+  },
+  {
+    id: 13,
+    title: "区块链智能合约开发",
+    desc: "Solidity开发、Ethereum部署、Web3.js集成，从入门到精通",
+    price: 699,
+    cover: "https://placehold.co/240x120/3C3C3D/FFFFFF?text=Blockchain",
+    tags: ["平台保障", "Web3", "NFT开发"],
+    category: "blockchain",
+    provider: "区块链开发者社区",
+    orders: 321,
+    rating: 4.7,
+  },
+  {
+    id: 14,
+    title: "TensorFlow深度学习实战",
+    desc: "CNN、RNN、Transformer全覆盖，配套真实项目训练",
+    price: 999,
+    cover: "https://placehold.co/240x120/FF6F00/FFFFFF?text=TensorFlow",
+    tags: ["平台保障", "深度学习", "计算机视觉"],
+    category: "ai",
+    provider: "AI实验室",
+    orders: 789,
+    rating: 4.9,
+  },
+  {
+    id: 15,
+    title: "iOS开发SwiftUI从入门到精通",
+    desc: "使用SwiftUI构建精美iOS应用，配套App Store上架指导",
+    price: 499,
+    cover: "https://placehold.co/240x120/FA7343/FFFFFF?text=SwiftUI",
+    tags: ["平台保障", "Swift", "App开发"],
+    category: "mobile",
+    provider: "iOS开发团队",
+    orders: 456,
+    rating: 4.7,
+  },
+  {
+    id: 16,
+    title: "Android Jetpack组件实战",
+    desc: "MVVM、LiveData、Room、Navigation打造现代化Android应用",
+    price: 399,
+    cover: "https://placehold.co/240x120/3DDC84/FFFFFF?text=Android",
+    tags: ["平台保障", "Kotlin", "Jetpack"],
+    category: "mobile",
+    provider: "Android开发组",
+    orders: 543,
+    rating: 4.6,
+  },
+  {
+    id: 17,
+    title: "网络安全渗透测试实战",
+    desc: "Web渗透、系统入侵、安全加固，打造网络安全防线",
+    price: 799,
+    cover: "https://placehold.co/240x120/2E8B57/FFFFFF?text=Security",
+    tags: ["平台保障", "渗透测试", "CISP认证"],
+    category: "security",
+    provider: "网络安全实验室",
+    orders: 234,
+    rating: 4.9,
+  },
+  {
+    id: 18,
+    title: "物联网智能硬件开发",
+    desc: "Arduino、ESP32、MQTT协议，物联网全栈技术学习",
+    price: 449,
+    cover: "https://placehold.co/240x120/1E90FF/FFFFFF?text=IoT",
+    tags: ["平台保障", "硬件开发", "嵌入式"],
+    category: "iot",
+    provider: "创客空间",
+    orders: 345,
+    rating: 4.6,
+  },
+  {
+    id: 19,
+    title: "AWS云计算架构师认证",
+    desc: "SAA认证备考指南，EC2、S3、Lambda等核心服务详解",
+    price: 699,
+    cover: "https://placehold.co/240x120/FF9900/FFFFFF?text=AWS",
+    tags: ["平台保障", "AWS认证", "云计算"],
+    category: "cloud",
+    provider: "云架构师老陈",
+    orders: 423,
+    rating: 4.8,
+  },
+  {
+    id: 20,
+    title: "敏捷项目管理PMP备考班",
+    desc: "Scrum、看板、敏捷教练培养，配套PMP认证考试辅导",
+    price: 599,
+    cover: "https://placehold.co/240x120/FF4444/FFFFFF?text=PMP",
+    tags: ["平台保障", "PMP认证", "管理咨询"],
+    category: "project-management",
+    provider: "项目管理专家",
+    orders: 567,
+    rating: 4.7,
+  },
+  {
+    id: 21,
+    title: "Go语言高并发服务器开发",
+    desc: "Goroutine、Channel、Context打造高性能微服务",
+    price: 499,
+    cover: "https://placehold.co/240x120/00ADD8/FFFFFF?text=Go",
+    tags: ["平台保障", "高并发", "微服务"],
+    category: "backend",
+    provider: "Go语言社区",
+    orders: 678,
+    rating: 4.8,
+  },
+  {
+    id: 22,
+    title: "算法与数据结构刷题班",
+    desc: "LeetCode高频题目分类讲解，面试算法全覆盖",
+    price: 299,
+    cover: "https://placehold.co/240x120/FF69B4/FFFFFF?text=Algorithm",
+    tags: ["平台保障", "刷题技巧", "面试辅导"],
+    category: "algorithm",
+    provider: "ACM金牌选手",
+    orders: 1567,
+    rating: 4.9,
+  },
+  {
+    id: 23,
+    title: "GraphQL API设计与实现",
+    desc: "从REST到GraphQL，掌握现代API设计理念与实践",
+    price: 349,
+    cover: "https://placehold.co/240x120/E10098/FFFFFF?text=GraphQL",
+    tags: ["平台保障", "API设计", "Node.js"],
+    category: "backend",
+    provider: "API架构师",
+    orders: 345,
+    rating: 4.6,
+  },
+  {
+    id: 24,
+    title: "Kafka消息中间件深度解析",
+    desc: "高性能消息队列原理、分区策略、消费者组管理全掌握",
+    price: 499,
+    cover: "https://placehold.co/240x120/231F20/FFFFFF?text=Kafka",
+    tags: ["平台保障", "消息队列", "性能优化"],
+    category: "backend",
+    provider: "中间件专家",
+    orders: 456,
+    rating: 4.7,
+  },
+  {
+    id: 25,
+    title: "Next.js全栈开发实战",
+    desc: "SSR、SSG、API Routes，打造现代React全栈应用",
+    price: 499,
+    cover: "https://placehold.co/240x120/000000/FFFFFF?text=NextJS",
+    tags: ["平台保障", "全栈", "SSR"],
+    category: "frontend",
+    provider: "前端架构师",
+    orders: 534,
+    rating: 4.8,
+  },
+  {
+    id: 26,
+    title: "PostgreSQL数据库高级进阶",
+    desc: "事务隔离级别、索引优化、PL/pgSQL编程、性能调优技巧",
+    price: 449,
+    cover: "https://placehold.co/240x120/336791/FFFFFF?text=PostgreSQL",
+    tags: ["平台保障", "数据库优化", "高可用"],
+    category: "backend",
+    provider: "数据库运维专家",
+    orders: 367,
+    rating: 4.7,
+  },
+  {
+    id: 27,
+    title: "PyTorch神经网络实战",
+    desc: "从CNN到GAN，PyTorch实现各类深度学习模型",
+    price: 899,
+    cover: "https://placehold.co/240x120/EE4C2C/FFFFFF?text=PyTorch",
+    tags: ["平台保障", "深度学习", "模型训练"],
+    category: "ai",
+    provider: "深度学习研究员",
+    orders: 645,
+    rating: 4.9,
+  },
+  {
+    id: 28,
+    title: "Nginx高性能Web服务器",
+    desc: "负载均衡、反向代理、缓存配置、性能优化全攻略",
+    price: 299,
+    cover: "https://placehold.co/240x120/009639/FFFFFF?text=Nginx",
+    tags: ["平台保障", "Web服务器", "性能调优"],
+    category: "backend",
+    provider: "运维架构师",
+    orders: 412,
+    rating: 4.6,
+  },
+  {
+    id: 29,
+    title: "TypeScript高级类型体操",
+    desc: "深入TypeScript类型系统，打造类型安全的应用",
+    price: 399,
+    cover: "https://placehold.co/240x120/3178C6/FFFFFF?text=TypeScript",
+    tags: ["平台保障", "类型系统", "编译原理"],
+    category: "frontend",
+    provider: "前端技术专家",
+    orders: 523,
+    rating: 4.8,
+  },
+  {
+    id: 30,
+    title: "ClickHouse大数据实时分析",
+    desc: "OLAP引擎、列式存储、SQL查询优化，秒级响应海量数据",
+    price: 699,
+    cover: "https://placehold.co/240x120/FFCD00/000000?text=ClickHouse",
+    tags: ["平台保障", "实时分析", "大数据"],
+    category: "big-data",
+    provider: "数据分析团队",
+    orders: 289,
+    rating: 4.7,
+  },
+  {
+    id: 31,
+    title: "Flutter跨平台应用开发",
+    desc: "一次开发多端运行，Dart语言打造精美原生应用",
+    price: 499,
+    cover: "https://placehold.co/240x120/02569B/FFFFFF?text=Flutter",
+    tags: ["平台保障", "跨平台", "移动开发"],
+    category: "mobile",
+    provider: "移动端开发组",
+    orders: 478,
+    rating: 4.7,
+  },
+  {
+    id: 32,
+    title: "MongoDB数据库从入门到精通",
+    desc: "文档型数据库、聚合管道、副本集分片集群部署",
+    price: 349,
+    cover: "https://placehold.co/240x120/47A248/FFFFFF?text=MongoDB",
+    tags: ["平台保障", "NoSQL", "分布式"],
+    category: "backend",
+    provider: "NoSQL技术专家",
+    orders: 567,
+    rating: 4.6,
+  },
+  {
+    id: 33,
+    title: "CI/CD自动化部署流水线",
+    desc: "Jenkins、GitLab CI、GitHub Actions搭建企业级持续集成",
+    price: 449,
+    cover: "https://placehold.co/240x120/000000/FFFFFF?text=CICD",
+    tags: ["平台保障", "自动化", "DevOps"],
+    category: "devops",
+    provider: "DevOps团队",
+    orders: 334,
+    rating: 4.7,
+  },
+  {
+    id: 34,
+    title: "自然语言处理NLP实战",
+    desc: "Word2Vec、BERT、GPT模型，微调预训练语言模型",
+    price: 1199,
+    cover: "https://placehold.co/240x120/4285F4/FFFFFF?text=NLP",
+    tags: ["平台保障", "大模型", "文本处理"],
+    category: "ai",
+    provider: "NLP实验室",
+    orders: 456,
+    rating: 4.9,
+  },
+  {
+    id: 35,
+    title: "Flink流处理计算引擎",
+    desc: "实时流数据处理、窗口函数、状态管理、与Kafka集成",
+    price: 799,
+    cover: "https://placehold.co/240x120/E6526F/FFFFFF?text=Flink",
+    tags: ["平台保障", "流计算", "实时处理"],
+    category: "big-data",
+    provider: "实时计算团队",
+    orders: 267,
+    rating: 4.8,
+  },
+  {
+    id: 36,
+    title: "Node.js后端架构设计",
+    desc: "Express/Koa框架、Middleware设计、错误处理、性能监控",
+    price: 399,
+    cover: "https://placehold.co/240x120/339933/FFFFFF?text=NodeJS",
+    tags: ["平台保障", "后端开发", "JavaScript"],
+    category: "backend",
+    provider: "全栈工程师",
+    orders: 623,
+    rating: 4.6,
+  },
+  {
+    id: 37,
+    title: "小程序云开发实战营",
+    desc: "微信小程序、uni-app、Taro多端开发，云函数后端",
+    price: 299,
+    cover: "https://placehold.co/240x120/07C160/FFFFFF?text=MinApp",
+    tags: ["平台保障", "小程序", "云开发"],
+    category: "frontend",
+    provider: "小程序开发者社区",
+    orders: 789,
+    rating: 4.7,
+  },
+  {
+    id: 38,
+    title: "密码学与数据安全实践",
+    desc: "对称加密、非对称加密、数字签名、区块链安全基础",
+    price: 599,
+    cover: "https://placehold.co/240x120/1E3A5F/FFFFFF?text=Crypto",
+    tags: ["平台保障", "密码学", "安全编码"],
+    category: "security",
+    provider: "安全研究员",
+    orders: 198,
+    rating: 4.8,
+  },
+  {
+    id: 39,
+    title: "Scala函数式编程实战",
+    desc: "函数式思维、模式匹配、Akka Actors、Spark开发",
+    price: 699,
+    cover: "https://placehold.co/240x120/DC322F/FFFFFF?text=Scala",
+    tags: ["平台保障", "函数式", "大数据"],
+    category: "backend",
+    provider: "Scala技术布道师",
+    orders: 234,
+    rating: 4.7,
+  },
+  {
+    id: 40,
+    title: "Unity 3D游戏开发入门",
+    desc: "C#脚本编程、场景搭建、物理引擎、粒子特效制作",
+    price: 499,
+    cover: "https://placehold.co/240x120/000000/FFFFFF?text=Unity",
+    tags: ["平台保障", "游戏开发", "3D建模"],
+    category: "frontend",
+    provider: "游戏开发工作室",
+    orders: 345,
+    rating: 4.6,
   },
 ]);
+
+// 筛选后的服务数据
+const filteredServices = ref([...allServices.value]);
+
+// 根据筛选条件过滤数据
+const filterServices = () => {
+  let result = [...allServices.value];
+  
+  // 分类筛选
+  if (activeCategory.value !== 'all') {
+    result = result.filter(s => s.category === activeCategory.value);
+  }
+  
+  // 搜索筛选
+  if (searchValue.value.trim()) {
+    const keyword = searchValue.value.trim().toLowerCase();
+    result = result.filter(s => 
+      s.title.toLowerCase().includes(keyword) || 
+      s.desc.toLowerCase().includes(keyword)
+    );
+  }
+  
+  filteredServices.value = result;
+  totalServices.value = result.length;
+  
+  // 如果当前页超出范围，回到第一页
+  const maxPage = Math.ceil(result.length / pageSize.value) || 1;
+  if (currentPage.value > maxPage) {
+    currentPage.value = 1;
+  }
+};
+
+// 当前页显示的服务列表
 const currentPage = ref(1);
 const pageSize = ref(12);
-const totalServices = ref(120);
+const totalServices = ref(40);
+
+// 分页后的服务列表
+const paginatedServices = computed(() => {
+  const start = (currentPage.value - 1) * pageSize.value;
+  const end = start + pageSize.value;
+  return filteredServices.value.slice(start, end);
+});
+
+// 兼容模板中的 serviceList
+const serviceList = computed(() => paginatedServices.value);
 
 const handlePageChange = (page, size) => {
   currentPage.value = page;
   pageSize.value = size;
-  console.log("分页变化:", page, size);
 };
 
-const handleCategoryChange = (key) => {
-  console.log("切换到分类:", key);
-};
+// 监听分类和搜索变化
+watch([activeCategory, searchValue], () => {
+  filterServices();
+});
 </script>
 
 <style scoped>
@@ -356,13 +868,36 @@ const handleCategoryChange = (key) => {
   padding-top: 8px;
   border-top: 1px solid #f5f5f5;
 }
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.footer-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
 .price {
   color: #ff4d4f;
   font-weight: 600;
-  font-size: 14px;
+  font-size: 16px;
 }
-.stats {
+.rating {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  color: #faad14;
+  font-size: 12px;
+}
+.provider {
+  color: #666;
+  font-size: 11px;
+}
+.orders {
   color: #999;
+  font-size: 11px;
 }
 .pagination-wrapper {
   display: flex;
