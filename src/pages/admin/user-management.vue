@@ -291,55 +291,232 @@ const auditPagination = ref({
 })
 
 const userList = ref([
+  // ========== 系统预设账号 ==========
   {
     id: 1,
-    name: '张三',
-    phone: '138****0001',
+    name: 'user',
+    phone: '134****0001',
     role: 'user',
     enabled: true,
-    createdAt: '2025-01-10',
+    createdAt: '2025-10-01',
     lastLogin: '2026-03-07 10:30',
     avatarColor: '#1890ff'
   },
   {
     id: 2,
-    name: '李四',
-    phone: '139****0002',
+    name: 'provider',
+    phone: '157****0002',
     role: 'provider',
     enabled: true,
-    createdAt: '2025-02-15',
-    lastLogin: '2026-03-06 15:20',
+    createdAt: '2025-10-02',
+    lastLogin: '2026-03-07 11:00',
     avatarColor: '#52c41a'
   },
   {
     id: 3,
-    name: '王五',
-    phone: '137****0003',
+    name: 'admin',
+    phone: '188****0003',
+    role: 'admin',
+    enabled: true,
+    createdAt: '2025-10-03',
+    lastLogin: '2026-03-07 09:00',
+    avatarColor: '#ff4d4f'
+  },
+
+  // ========== 普通用户 (user) ==========
+  {
+    id: 4,
+    name: '张三',
+    phone: '139****0004',
     role: 'user',
-    enabled: false,
-    createdAt: '2025-03-01',
-    lastLogin: '2026-02-28 09:15',
+    enabled: true,
+    createdAt: '2025-11-10',
+    lastLogin: '2026-03-06 15:20',
     avatarColor: '#722ed1'
   },
   {
-    id: 4,
-    name: '赵六',
-    phone: '136****0004',
+    id: 5,
+    name: '孙琪',
+    phone: '136****0005',
+    role: 'user',
+    enabled: true,
+    createdAt: '2025-11-15',
+    lastLogin: '2026-03-05 16:45',
+    avatarColor: '#eb2f96'
+  },
+  {
+    id: 6,
+    name: '周敏',
+    phone: '137****0006',
+    role: 'user',
+    enabled: true,
+    createdAt: '2025-12-20',
+    lastLogin: '2026-03-04 09:20',
+    avatarColor: '#fa8c16'
+  },
+  {
+    id: 7,
+    name: '吴浩',
+    phone: '135****0007',
+    role: 'user',
+    enabled: true,
+    createdAt: '2025-12-12',
+    lastLogin: '2026-03-03 14:30',
+    avatarColor: '#13c2c2'
+  },
+  {
+    id: 8,
+    name: '郑雪',
+    phone: '133****0008',
+    role: 'user',
+    enabled: false,
+    createdAt: '2025-12-18',
+    lastLogin: '2026-02-28 18:00',
+    avatarColor: '#52c41a'
+  },
+  {
+    id: 9,
+    name: '王磊',
+    phone: '132****0009',
+    role: 'user',
+    enabled: true,
+    createdAt: '2025-12-22',
+    lastLogin: '2026-03-07 08:45',
+    avatarColor: '#ff4d4f'
+  },
+  {
+    id: 10,
+    name: '刘洋',
+    phone: '131****0010',
+    role: 'user',
+    enabled: true,
+    createdAt: '2026-01-01',
+    lastLogin: '2026-03-06 20:30',
+    avatarColor: '#1890ff'
+  },
+
+  // ========== 服务商 (provider) ==========
+  {
+    id: 11,
+    name: '李四',
+    phone: '139****0011',
     role: 'provider',
     enabled: true,
-    createdAt: '2025-04-12',
+    createdAt: '2025-10-15',
+    lastLogin: '2026-03-06 15:20',
+    avatarColor: '#52c41a'
+  },
+  {
+    id: 12,
+    name: '赵六',
+    phone: '136****0012',
+    role: 'provider',
+    enabled: true,
+    createdAt: '2025-11-12',
     lastLogin: '2026-03-07 14:45',
     avatarColor: '#fa8c16'
   },
   {
-    id: 5,
-    name: '孙七',
-    phone: '135****0005',
+    id: 13,
+    name: '钱伟',
+    phone: '137****0013',
+    role: 'provider',
+    enabled: true,
+    createdAt: '2025-11-08',
+    lastLogin: '2026-03-07 11:20',
+    avatarColor: '#722ed1'
+  },
+  {
+    id: 14,
+    name: '孙莉',
+    phone: '135****0014',
+    role: 'provider',
+    enabled: true,
+    createdAt: '2025-11-25',
+    lastLogin: '2026-03-06 17:30',
+    avatarColor: '#eb2f96'
+  },
+  {
+    id: 15,
+    name: '周杰',
+    phone: '133****0015',
+    role: 'provider',
+    enabled: false,
+    createdAt: '2025-11-18',
+    lastLogin: '2026-03-01 09:00',
+    avatarColor: '#13c2c2'
+  },
+  {
+    id: 16,
+    name: '吴强',
+    phone: '132****0016',
+    role: 'provider',
+    enabled: true,
+    createdAt: '2025-07-05',
+    lastLogin: '2026-03-07 16:15',
+    avatarColor: '#ff4d4f'
+  },
+  {
+    id: 17,
+    name: '郑华',
+    phone: '131****0017',
+    role: 'provider',
+    enabled: true,
+    createdAt: '2025-08-10',
+    lastLogin: '2026-03-07 10:00',
+    avatarColor: '#1890ff'
+  },
+  {
+    id: 18,
+    name: '冯明',
+    phone: '130****0018',
+    role: 'provider',
+    enabled: true,
+    createdAt: '2025-09-08',
+    lastLogin: '2026-03-06 13:45',
+    avatarColor: '#52c41a'
+  },
+  {
+    id: 19,
+    name: '蒋涛',
+    phone: '129****0019',
+    role: 'provider',
+    enabled: true,
+    createdAt: '2025-10-15',
+    lastLogin: '2026-03-07 15:30',
+    avatarColor: '#fa8c16'
+  },
+
+  // ========== 管理员 (admin) ==========
+  {
+    id: 20,
+    name: '系统管理员',
+    phone: '188****0020',
     role: 'admin',
     enabled: true,
-    createdAt: '2024-12-01',
-    lastLogin: '2026-03-07 16:00',
-    avatarColor: '#13c2c2'
+    createdAt: '2024-06-01',
+    lastLogin: '2026-03-07 08:00',
+    avatarColor: '#ff4d4f'
+  },
+  {
+    id: 21,
+    name: '运营管理员',
+    phone: '188****0021',
+    role: 'admin',
+    enabled: true,
+    createdAt: '2024-08-15',
+    lastLogin: '2026-03-06 18:30',
+    avatarColor: '#722ed1'
+  },
+  {
+    id: 22,
+    name: '内容审核员',
+    phone: '188****0022',
+    role: 'admin',
+    enabled: true,
+    createdAt: '2025-01-20',
+    lastLogin: '2026-03-07 12:00',
+    avatarColor: '#52c41a'
   }
 ])
 
@@ -366,6 +543,22 @@ const providerAuditList = ref([
     username: 'wangwu',
     nickname: '王五',
     applyTime: '2026-03-10 09:20:00',
+    status: 'PENDING'
+  },
+  {
+    applyId: 10004,
+    userId: 126,
+    username: 'zhaoliu',
+    nickname: '赵六',
+    applyTime: '2026-03-08 16:45:00',
+    status: 'APPROVED'
+  },
+  {
+    applyId: 10005,
+    userId: 127,
+    username: 'sunqi',
+    nickname: '孙琪',
+    applyTime: '2026-03-05 11:30:00',
     status: 'REJECTED'
   }
 ])
