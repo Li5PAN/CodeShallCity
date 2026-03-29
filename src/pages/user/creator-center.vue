@@ -282,14 +282,14 @@
               </div>
 
               <div class="demand-list">
-                <div v-if="filteredDemands.length === 0" class="empty-state">
+                <div v-if="paginatedDemands.length === 0" class="empty-state">
                   <TrophyOutlined style="font-size: 48px; color: #e0e0e0" />
                   <p>暂无悬赏需求</p>
                 </div>
 
                 <div
                   class="demand-item"
-                  v-for="item in filteredDemands"
+                  v-for="item in paginatedDemands"
                   :key="item.id"
                 >
                   <div class="demand-main" style="cursor: pointer">
@@ -349,6 +349,19 @@
                       </div>
                     </div>
                   </div>
+                </div>
+
+                <!-- 分页组件 -->
+                <div class="demand-pagination" v-if="filteredDemands.length > 0">
+                  <a-pagination
+                    v-model:current="demandCurrentPage"
+                    v-model:pageSize="demandPageSize"
+                    :total="filteredDemands.length"
+                    :show-size-changer="true"
+                    :page-size-options="['10', '20', '40']"
+                    :default-page-size="10"
+                    show-quick-jumper
+                  />
                 </div>
               </div>
             </a-tab-pane>
@@ -751,7 +764,7 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive } from "vue";
+import { ref, computed, reactive, watch } from "vue";
 import { useRouter } from "vue-router";
 import { message } from "ant-design-vue";
 import {
@@ -819,6 +832,8 @@ const serviceStatusBadgeMap = {
 // 需求筛选
 const demandStatusFilter = ref("all");
 const demandSearchKeyword = ref("");
+const demandCurrentPage = ref(1);
+const demandPageSize = ref(10);
 const demandStatusBadgeMap = {
   PENDING: { badge: "success", text: "待接单" },
   PROCESSING: { badge: "processing", text: "进行中" },
@@ -945,7 +960,7 @@ const myDemands = ref([
   {
     id: 1,
     title: "MiniMax-M2.1 智能客服系统开发",
-    desc: "需要基于MiniMax大模型开发一套智能客服系统，支持多轮对话、意图识别",
+    desc: "需要基于MiniMax大模型开发一套智能客服系统，支持多轮对话、意图识别和知识库问答功能",
     budgetMin: 3000,
     budgetMax: 5000,
     type: "人工智能",
@@ -958,7 +973,7 @@ const myDemands = ref([
   {
     id: 2,
     title: "React Native 跨平台移动端应用",
-    desc: "开发一款电商类App，需要支持iOS和Android双端",
+    desc: "开发一款电商类App，需要支持iOS和Android双端，包含商品浏览、购物车、订单管理等功能",
     budgetMin: 10000,
     budgetMax: 15000,
     type: "移动开发",
@@ -994,6 +1009,474 @@ const myDemands = ref([
     deadline: "2026-04-01",
     status: "PENDING",
   },
+  {
+    id: 5,
+    title: "Spring Cloud 微服务架构改造",
+    desc: "将现有单体应用拆分为微服务架构，包含用户服务、订单服务、支付服务等模块",
+    budgetMin: 20000,
+    budgetMax: 30000,
+    type: "Java",
+    urgency: "紧急",
+    applyCount: 15,
+    publishTime: "2026-02-20",
+    deadline: "2026-05-01",
+    status: "PROCESSING",
+  },
+  {
+    id: 6,
+    title: "Python 数据分析报告自动生成工具",
+    desc: "开发一套数据分析工具，能够自动读取Excel/CSV数据并生成可视化报告",
+    budgetMin: 2000,
+    budgetMax: 4000,
+    type: "Python",
+    urgency: "常规",
+    applyCount: 4,
+    publishTime: "2026-02-15",
+    deadline: "2026-03-20",
+    status: "PENDING",
+  },
+  {
+    id: 7,
+    title: "Docker 容器化部署与K8s集群搭建",
+    desc: "将现有项目Docker容器化并部署到Kubernetes集群",
+    budgetMin: 5000,
+    budgetMax: 8000,
+    type: "运维部署",
+    urgency: "一般",
+    applyCount: 6,
+    publishTime: "2026-01-10",
+    deadline: "2026-02-10",
+    status: "COMPLETED",
+  },
+  {
+    id: 8,
+    title: "iOS 短视频社交App开发",
+    desc: "开发一款类似抖音的短视频社交应用，支持拍摄、剪辑、特效等功能",
+    budgetMin: 30000,
+    budgetMax: 50000,
+    type: "移动开发",
+    urgency: "紧急",
+    applyCount: 20,
+    publishTime: "2026-03-05",
+    deadline: "2026-06-01",
+    status: "PENDING",
+  },
+  {
+    id: 9,
+    title: "区块链溯源系统开发",
+    desc: "基于区块链技术开发商品溯源系统，实现全程可追溯",
+    budgetMin: 25000,
+    budgetMax: 40000,
+    type: "区块链",
+    urgency: "一般",
+    applyCount: 8,
+    publishTime: "2026-02-01",
+    deadline: "2026-04-30",
+    status: "PROCESSING",
+  },
+  {
+    id: 10,
+    title: "Flutter 金融理财App开发",
+    desc: "开发一款金融理财应用，支持基金、股票行情查看和交易模拟",
+    budgetMin: 15000,
+    budgetMax: 25000,
+    type: "移动开发",
+    urgency: "紧急",
+    applyCount: 11,
+    publishTime: "2026-02-25",
+    deadline: "2026-05-15",
+    status: "PENDING",
+  },
+  {
+    id: 11,
+    title: "Elasticsearch 搜索引擎优化",
+    desc: "对现有Elasticsearch集群进行优化，提升搜索性能和准确性",
+    budgetMin: 3000,
+    budgetMax: 6000,
+    type: "数据库",
+    urgency: "一般",
+    applyCount: 3,
+    publishTime: "2026-01-20",
+    deadline: "2026-02-20",
+    status: "COMPLETED",
+  },
+  {
+    id: 12,
+    title: "React 前端组件库开发",
+    desc: "基于React开发一套企业级UI组件库，包含基础组件和业务组件",
+    budgetMin: 12000,
+    budgetMax: 18000,
+    type: "Vue/React",
+    urgency: "常规",
+    applyCount: 7,
+    publishTime: "2026-02-18",
+    deadline: "2026-04-20",
+    status: "PROCESSING",
+  },
+  {
+    id: 13,
+    title: "Go语言高性能API网关开发",
+    desc: "使用Go语言开发高性能API网关，支持负载均衡、熔断、限流等功能",
+    budgetMin: 15000,
+    budgetMax: 22000,
+    type: "Go语言",
+    urgency: "紧急",
+    applyCount: 9,
+    publishTime: "2026-03-02",
+    deadline: "2026-05-01",
+    status: "PENDING",
+  },
+  {
+    id: 14,
+    title: "小程序商城系统开发",
+    desc: "开发微信小程序商城，支持商品展示、购物车、微信支付等功能",
+    budgetMin: 8000,
+    budgetMax: 12000,
+    type: "移动开发",
+    urgency: "一般",
+    applyCount: 14,
+    publishTime: "2026-02-10",
+    deadline: "2026-04-01",
+    status: "PROCESSING",
+  },
+  {
+    id: 15,
+    title: "TensorFlow 图像识别模型训练",
+    desc: "使用TensorFlow训练图像识别模型，用于产品缺陷检测场景",
+    budgetMin: 6000,
+    budgetMax: 10000,
+    type: "人工智能",
+    urgency: "紧急",
+    applyCount: 6,
+    publishTime: "2026-01-15",
+    deadline: "2026-02-28",
+    status: "COMPLETED",
+  },
+  {
+    id: 16,
+    title: "Vue2 到 Vue3 迁移升级项目",
+    desc: "将现有Vue2项目升级到Vue3，使用Composition API重构业务代码",
+    budgetMin: 5000,
+    budgetMax: 8000,
+    type: "Vue/React",
+    urgency: "一般",
+    applyCount: 5,
+    publishTime: "2026-02-22",
+    deadline: "2026-04-10",
+    status: "PENDING",
+  },
+  {
+    id: 17,
+    title: "Linux 服务器安全加固服务",
+    desc: "对服务器进行安全加固，包括SSH配置、防火墙规则、日志审计等",
+    budgetMin: 2000,
+    budgetMax: 3500,
+    type: "运维部署",
+    urgency: "紧急",
+    applyCount: 8,
+    publishTime: "2026-02-08",
+    deadline: "2026-03-05",
+    status: "COMPLETED",
+  },
+  {
+    id: 18,
+    title: "Node.js 实时聊天系统开发",
+    desc: "基于Socket.io开发实时聊天系统，支持私聊、群聊、文件传输",
+    budgetMin: 4000,
+    budgetMax: 7000,
+    type: "Node.js",
+    urgency: "常规",
+    applyCount: 4,
+    publishTime: "2026-03-01",
+    deadline: "2026-04-15",
+    status: "PENDING",
+  },
+  {
+    id: 19,
+    title: "Oracle 数据库迁移到MySQL",
+    desc: "将Oracle数据库完整迁移到MySQL，包含数据迁移和SQL语句转换",
+    budgetMin: 8000,
+    budgetMax: 15000,
+    type: "数据库",
+    urgency: "紧急",
+    applyCount: 10,
+    publishTime: "2026-02-14",
+    deadline: "2026-04-01",
+    status: "PROCESSING",
+  },
+  {
+    id: 20,
+    title: "Android 音视频播放器开发",
+    desc: "开发一款Android音视频播放器，支持多种格式解码和播放控制",
+    budgetMin: 6000,
+    budgetMax: 10000,
+    type: "移动开发",
+    urgency: "一般",
+    applyCount: 5,
+    publishTime: "2026-02-05",
+    deadline: "2026-03-25",
+    status: "CLOSED",
+  },
+  {
+    id: 21,
+    title: "GraphQL API 接口设计开发",
+    desc: "使用GraphQL重新设计系统API，提升接口灵活性和开发效率",
+    budgetMin: 10000,
+    budgetMax: 16000,
+    type: "Java",
+    urgency: "常规",
+    applyCount: 6,
+    publishTime: "2026-03-04",
+    deadline: "2026-05-01",
+    status: "PENDING",
+  },
+  {
+    id: 22,
+    title: "Rust 区块链智能合约开发",
+    desc: "基于Rust开发区块链智能合约，用于DeFi应用场景",
+    budgetMin: 20000,
+    budgetMax: 35000,
+    type: "区块链",
+    urgency: "紧急",
+    applyCount: 12,
+    publishTime: "2026-02-28",
+    deadline: "2026-05-15",
+    status: "PROCESSING",
+  },
+  {
+    id: 23,
+    title: "Pytorch 自然语言处理模型开发",
+    desc: "使用Pytorch开发NLP情感分析模型，用于舆情监控场景",
+    budgetMin: 8000,
+    budgetMax: 12000,
+    type: "人工智能",
+    urgency: "一般",
+    applyCount: 7,
+    publishTime: "2026-02-12",
+    deadline: "2026-03-30",
+    status: "COMPLETED",
+  },
+  {
+    id: 24,
+    title: "小程序点餐系统开发",
+    desc: "开发餐厅小程序点餐系统，支持菜品展示、购物车、订单管理、打印小票",
+    budgetMin: 5000,
+    budgetMax: 8000,
+    type: "移动开发",
+    urgency: "紧急",
+    applyCount: 9,
+    publishTime: "2026-03-06",
+    deadline: "2026-04-20",
+    status: "PENDING",
+  },
+  {
+    id: 25,
+    title: "Redis 缓存架构设计与优化",
+    desc: "设计Redis缓存架构，解决缓存穿透、缓存雪崩等问题",
+    budgetMin: 4000,
+    budgetMax: 6000,
+    type: "数据库",
+    urgency: "一般",
+    applyCount: 4,
+    publishTime: "2026-02-03",
+    deadline: "2026-03-10",
+    status: "CLOSED",
+  },
+  {
+    id: 26,
+    title: "Angular 企业级后台管理系统",
+    desc: "基于Angular开发企业级后台管理系统，包含权限管理、数据可视化等功能",
+    budgetMin: 18000,
+    budgetMax: 28000,
+    type: "Vue/React",
+    urgency: "紧急",
+    applyCount: 13,
+    publishTime: "2026-02-20",
+    deadline: "2026-05-30",
+    status: "PROCESSING",
+  },
+  {
+    id: 27,
+    title: "CI/CD 持续集成流水线搭建",
+    desc: "使用Jenkins/GitLab CI搭建CI/CD流水线，实现自动化构建部署",
+    budgetMin: 5000,
+    budgetMax: 8000,
+    type: "运维部署",
+    urgency: "常规",
+    applyCount: 6,
+    publishTime: "2026-03-02",
+    deadline: "2026-04-15",
+    status: "PENDING",
+  },
+  {
+    id: 28,
+    title: "Flutter 社交应用开发",
+    desc: "开发一款类似小红书的社交分享应用，支持图文、短视频发布",
+    budgetMin: 20000,
+    budgetMax: 35000,
+    type: "移动开发",
+    urgency: "紧急",
+    applyCount: 18,
+    publishTime: "2026-02-25",
+    deadline: "2026-06-01",
+    status: "PENDING",
+  },
+  {
+    id: 29,
+    title: "Django RESTful API 开发",
+    desc: "使用Django REST framework开发RESTful API服务",
+    budgetMin: 5000,
+    budgetMax: 8000,
+    type: "Python",
+    urgency: "一般",
+    applyCount: 5,
+    publishTime: "2026-01-28",
+    deadline: "2026-03-15",
+    status: "COMPLETED",
+  },
+  {
+    id: 30,
+    title: "Kafka 消息队列集群搭建",
+    desc: "搭建Kafka消息队列集群，实现高并发数据流处理",
+    budgetMin: 6000,
+    budgetMax: 10000,
+    type: "大数据",
+    urgency: "紧急",
+    applyCount: 8,
+    publishTime: "2026-02-16",
+    deadline: "2026-04-01",
+    status: "PROCESSING",
+  },
+  {
+    id: 31,
+    title: "Swift iOS 新闻阅读App开发",
+    desc: "开发iOS新闻阅读应用，支持资讯分类、收藏、离线阅读等功能",
+    budgetMin: 10000,
+    budgetMax: 15000,
+    type: "移动开发",
+    urgency: "常规",
+    applyCount: 7,
+    publishTime: "2026-02-08",
+    deadline: "2026-04-30",
+    status: "CLOSED",
+  },
+  {
+    id: 32,
+    title: "TypeScript 类型定义与重构",
+    desc: "为现有JavaScript项目添加TypeScript类型定义，提升代码质量",
+    budgetMin: 3000,
+    budgetMax: 5000,
+    type: "Vue/React",
+    urgency: "一般",
+    applyCount: 4,
+    publishTime: "2026-03-05",
+    deadline: "2026-04-10",
+    status: "PENDING",
+  },
+  {
+    id: 33,
+    title: "Vue3 移动端H5开发",
+    desc: "使用Vue3开发移动端H5页面，适配各种移动设备",
+    budgetMin: 6000,
+    budgetMax: 9000,
+    type: "Vue/React",
+    urgency: "紧急",
+    applyCount: 6,
+    publishTime: "2026-02-28",
+    deadline: "2026-04-05",
+    status: "PROCESSING",
+  },
+  {
+    id: 34,
+    title: "PostgreSQL 数据库集群部署",
+    desc: "部署PostgreSQL主从集群，实现读写分离和高可用",
+    budgetMin: 7000,
+    budgetMax: 12000,
+    type: "数据库",
+    urgency: "紧急",
+    applyCount: 9,
+    publishTime: "2026-02-18",
+    deadline: "2026-04-01",
+    status: "COMPLETED",
+  },
+  {
+    id: 35,
+    title: "小程序直播带货系统开发",
+    desc: "开发微信小程序直播带货系统，支持直播推流、商品橱窗、订单转化",
+    budgetMin: 25000,
+    budgetMax: 40000,
+    type: "移动开发",
+    urgency: "紧急",
+    applyCount: 16,
+    publishTime: "2026-03-01",
+    deadline: "2026-05-15",
+    status: "PENDING",
+  },
+  {
+    id: 36,
+    title: "AI 智能写作助手开发",
+    desc: "基于大语言模型开发AI写作助手，支持文章续写、润色、摘要生成",
+    budgetMin: 15000,
+    budgetMax: 25000,
+    type: "人工智能",
+    urgency: "一般",
+    applyCount: 11,
+    publishTime: "2026-02-22",
+    deadline: "2026-05-01",
+    status: "PROCESSING",
+  },
+  {
+    id: 37,
+    title: "React Native 混合App开发",
+    desc: "使用React Native开发混合App，集成原生模块实现特定功能",
+    budgetMin: 12000,
+    budgetMax: 20000,
+    type: "移动开发",
+    urgency: "常规",
+    applyCount: 8,
+    publishTime: "2026-02-05",
+    deadline: "2026-04-15",
+    status: "CLOSED",
+  },
+  {
+    id: 38,
+    title: "Python 自动化测试框架开发",
+    desc: "开发Web自动化测试框架，使用Selenium/Playwright进行端到端测试",
+    budgetMin: 4000,
+    budgetMax: 7000,
+    type: "Python",
+    urgency: "一般",
+    applyCount: 5,
+    publishTime: "2026-03-03",
+    deadline: "2026-04-20",
+    status: "PENDING",
+  },
+  {
+    id: 39,
+    title: "Kubernetes 微服务治理方案",
+    desc: "设计Kubernetes微服务治理方案，包含服务网格、灰度发布、限流熔断",
+    budgetMin: 20000,
+    budgetMax: 35000,
+    type: "运维部署",
+    urgency: "紧急",
+    applyCount: 14,
+    publishTime: "2026-02-26",
+    deadline: "2026-05-30",
+    status: "PROCESSING",
+  },
+  {
+    id: 40,
+    title: "Nuxt.js SEO优化项目",
+    desc: "对Nuxt.js项目进行SEO优化，提升搜索引擎收录和排名",
+    budgetMin: 3000,
+    budgetMax: 5000,
+    type: "Vue/React",
+    urgency: "常规",
+    applyCount: 3,
+    publishTime: "2026-03-07",
+    deadline: "2026-04-01",
+    status: "PENDING",
+  },
 ]);
 
 // 筛选函数
@@ -1026,7 +1509,14 @@ const filteredServices = computed(() => {
 const filteredDemands = computed(() => {
   let list = myDemands.value;
   if (demandStatusFilter.value !== "all") {
-    list = list.filter((d) => d.status === demandStatusFilter.value);
+    const statusMap = {
+      open: "PENDING",
+      progress: "PROCESSING",
+      done: "COMPLETED",
+      closed: "CLOSED",
+    };
+    const targetStatus = statusMap[demandStatusFilter.value];
+    list = list.filter((d) => d.status === targetStatus);
   }
   if (demandSearchKeyword.value.trim()) {
     list = list.filter((d) =>
@@ -1034,6 +1524,21 @@ const filteredDemands = computed(() => {
     );
   }
   return list;
+});
+
+// 需求分页数据
+const paginatedDemands = computed(() => {
+  const start = (demandCurrentPage.value - 1) * demandPageSize.value;
+  const end = start + demandPageSize.value;
+  return filteredDemands.value.slice(start, end);
+});
+
+// 监听筛选条件变化，重置分页
+watch(demandStatusFilter, () => {
+  demandCurrentPage.value = 1;
+});
+watch(demandSearchKeyword, () => {
+  demandCurrentPage.value = 1;
 });
 
 // 文章操作
@@ -1234,7 +1739,7 @@ const goodsImgInputRef = ref(null);
 // 快捷发布统计数据
 const publishStats = ref({
   articles: 6,
-  demands: 4,
+  demands: 40,
   services: 3,
 });
 
@@ -1368,7 +1873,7 @@ const statsData = ref([
   },
   {
     label: "发布悬赏",
-    value: 4,
+    value: 40,
     icon: TrophyOutlined,
     gradient: "linear-gradient(135deg, #13c2c0 0%, #36cfc9 100%)",
   },
@@ -2266,6 +2771,14 @@ const submitApply = () => {
   padding: 0 12px;
   height: 28px;
   font-size: 13px;
+}
+
+/* 需求分页 */
+.demand-pagination {
+  display: flex;
+  justify-content: center;
+  padding: 20px 0;
+  border-top: 1px solid #f5f5f5;
 }
 
 /* 空状态 */
