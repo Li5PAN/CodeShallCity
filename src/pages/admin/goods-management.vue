@@ -115,7 +115,7 @@
         </a-table>
       </a-tab-pane>
 
-      <a-tab-pane key="demand" tab="需求审核">
+      <a-tab-pane key="demand" tab="需求悬赏审核">
         <!-- 筛选栏 -->
         <div class="filter-bar">
           <div class="filter-left">
