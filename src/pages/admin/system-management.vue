@@ -16,7 +16,7 @@
         <input v-model="opFilter.dateFrom" type="date" class="filter-input" />
         <span class="filter-sep">至</span>
         <input v-model="opFilter.dateTo" type="date" class="filter-input" />
-        <button class="btn-primary" @click="">搜索</button>
+        <button class="btn-primary" @click="handleOpSearch">搜索</button>
         <button class="btn-default" @click="resetOpFilter">重置</button>
       </div>
       <table class="data-table">
@@ -24,7 +24,7 @@
           <tr><th>日志编号</th><th>操作人</th><th>操作模块</th><th>操作名</th><th>操作内容</th><th>操作时间</th><th>业务编号</th><th>操作IP</th><th>操作</th></tr>
         </thead>
         <tbody>
-          <tr v-for="log in opLogs" :key="log.id">
+          <tr v-for="log in filteredOpLogs" :key="log.id">
             <td>{{ log.id }}</td>
             <td>{{ log.user }}</td>
             <td>{{ log.module }}</td>
@@ -376,14 +376,44 @@ watch(
 )
 
 const handleLoginSearch = () => {
-  message.info('搜索功能已触发')
+  loginPagination.value.current = 1
+  message.success('已根据筛选条件搜索')
+}
+
+const filteredOpLogs = computed(() => {
+  let list = opLogs.value
+
+  if (opFilter.user.trim()) {
+    const keyword = opFilter.user.trim().toLowerCase()
+    list = list.filter(log => log.user.toLowerCase().includes(keyword))
+  }
+
+  if (opFilter.dateFrom) {
+    list = list.filter(log => log.time >= opFilter.dateFrom)
+  }
+
+  if (opFilter.dateTo) {
+    const endDate = opFilter.dateTo + ' 23:59:59'
+    list = list.filter(log => log.time <= endDate)
+  }
+
+  return list
+})
+
+const handleOpSearch = () => {
+  if (!opFilter.user.trim() && !opFilter.dateFrom && !opFilter.dateTo) {
+    message.warning('请输入至少一个筛选条件')
+    return
+  }
+  message.success('已根据筛选条件搜索')
 }
 
 const resetOpFilter = () => { 
   opFilter.user = ''
   opFilter.type = ''
   opFilter.dateFrom = ''
-  opFilter.dateTo = '' 
+  opFilter.dateTo = ''
+  message.success('筛选条件已重置')
 }
 
 const resetLoginFilter = () => { 

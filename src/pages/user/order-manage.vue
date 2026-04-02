@@ -27,10 +27,17 @@
         <!-- 服务商品订单 -->
         <a-tab-pane key="service" tab="服务商品订单">
           <div class="filter-bar">
+            <!-- 普通用户(user)不显示角色筛选按钮，只显示"我买入的"订单 -->
             <a-radio-group v-model:value="serviceRoleFilter" class="role-chips">
-              <a-radio-button value="all">全部</a-radio-button>
-              <a-radio-button value="buyer">我买入的</a-radio-button>
-              <a-radio-button value="seller">我卖出的</a-radio-button>
+              <template v-if="!isRegularUser">
+                <a-radio-button value="all">全部</a-radio-button>
+              </template>
+             <template v-if="!isRegularUser">
+               <a-radio-button value="buyer">我买入的</a-radio-button>
+             </template>
+              <template v-if="!isRegularUser">
+                <a-radio-button value="seller">我卖出的</a-radio-button>
+              </template>
             </a-radio-group>
             <div style="display:flex;align-items:center;gap:8px">
               <a-select v-model:value="serviceStatusFilter" style="width:130px" size="small">
@@ -118,10 +125,17 @@
         <!-- 需求悬赏订单 -->
         <a-tab-pane key="demand" tab="需求悬赏订单">
           <div class="filter-bar">
+            <!-- 普通用户(user)不显示角色筛选按钮，只显示"我发布的"订单 -->
             <a-radio-group v-model:value="demandRoleFilter" class="role-chips">
-              <a-radio-button value="all">全部</a-radio-button>
-              <a-radio-button value="publisher">我发布的</a-radio-button>
-              <a-radio-button value="bidder">我接取的</a-radio-button>
+              <template v-if="!isRegularUser">
+                <a-radio-button value="all">全部</a-radio-button>
+              </template>
+              <template v-if="!isRegularUser">
+                <a-radio-button value="publisher">我发布的</a-radio-button>
+              </template>
+              <template v-if="!isRegularUser">
+                <a-radio-button value="bidder">我接取的</a-radio-button>
+              </template>
             </a-radio-group>
             <div style="display:flex;align-items:center;gap:8px">
               <a-select v-model:value="demandStatusFilter" style="width:130px" size="small">
@@ -265,22 +279,40 @@ import {
 const router = useRouter();
 
 const currentUserId = ref("user123");
+const currentUserRole = ref("user"); // 用户角色：user 或 provider
 
 const activeTab = ref("service");
 
-// 服务商品筛选
-const serviceRoleFilter = ref("all");
+// 服务商品筛选 - user角色默认只看"我买入的"，provider默认全部
+const serviceRoleFilter = computed({
+  get: () => {
+    if (currentUserRole.value === "user") return "buyer";
+    return serviceRoleFilterInner.value;
+  },
+  set: (val) => { serviceRoleFilterInner.value = val; }
+});
+const serviceRoleFilterInner = ref("all");
 const serviceStatusFilter = ref("ALL");
 const serviceKeyword = ref("");
 const servicePage = ref(1);
 const servicePageSize = ref(10);
 
-// 需求悬赏筛选
-const demandRoleFilter = ref("all");
+// 需求悬赏筛选 - user角色默认只看"我发布的"，provider默认全部
+const demandRoleFilter = computed({
+  get: () => {
+    if (currentUserRole.value === "user") return "publisher";
+    return demandRoleFilterInner.value;
+  },
+  set: (val) => { demandRoleFilterInner.value = val; }
+});
+const demandRoleFilterInner = ref("all");
 const demandStatusFilter = ref("ALL");
 const demandKeyword = ref("");
 const demandPage = ref(1);
 const demandPageSize = ref(10);
+
+// 判断是否为普通用户（user角色，不显示买入/卖出筛选按钮）
+const isRegularUser = computed(() => currentUserRole.value === "user");
 
 // 状态映射
 const statusColorMap = {

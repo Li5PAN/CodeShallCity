@@ -222,7 +222,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
-import { message } from 'ant-design-vue'
+import { message, Modal } from 'ant-design-vue'
 
 const activeTab = ref('users')
 const userSearch = ref('')
@@ -613,8 +613,17 @@ const viewUser = (user) => {
 }
 
 const toggleUser = (user) => {
-  user.enabled = !user.enabled
-  message.success(user.enabled ? '用户已启用' : '用户已禁用')
+  const action = user.enabled ? '禁用' : '启用'
+  Modal.confirm({
+    title: `确认${action}`,
+    content: `确定要将用户 "${user.name}" ${action}吗？`,
+    okText: '确认',
+    cancelText: '取消',
+    onOk() {
+      user.enabled = !user.enabled
+      message.success(`用户 "${user.name}" 已${action}`)
+    }
+  })
 }
 
 const editRole = (user) => {

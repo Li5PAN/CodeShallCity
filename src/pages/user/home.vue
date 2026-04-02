@@ -41,24 +41,36 @@
             >更多服务 ></span
           >
         </div>
-        <div class="article-list">
+        <div class="service-list">
           <div
-            class="article-item"
-            v-for="item in articleList"
+            class="service-item"
+            v-for="item in featuredServices"
             :key="item.id"
             @click="openDetail('service', { id: item.id })"
           >
-            <div class="article-info">
-              <div class="article-meta-top">
-                <a-avatar :size="20" style="background-color: #1890ff">{{
-                  item.author[0]
-                }}</a-avatar>
-                <span class="article-author">{{ item.author }}</span>
+            <div class="service-info">
+              <div class="service-meta-top">
+                <span class="service-author">{{ item.provider }}</span>
+                <span class="service-orders">{{ item.orders }}+成交</span>
               </div>
-              <h4 class="article-title">{{ item.title }}</h4>
-              <p class="article-desc">{{ item.desc }}</p>
+              <h4 class="service-title">{{ item.title }}</h4>
+              <p class="service-desc">{{ item.desc }}</p>
+              <div class="service-tags">
+                <a-tag
+                  v-for="tag in item.tags"
+                  :key="tag"
+                  size="small"
+                  :color="tag === '平台保障' ? 'green' : 'blue'"
+                >{{ tag }}</a-tag>
+              </div>
+              <div class="service-footer">
+                <span class="service-rating" v-if="item.rating">
+                  <StarFilled style="color: #faad14; font-size: 12px" />
+                  {{ item.rating }}
+                </span>
+              </div>
             </div>
-            <div class="article-cover" v-if="item.cover">
+            <div class="service-cover" v-if="item.cover">
               <img :src="item.cover" alt="封面" />
             </div>
           </div>
@@ -97,6 +109,7 @@ import {
   LikeOutlined,
   MessageOutlined,
   RightOutlined,
+  StarFilled,
 } from "@ant-design/icons-vue";
 
 const router = useRouter();
@@ -148,27 +161,73 @@ const goToServiceMarket = () => {
   router.push("/user/service-market");
 };
 
-const articleList = ref([
+// 精选服务数据 - 使用服务市场的模拟数据
+const featuredServices = ref([
   {
     id: 1,
-    title: "人工智能大模型应用：2025年AI技术发展趋势",
-    desc: "从入门到精通，全面解析AI大模型在各行业的应用场景与技术实现方案",
-    author: "AI研究员",
-    cover: "https://picsum.photos/160/100?random=1",
+    title: "Java大厂面试冲刺班",
+    desc: "覆盖Java基础、JVM、并发、分布式等核心考点，配套模拟面试和简历优化",
+    price: 399,
+    cover: "https://placehold.co/200x120/FFD700/000000?text=Java",
+    tags: ["平台保障", "商家认证", "7天无理由"],
+    provider: "李老师",
+    orders: 1258,
+    rating: 4.9,
   },
   {
     id: 2,
-    title: "NASA的Artemis IV: Building First Lunar Space Station",
-    desc: "前沿太空技术与开发者社区的深度合作探索",
-    author: "科技前沿",
-    cover: "https://picsum.photos/160/100?random=2",
+    title: "MySQL数据库性能优化实战",
+    desc: "从底层原理到实战优化，涵盖索引、事务、锁机制、分库分表等高级话题",
+    price: 499,
+    cover: "https://placehold.co/200x120/FF6600/FFFFFF?text=MySQL",
+    tags: ["平台保障", "官方认证", "售后答疑"],
+    provider: "数据库老王",
+    orders: 896,
+    rating: 4.8,
   },
   {
     id: 3,
-    title: "大模型TPCDS大数据集测试与性能优化实战",
-    desc: "深入分析大数据处理框架的性能瓶颈与优化策略",
-    author: "数据工程师",
-    cover: "https://picsum.photos/160/100?random=3",
+    title: "Redis缓存架构设计与实战",
+    desc: "深入讲解Redis数据结构、持久化、集群方案，结合电商场景实战",
+    price: 399,
+    cover: "https://placehold.co/200x120/DC143C/FFFFFF?text=Redis",
+    tags: ["平台保障", "源码解析", "项目实战"],
+    provider: "缓存专家张工",
+    orders: 756,
+    rating: 4.9,
+  },
+  {
+    id: 4,
+    title: "Vue3企业级项目实战课程",
+    desc: "从零构建企业级Vue3项目，涵盖Composition API、TypeScript、Pinia状态管理",
+    price: 399,
+    cover: "https://placehold.co/200x120/42b883/FFFFFF?text=Vue3",
+    tags: ["平台保障", "TS认证", "终身更新"],
+    provider: "前端架构师小李",
+    orders: 1123,
+    rating: 4.9,
+  },
+  {
+    id: 5,
+    title: "Python数据分析与可视化",
+    desc: "Pandas、NumPy、Matplotlib、ECharts，从数据处理到可视化呈现全流程",
+    price: 299,
+    cover: "https://placehold.co/200x120/3776AB/FFFFFF?text=Python",
+    tags: ["平台保障", "数据分析认证"],
+    provider: "数据分析师阿华",
+    orders: 634,
+    rating: 4.7,
+  },
+  {
+    id: 6,
+    title: "Go语言微服务架构实战",
+    desc: "gRPC、K8s、Gin框架、Prometheus监控，打造高性能微服务",
+    price: 499,
+    cover: "https://placehold.co/200x120/00ADD8/FFFFFF?text=Go",
+    tags: ["平台保障", "Go语言认证"],
+    provider: "Go语言布道师",
+    orders: 423,
+    rating: 4.8,
   },
 ]);
 
@@ -338,6 +397,91 @@ const forumList = ref([
   height: 100px;
   object-fit: cover;
   border-radius: 6px;
+}
+
+/* 精选服务样式 */
+.service-list {
+  background: #fff;
+  border-radius: 8px;
+}
+.service-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 1px solid #f5f5f5;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.service-item:hover {
+  background: #fafafa;
+}
+.service-item:last-child {
+  border-bottom: none;
+}
+.service-info {
+  flex: 1;
+  min-width: 0;
+  margin-right: 16px;
+}
+.service-meta-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+.service-author {
+  font-size: 12px;
+  color: #1890ff;
+  font-weight: 500;
+}
+.service-orders {
+  font-size: 12px;
+  color: #999;
+}
+.service-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 8px 0;
+  color: #333;
+  line-height: 1.4;
+}
+.service-item:hover .service-title {
+  color: #1890ff;
+}
+.service-desc {
+  font-size: 13px;
+  color: #666;
+  margin: 0 0 10px 0;
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.service-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.service-footer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.service-rating {
+  font-size: 12px;
+  color: #666;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.service-cover img {
+  width: 200px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 6px;
+  flex-shrink: 0;
 }
 
 .right-section {
