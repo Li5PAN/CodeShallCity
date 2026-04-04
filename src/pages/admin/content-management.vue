@@ -19,13 +19,31 @@
           class="search-input"
           placeholder="搜索标题 / 作者"
         />
-        <button class="btn-default" @click="batchAudit('reject')" :disabled="selectedArticles.length === 0">批量驳回</button>
-        <button class="btn-success" @click="batchAudit('pass')" :disabled="selectedArticles.length === 0">批量通过</button>
+        <button
+          class="btn-default"
+          @click="batchAudit('reject')"
+          :disabled="selectedArticles.length === 0"
+        >
+          批量驳回
+        </button>
+        <button
+          class="btn-success"
+          @click="batchAudit('pass')"
+          :disabled="selectedArticles.length === 0"
+        >
+          批量通过
+        </button>
       </div>
       <table class="data-table">
         <thead>
           <tr>
-            <th style="width: 40px"><input type="checkbox" v-model="selectAll" @change="toggleSelectAll" /></th>
+            <th style="width: 40px">
+              <input
+                type="checkbox"
+                v-model="selectAll"
+                @change="toggleSelectAll"
+              />
+            </th>
             <th>标题</th>
             <th>作者</th>
             <th>分类</th>
@@ -36,7 +54,9 @@
         </thead>
         <tbody>
           <tr v-for="a in filteredArticleList" :key="a.id">
-            <td><input type="checkbox" v-model="selectedArticles" :value="a.id" /></td>
+            <td>
+              <input type="checkbox" v-model="selectedArticles" :value="a.id" />
+            </td>
             <td>{{ a.title }}</td>
             <td>{{ a.author }}</td>
             <td>{{ a.category }}</td>
@@ -44,17 +64,30 @@
               <span
                 :class="[
                   'status-tag',
-                  a.status === 'approved' ? 'status-tag--green' :
-                  a.status === 'rejected' ? 'status-tag--red' : 'status-tag--gray',
+                  a.status === 'approved'
+                    ? 'status-tag--green'
+                    : a.status === 'rejected'
+                      ? 'status-tag--red'
+                      : 'status-tag--gray',
                 ]"
               >
-                {{ a.status === 'approved' ? '已通过' : a.status === 'rejected' ? '已驳回' : '待审核' }}
+                {{
+                  a.status === "approved"
+                    ? "已通过"
+                    : a.status === "rejected"
+                      ? "已驳回"
+                      : "待审核"
+                }}
               </span>
             </td>
             <td>{{ a.publishAt }}</td>
             <td class="action-cell">
-              <button class="btn-link" @click="viewArticleDetail(a)">查看</button>
-              <button class="btn-link btn-link--red" @click="deleteArticle(a)">删除</button>
+              <button class="btn-link" @click="viewArticleDetail(a)">
+                查看
+              </button>
+              <button class="btn-link btn-link--red" @click="deleteArticle(a)">
+                删除
+              </button>
             </td>
           </tr>
         </tbody>
@@ -67,7 +100,11 @@
       <div class="category-section">
         <div class="section-header">
           <span class="section-title">服务/需求分类</span>
-          <button type="button" class="btn-primary" @click="openAddServiceCategory">
+          <button
+            type="button"
+            class="btn-primary"
+            @click="openAddServiceCategory"
+          >
             + 新增
           </button>
         </div>
@@ -76,11 +113,25 @@
             <span class="tree-icon">📁</span>
             <span class="tree-name">{{ cat.name }}</span>
             <div class="tree-actions">
-              <button type="button" class="btn-link" @click="editServiceCategory(cat)">编辑</button>
-              <button type="button" class="btn-link btn-link--red" @click="deleteServiceCategory(cat)">删除</button>
+              <button
+                type="button"
+                class="btn-link"
+                @click="editServiceCategory(cat)"
+              >
+                编辑
+              </button>
+              <button
+                type="button"
+                class="btn-link btn-link--red"
+                @click="deleteServiceCategory(cat)"
+              >
+                删除
+              </button>
             </div>
           </div>
-          <div v-if="serviceCategories.length === 0" class="empty-tip">暂无服务分类</div>
+          <div v-if="serviceCategories.length === 0" class="empty-tip">
+            暂无服务分类
+          </div>
         </div>
       </div>
     </div>
@@ -93,7 +144,11 @@
           class="search-input"
           placeholder="搜索分类名称"
         />
-        <button type="button" class="btn-primary" @click="openForumCategoryModal('add')">
+        <button
+          type="button"
+          class="btn-primary"
+          @click="openForumCategoryModal('add')"
+        >
           + 新增分类
         </button>
       </div>
@@ -109,11 +164,23 @@
         <tbody>
           <tr v-for="cat in filteredForumCategories" :key="cat.id">
             <td>{{ cat.name }}</td>
-            <td>{{ cat.description || '—' }}</td>
+            <td>{{ cat.description || "—" }}</td>
             <td>{{ formatModeratorSummary(cat.moderators) }}</td>
             <td class="action-cell">
-              <button type="button" class="btn-link" @click="openForumCategoryModal('edit', cat)">编辑</button>
-              <button type="button" class="btn-link btn-link--red" @click="deleteForumCategory(cat)">删除</button>
+              <button
+                type="button"
+                class="btn-link"
+                @click="openForumCategoryModal('edit', cat)"
+              >
+                编辑
+              </button>
+              <button
+                type="button"
+                class="btn-link btn-link--red"
+                @click="deleteForumCategory(cat)"
+              >
+                删除
+              </button>
             </td>
           </tr>
         </tbody>
@@ -131,7 +198,9 @@
     >
       <div class="forum-cat-form">
         <div class="forum-cat-form-item">
-          <label class="forum-cat-label"><span class="forum-cat-req">*</span>分类名称</label>
+          <label class="forum-cat-label"
+            ><span class="forum-cat-req">*</span>分类名称</label
+          >
           <a-input
             v-model:value="forumCatModal.name"
             placeholder="请输入分类名称"
@@ -164,7 +233,13 @@
               <span class="forum-mod-name">{{ m.userName }}</span>
               <span v-if="m.canDelete" class="forum-mod-badge">删帖</span>
               <span v-if="m.canPin" class="forum-mod-badge">置顶</span>
-              <button type="button" class="btn-link btn-link--small" @click="removeForumModeratorRow(m._key)">移除</button>
+              <button
+                type="button"
+                class="btn-link btn-link--small"
+                @click="removeForumModeratorRow(m._key)"
+              >
+                移除
+              </button>
             </div>
           </div>
           <div class="forum-mod-add">
@@ -175,9 +250,15 @@
               class="forum-mod-select"
               :options="moderatorUserOptionsFiltered"
             />
-            <a-checkbox v-model:checked="forumCatModal.pendingCanDelete">默认删帖权限</a-checkbox>
-            <a-checkbox v-model:checked="forumCatModal.pendingCanPin">默认置顶权限</a-checkbox>
-            <a-button type="primary" @click="addForumModeratorRow">添加版主</a-button>
+            <a-checkbox v-model:checked="forumCatModal.pendingCanDelete"
+              >默认删帖权限</a-checkbox
+            >
+            <a-checkbox v-model:checked="forumCatModal.pendingCanPin"
+              >默认置顶权限</a-checkbox
+            >
+            <a-button type="primary" @click="addForumModeratorRow"
+              >添加版主</a-button
+            >
           </div>
         </div>
       </div>
@@ -190,14 +271,16 @@
     <!-- 服务分类：新建 / 编辑 -->
     <a-modal
       v-model:open="serviceCatModal.open"
-      :title="serviceCatModal.mode === 'add' ? '新增服务分类' : '编辑服务分类'"
+      :title="serviceCatModal.mode === 'add' ? '新增分类' : '编辑分类'"
       :width="400"
       :footer="null"
       destroy-on-close
     >
       <div class="cat-form">
         <div class="cat-form-item">
-          <label class="cat-form-label"><span class="cat-form-req">*</span>分类名称</label>
+          <label class="cat-form-label"
+            ><span class="cat-form-req">*</span>分类名称</label
+          >
           <a-input
             v-model:value="serviceCatModal.name"
             placeholder="请输入分类名称"
@@ -221,7 +304,9 @@
     >
       <div class="cat-form">
         <div class="cat-form-item">
-          <label class="cat-form-label"><span class="cat-form-req">*</span>分类名称</label>
+          <label class="cat-form-label"
+            ><span class="cat-form-req">*</span>分类名称</label
+          >
           <a-input
             v-model:value="demandCatModal.name"
             placeholder="请输入分类名称"
@@ -251,7 +336,9 @@
           :placeholder="
             auditModal.type === 'pass' ? '备注（选填）' : '驳回原因（必填）'
           "
-          :style="{ borderColor: auditModal.type === 'reject' ? '#dc2626' : '#e0e0e0' }"
+          :style="{
+            borderColor: auditModal.type === 'reject' ? '#dc2626' : '#e0e0e0',
+          }"
         ></textarea>
         <div class="modal-footer">
           <button class="btn-default" @click="auditModal.show = false">
@@ -307,16 +394,27 @@
             <h2 class="detail-title">{{ articleDetail.data?.title }}</h2>
             <div class="detail-meta">
               <div class="meta-author">
-                <a-avatar :size="28" :style="{ backgroundColor: articleDetail.data?.authorColor }">
+                <a-avatar
+                  :size="28"
+                  :style="{ backgroundColor: articleDetail.data?.authorColor }"
+                >
                   {{ articleDetail.data?.author?.[0] }}
                 </a-avatar>
-                <span class="author-name">{{ articleDetail.data?.author }}</span>
+                <span class="author-name">{{
+                  articleDetail.data?.author
+                }}</span>
               </div>
               <span class="meta-sep">|</span>
               <span class="meta-time">{{ articleDetail.data?.publishAt }}</span>
             </div>
             <div class="detail-tags">
-              <a-tag v-for="tag in articleDetail.data?.tags" :key="tag" color="blue" size="small">{{ tag }}</a-tag>
+              <a-tag
+                v-for="tag in articleDetail.data?.tags"
+                :key="tag"
+                color="blue"
+                size="small"
+                >{{ tag }}</a-tag
+              >
             </div>
           </div>
         </div>
@@ -328,7 +426,10 @@
         </div>
 
         <div class="detail-content">
-          <div class="article-body" v-html="formatContent(articleDetail.data?.content)"></div>
+          <div
+            class="article-body"
+            v-html="formatContent(articleDetail.data?.content)"
+          ></div>
         </div>
 
         <a-divider style="margin: 16px 0" />
@@ -338,12 +439,20 @@
           <textarea
             v-model="auditModal.remark"
             class="modal-textarea"
-            :placeholder="auditModal.type === 'reject' ? '驳回原因（必填）' : '备注（选填）'"
+            :placeholder="
+              auditModal.type === 'reject' ? '驳回原因（必填）' : '备注（选填）'
+            "
             style="border-color: #e0e0e0"
           ></textarea>
           <div class="audit-actions">
-            <button class="btn-success" @click="submitAuditFromDetail('pass')">通过</button>
-            <a-button class="btn-danger" @click="submitAuditFromDetail('reject')">驳回</a-button>
+            <button class="btn-success" @click="submitAuditFromDetail('pass')">
+              通过
+            </button>
+            <a-button
+              class="btn-danger"
+              @click="submitAuditFromDetail('reject')"
+              >驳回</a-button
+            >
           </div>
         </div>
       </div>
@@ -369,7 +478,7 @@ const selectedArticles = ref([]);
 
 const toggleSelectAll = () => {
   if (selectAll.value) {
-    selectedArticles.value = filteredArticleList.value.map(a => a.id);
+    selectedArticles.value = filteredArticleList.value.map((a) => a.id);
   } else {
     selectedArticles.value = [];
   }
@@ -379,17 +488,18 @@ const toggleSelectAll = () => {
 const filteredArticleList = computed(() => {
   if (!articleSearch.value) return articleList.value;
   const keyword = articleSearch.value.toLowerCase();
-  return articleList.value.filter(a =>
-    a.title.toLowerCase().includes(keyword) ||
-    a.author.toLowerCase().includes(keyword)
+  return articleList.value.filter(
+    (a) =>
+      a.title.toLowerCase().includes(keyword) ||
+      a.author.toLowerCase().includes(keyword),
   );
 });
 
 // 过滤后的论坛分类
 const filteredForumCategories = computed(() => {
   if (!forumSearch.value) return forumCategories.value;
-  return forumCategories.value.filter(c =>
-    c.name.toLowerCase().includes(forumSearch.value.toLowerCase())
+  return forumCategories.value.filter((c) =>
+    c.name.toLowerCase().includes(forumSearch.value.toLowerCase()),
   );
 });
 
@@ -450,7 +560,7 @@ Vue3 支持 Tree Shaking，可以大幅减少打包体积。
 ## 四、总结
 
 Vue3 带来了众多优秀特性，合理运用这些特性可以显著提升开发效率和用户体验。`,
-    tags: ["Vue3", "前端", "JavaScript"]
+    tags: ["Vue3", "前端", "JavaScript"],
   },
   {
     id: 2,
@@ -497,7 +607,7 @@ asyncio.run(main())
 ## 五、总结
 
 Python 的异步编程能力强大，掌握这些技能可以显著提升应用的并发性能。`,
-    tags: ["Python", "后端", "异步编程"]
+    tags: ["Python", "后端", "异步编程"],
   },
   {
     id: 5,
@@ -546,16 +656,15 @@ CMD ["nginx", "-g", "daemon off;"]
 ## 四、总结
 
 Docker 是现代云原生应用开发的重要工具，掌握其使用对于开发者至关重要。`,
-    tags: ["Docker", "DevOps", "容器化"]
-  }
-])
+    tags: ["Docker", "DevOps", "容器化"],
+  },
+]);
 
 const serviceCategories = ref([
   { id: 1, name: "前端开发" },
   { id: 2, name: "后端开发" },
   { id: 3, name: "UI设计" },
 ]);
-
 
 const forumCategories = ref([
   {
@@ -597,9 +706,7 @@ const forumCatModal = reactive({
 });
 
 const moderatorUserOptionsFiltered = computed(() => {
-  const taken = new Set(
-    forumCatModal.moderators.map((m) => m.userId)
-  );
+  const taken = new Set(forumCatModal.moderators.map((m) => m.userId));
   return moderatorUserPool.filter((o) => !taken.has(o.value));
 });
 
@@ -648,7 +755,7 @@ const addForumModeratorRow = () => {
     return;
   }
   const opt = moderatorUserPool.find(
-    (o) => o.value === forumCatModal.pendingUserId
+    (o) => o.value === forumCatModal.pendingUserId,
   );
   if (!opt) return;
   if (forumCatModal.moderators.some((m) => m.userId === opt.value)) {
@@ -667,7 +774,7 @@ const addForumModeratorRow = () => {
 
 const removeForumModeratorRow = (_key) => {
   forumCatModal.moderators = forumCatModal.moderators.filter(
-    (m) => m._key !== _key
+    (m) => m._key !== _key,
   );
 };
 
@@ -702,7 +809,7 @@ const submitForumCategory = () => {
     message.success("新建成功");
   } else {
     const cat = forumCategories.value.find(
-      (c) => c.id === forumCatModal.editingId
+      (c) => c.id === forumCatModal.editingId,
     );
     if (cat) {
       cat.name = name;
@@ -724,7 +831,7 @@ const deleteForumCategory = (cat) => {
     okType: "danger",
     onOk() {
       forumCategories.value = forumCategories.value.filter(
-        (c) => c.id !== cat.id
+        (c) => c.id !== cat.id,
       );
       message.success("已删除");
     },
@@ -733,13 +840,13 @@ const deleteForumCategory = (cat) => {
 
 const openAddServiceCategory = () => {
   resetServiceCatModal();
-  serviceCatModal.mode = 'add';
+  serviceCatModal.mode = "add";
   serviceCatModal.open = true;
 };
 
 const editServiceCategory = (cat) => {
   resetServiceCatModal();
-  serviceCatModal.mode = 'edit';
+  serviceCatModal.mode = "edit";
   serviceCatModal.editingId = cat.id;
   serviceCatModal.name = cat.name;
   serviceCatModal.open = true;
@@ -754,7 +861,7 @@ const deleteServiceCategory = (cat) => {
     okType: "danger",
     onOk() {
       serviceCategories.value = serviceCategories.value.filter(
-        (c) => c.id !== cat.id
+        (c) => c.id !== cat.id,
       );
       message.success("已删除");
     },
@@ -764,62 +871,60 @@ const deleteServiceCategory = (cat) => {
 // 需求分类弹窗
 const serviceCatModal = reactive({
   open: false,
-  mode: 'add', // 'add' | 'edit'
+  mode: "add", // 'add' | 'edit'
   editingId: null,
-  name: '',
-  type: 'service', // 'service' | 'demand'
+  name: "",
+  type: "service", // 'service' | 'demand'
 });
 
 const demandCatModal = reactive({
   open: false,
-  mode: 'add',
+  mode: "add",
   editingId: null,
-  name: '',
+  name: "",
 });
 
 const resetServiceCatModal = () => {
-  serviceCatModal.mode = 'add';
+  serviceCatModal.mode = "add";
   serviceCatModal.editingId = null;
-  serviceCatModal.name = '';
+  serviceCatModal.name = "";
 };
 
 const resetDemandCatModal = () => {
-  demandCatModal.mode = 'add';
+  demandCatModal.mode = "add";
   demandCatModal.editingId = null;
-  demandCatModal.name = '';
+  demandCatModal.name = "";
 };
 
 const nextServiceCategoryId = () => {
-  const ids = serviceCategories.value.map(c => c.id);
+  const ids = serviceCategories.value.map((c) => c.id);
   return ids.length ? Math.max(...ids) + 1 : 1;
 };
-
-
 
 const submitServiceCategory = () => {
   const name = serviceCatModal.name.trim();
   if (!name) {
-    message.warning('请输入分类名称');
+    message.warning("请输入分类名称");
     return;
   }
-  if (serviceCatModal.mode === 'add') {
+  if (serviceCatModal.mode === "add") {
     serviceCategories.value.push({
       id: nextServiceCategoryId(),
       name,
     });
-    message.success('新增成功');
+    message.success("新增成功");
   } else {
-    const cat = serviceCategories.value.find(c => c.id === serviceCatModal.editingId);
+    const cat = serviceCategories.value.find(
+      (c) => c.id === serviceCatModal.editingId,
+    );
     if (cat) {
       cat.name = name;
     }
-    message.success('保存成功');
+    message.success("保存成功");
   }
   serviceCatModal.open = false;
   resetServiceCatModal();
 };
-
-
 
 const auditModal = reactive({
   show: false,
@@ -835,38 +940,38 @@ const batchRejectModal = reactive({
 
 const articleDetail = reactive({
   visible: false,
-  data: null
+  data: null,
 });
 
 const formatContent = (content) => {
-  if (!content) return ''
+  if (!content) return "";
   return content
-    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-    .replace(/`{3}(\w*)\n([\s\S]*?)`{3}/g, '<pre><code>$2</code></pre>')
-    .replace(/`([^`]+)`/g, '<code>$1</code>')
-    .replace(/^- (.+)$/gm, '<li>$1</li>')
-    .replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>')
-    .replace(/^(\d+)\. (.+)$/gm, '<li>$2</li>')
-    .replace(/\n\n/g, '</p><p>')
-    .replace(/^(?!<[hpu])/gm, '')
-    .replace(/\n/g, '<br/>')
-}
+    .replace(/^## (.+)$/gm, "<h2>$1</h2>")
+    .replace(/^### (.+)$/gm, "<h3>$1</h3>")
+    .replace(/`{3}(\w*)\n([\s\S]*?)`{3}/g, "<pre><code>$2</code></pre>")
+    .replace(/`([^`]+)`/g, "<code>$1</code>")
+    .replace(/^- (.+)$/gm, "<li>$1</li>")
+    .replace(/(<li>.*<\/li>\n?)+/g, "<ul>$&</ul>")
+    .replace(/^(\d+)\. (.+)$/gm, "<li>$2</li>")
+    .replace(/\n\n/g, "</p><p>")
+    .replace(/^(?!<[hpu])/gm, "")
+    .replace(/\n/g, "<br/>");
+};
 
 const toggleTop = (a) => {
   a.top = !a.top;
 };
 const deleteArticle = (a) => {
   Modal.confirm({
-    title: '确认删除',
+    title: "确认删除",
     content: `确定要删除文章"${a.title}"吗？`,
-    okText: '确认',
-    cancelText: '取消',
-    okType: 'danger',
+    okText: "确认",
+    cancelText: "取消",
+    okType: "danger",
     onOk() {
       articleList.value = articleList.value.filter((x) => x.id !== a.id);
-      message.success('删除成功');
-    }
+      message.success("删除成功");
+    },
   });
 };
 
@@ -880,31 +985,31 @@ const openAudit = (item, type) => {
 // 批量审核
 const batchAudit = (type) => {
   if (selectedArticles.value.length === 0) {
-    message.warning('请先选择要审核的文章');
+    message.warning("请先选择要审核的文章");
     return;
   }
 
-  if (type === 'reject') {
+  if (type === "reject") {
     // 驳回：弹出填写原因的弹窗
     batchRejectModal.show = true;
     batchRejectModal.reason = "";
   } else {
     // 通过：直接确认
     Modal.confirm({
-      title: '批量通过',
+      title: "批量通过",
       content: `确定要通过选中的 ${selectedArticles.value.length} 篇文章吗？`,
-      okText: '确认',
-      cancelText: '取消',
+      okText: "确认",
+      cancelText: "取消",
       onOk() {
-        articleList.value.forEach(article => {
+        articleList.value.forEach((article) => {
           if (selectedArticles.value.includes(article.id)) {
-            article.status = 'approved';
+            article.status = "approved";
           }
         });
-        message.success('批量通过成功');
+        message.success("批量通过成功");
         selectedArticles.value = [];
         selectAll.value = false;
-      }
+      },
     });
   }
 };
@@ -912,16 +1017,18 @@ const batchAudit = (type) => {
 // 确认批量驳回
 const confirmBatchReject = () => {
   if (!batchRejectModal.reason.trim()) {
-    message.warning('请填写驳回原因');
+    message.warning("请填写驳回原因");
     return;
   }
-  articleList.value.forEach(article => {
+  articleList.value.forEach((article) => {
     if (selectedArticles.value.includes(article.id)) {
-      article.status = 'rejected';
+      article.status = "rejected";
       article.rejectReason = batchRejectModal.reason;
     }
   });
-  message.success(`批量驳回成功，共驳回 ${selectedArticles.value.length} 篇文章`);
+  message.success(
+    `批量驳回成功，共驳回 ${selectedArticles.value.length} 篇文章`,
+  );
   selectedArticles.value = [];
   selectAll.value = false;
   batchRejectModal.show = false;
@@ -929,46 +1036,45 @@ const confirmBatchReject = () => {
 
 const submitAudit = () => {
   if (auditModal.type === "reject" && !auditModal.remark.trim()) {
-    message.warning('请填写驳回原因');
+    message.warning("请填写驳回原因");
     return;
   }
   // 更新文章状态
-  const article = articleList.value.find(a => a.id === auditModal.target.id);
+  const article = articleList.value.find((a) => a.id === auditModal.target.id);
   if (article) {
     article.status = auditModal.type === "pass" ? "approved" : "rejected";
     article.remark = auditModal.remark;
-    message.success(auditModal.type === "pass" ? '审核通过' : '已驳回');
+    message.success(auditModal.type === "pass" ? "审核通过" : "已驳回");
   }
   auditModal.show = false;
 };
 
 const viewArticleDetail = (article) => {
   auditModal.target = article;
-  auditModal.remark = article.rejectReason || article.remark || '';
-  articleDetail.data = article
-  articleDetail.visible = true
+  auditModal.remark = article.rejectReason || article.remark || "";
+  articleDetail.data = article;
+  articleDetail.visible = true;
 };
 
 // 从详情页提交审核
 const submitAuditFromDetail = (type) => {
-  if (type === 'reject' && !auditModal.remark.trim()) {
-    message.warning('请填写驳回原因');
+  if (type === "reject" && !auditModal.remark.trim()) {
+    message.warning("请填写驳回原因");
     return;
   }
-  const article = articleList.value.find(a => a.id === auditModal.target.id);
+  const article = articleList.value.find((a) => a.id === auditModal.target.id);
   if (article) {
-    article.status = type === 'pass' ? 'approved' : 'rejected';
-    if (type === 'reject') {
+    article.status = type === "pass" ? "approved" : "rejected";
+    if (type === "reject") {
       article.rejectReason = auditModal.remark;
     } else {
       article.remark = auditModal.remark;
     }
-    message.success(type === 'pass' ? '审核通过' : '已驳回');
+    message.success(type === "pass" ? "审核通过" : "已驳回");
   }
   articleDetail.visible = false;
-  auditModal.remark = '';
+  auditModal.remark = "";
 };
-
 </script>
 
 <style scoped>
@@ -1553,7 +1659,7 @@ const submitAuditFromDetail = (type) => {
 }
 
 .article-detail-modal .article-body :deep(code) {
-  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;
   font-size: 13px;
   color: #e11d48;
   background: #f3f4f6;
