@@ -63,7 +63,7 @@
             ><span>{{ detailItem.orderNo }}</span>
           </div>
           <div class="info-row">
-            <span class="info-label">服务名称</span
+            <span class="info-label">商品名称</span
             ><span>{{ detailItem.serviceName }}</span>
           </div>
           <div class="info-row">
@@ -77,6 +77,10 @@
           <div class="info-row">
             <span class="info-label">订单金额</span
             ><span>¥{{ detailItem.amount }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">订单类型</span
+            ><span>{{ detailItem.type }}</span>
           </div>
           <div class="info-row">
             <span class="info-label">订单状态</span
@@ -170,6 +174,7 @@ const appealList = ref([
     buyer: "张三",
     seller: "李四",
     amount: 2000,
+    type: "服务商品",
     orderStatus: "已完成",
     evidence: ["截图1.png", "聊天记录.pdf"],
     remark: "",
@@ -186,6 +191,7 @@ const appealList = ref([
     buyer: "王五",
     seller: "赵六",
     amount: 1500,
+    type: "服务商品",
     orderStatus: "申诉成功",
     evidence: ["对比截图.png"],
     remark: "经核实，服务商未按约定交付，申诉成立",
@@ -202,6 +208,7 @@ const appealList = ref([
     buyer: "孙七",
     seller: "周八",
     amount: 800,
+    type: "需求悬赏",
     orderStatus: "申诉失败",
     evidence: [],
     remark: "经核实，延迟原因为买家需求变更，申诉不成立",
