@@ -44,6 +44,7 @@
 import { reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { message } from "ant-design-vue";
+import { appLogin } from "@/service";
 
 const router = useRouter();
 const loading = ref(false);
@@ -53,41 +54,41 @@ const formState = reactive({
   password: "",
 });
 
-// 模拟账号数据
-const accounts = {
-  user: { password: "123456", role: "user", redirect: "/user/home" },
-  provider: { password: "123456", role: "provider", redirect: "/user/home" },
-  admin: { password: "123456", role: "admin", redirect: "/admin" },
-};
-
-const handleLogin = () => {
+const handleLogin = async () => {
   loading.value = true;
 
-  // 模拟登录延迟
-  setTimeout(() => {
-    const account = accounts[formState.username];
+  try {
+    const res = await appLogin({
+      username: formState.username,
+      password: formState.password,
+    });
 
-    if (!account) {
-      message.error("用户名不存在");
-      loading.value = false;
-      return;
+    if (res.code === 0) {
+      // 保存 token 和用户信息
+      localStorage.setItem("token", res.data?.accessToken);
+      localStorage.setItem("refreshToken", res.data?.refreshToken);
+      localStorage.setItem("userId", res.data?.userId);
+      localStorage.setItem("username", res.data?.nickname || formState.username);
+      localStorage.setItem("userRole", res.data?.userRole || res.data?.role || "user");
+      localStorage.setItem("expiresTime", res.data?.expiresTime);
+
+      message.success("登录成功");
+      const userRole = res.data?.userRole || res.data?.role || "user";
+      if (userRole === "user" || userRole === "provider") {
+        router.push("/user/home");
+      } else if (userRole === "admin") {
+        router.push("/admin");
+      } else {
+        router.push("/user/home");
+      }
+    } else {
+      message.error(res.msg || "登录失败");
     }
-
-    if (account.password !== formState.password) {
-      message.error("密码错误");
-      loading.value = false;
-      return;
-    }
-
-    // 登录成功，保存用户信息
-    localStorage.setItem("token", "mock-token-" + Date.now());
-    localStorage.setItem("userRole", account.role);
-    localStorage.setItem("username", formState.username);
-
-    // 直接跳转到首页
-    router.push(account.redirect);
+  } catch (error) {
+    message.error(error.msg || "登录失败，请稍后重试");
+  } finally {
     loading.value = false;
-  }, 500);
+  }
 };
 </script>
 

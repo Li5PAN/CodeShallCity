@@ -102,7 +102,7 @@
 </template>
 
 <script setup>
-import { ref, inject } from "vue";
+import { ref, inject, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import {
   EyeOutlined,
@@ -111,6 +111,7 @@ import {
   RightOutlined,
   StarFilled,
 } from "@ant-design/icons-vue";
+import { getHomeDemands, getHomeGoods } from "@/service/user/uindex";
 
 const router = useRouter();
 const openDetail = inject("openDetail");
@@ -125,29 +126,32 @@ const getUrgencyColor = (urgency) => {
   return colorMap[urgency] || "default";
 };
 
-const rewardList = ref([
-  {
-    id: 1,
-    tag: "紧急",
-    title: "MiniMax-M2.1: MiniMax-AI开源大模型，赋能高效智能应用开发",
-    desc: "基于最新AI技术，提供高效的智能应用开发解决方案，支持多种场景应用，帮助企业快速构建智能化系统",
-    author: "李XXX",
-  },
-  {
-    id: 2,
-    tag: "一般",
-    title: "PaddleOCR-VL: 开源视觉语言OCR工具，多模态识别提升文档处理效率",
-    desc: "专业的OCR识别工具开发需求，需要支持多语言识别和文档智能处理，提升企业文档数字化效率",
-    author: "王哈哈",
-  },
-  {
-    id: 3,
-    tag: "常规",
-    title: "CHATERMAI：开启云资源氛围管理新篇章！",
-    desc: "云资源管理平台开发，需要实现资源监控、自动化部署、成本优化等功能，提升云资源使用效率",
-    author: "向前开",
-  },
-]);
+// 需求悬赏列表数据
+const rewardList = ref([]);
+
+// 加载首页需求悬赏数据
+const loadDemandData = async () => {
+  try {
+    const res = await getHomeDemands({ pageNum: 1, pageSize: 6 })
+    if (res.code === 0 && res.data) {
+      // 将接口数据映射到卡片展示所需的格式
+      rewardList.value = res.data.map(item => ({
+        id: item.id,
+        tag: item.urgency,
+        title: item.demandTitle,
+        desc: item.demandDescription,
+        author: item.userName
+      }))
+    }
+  } catch (error) {
+    console.error('加载需求悬赏数据失败:', error)
+  }
+}
+
+// 组件挂载时加载数据
+onMounted(() => {
+  loadDemandData()
+})
 
 const goToDemandBounty = () => {
   router.push("/user/demand-bounty");
@@ -161,75 +165,35 @@ const goToServiceMarket = () => {
   router.push("/user/service-market");
 };
 
-// 精选服务数据 - 使用服务市场的模拟数据
-const featuredServices = ref([
-  {
-    id: 1,
-    title: "Java大厂面试冲刺班",
-    desc: "覆盖Java基础、JVM、并发、分布式等核心考点，配套模拟面试和简历优化",
-    price: 399,
-    cover: "https://placehold.co/200x120/FFD700/000000?text=Java",
-    tags: ["平台保障", "商家认证", "7天无理由"],
-    provider: "李老师",
-    orders: 1258,
-    rating: 4.9,
-  },
-  {
-    id: 2,
-    title: "MySQL数据库性能优化实战",
-    desc: "从底层原理到实战优化，涵盖索引、事务、锁机制、分库分表等高级话题",
-    price: 499,
-    cover: "https://placehold.co/200x120/FF6600/FFFFFF?text=MySQL",
-    tags: ["平台保障", "官方认证", "售后答疑"],
-    provider: "数据库老王",
-    orders: 896,
-    rating: 4.8,
-  },
-  {
-    id: 3,
-    title: "Redis缓存架构设计与实战",
-    desc: "深入讲解Redis数据结构、持久化、集群方案，结合电商场景实战",
-    price: 399,
-    cover: "https://placehold.co/200x120/DC143C/FFFFFF?text=Redis",
-    tags: ["平台保障", "源码解析", "项目实战"],
-    provider: "缓存专家张工",
-    orders: 756,
-    rating: 4.9,
-  },
-  {
-    id: 4,
-    title: "Vue3企业级项目实战课程",
-    desc: "从零构建企业级Vue3项目，涵盖Composition API、TypeScript、Pinia状态管理",
-    price: 399,
-    cover: "https://placehold.co/200x120/42b883/FFFFFF?text=Vue3",
-    tags: ["平台保障", "TS认证", "终身更新"],
-    provider: "前端架构师小李",
-    orders: 1123,
-    rating: 4.9,
-  },
-  {
-    id: 5,
-    title: "Python数据分析与可视化",
-    desc: "Pandas、NumPy、Matplotlib、ECharts，从数据处理到可视化呈现全流程",
-    price: 299,
-    cover: "https://placehold.co/200x120/3776AB/FFFFFF?text=Python",
-    tags: ["平台保障", "数据分析认证"],
-    provider: "数据分析师阿华",
-    orders: 634,
-    rating: 4.7,
-  },
-  {
-    id: 6,
-    title: "Go语言微服务架构实战",
-    desc: "gRPC、K8s、Gin框架、Prometheus监控，打造高性能微服务",
-    price: 499,
-    cover: "https://placehold.co/200x120/00ADD8/FFFFFF?text=Go",
-    tags: ["平台保障", "Go语言认证"],
-    provider: "Go语言布道师",
-    orders: 423,
-    rating: 4.8,
-  },
-]);
+// 精选服务数据
+const featuredServices = ref([])
+
+// 加载精选服务数据
+const loadFeaturedServices = async () => {
+  try {
+    const res = await getHomeGoods({ pageNum: 1, pageSize: 6 })
+    if (res.code === 0 && res.data) {
+      featuredServices.value = res.data.map(item => ({
+        id: item.id,
+        title: item.title,
+        desc: item.description,
+        cover: item.picture,
+        tags: item.tag ? item.tag.split(',') : [],
+        provider: item.merchantName,
+        orders: item.salesCount || 0,
+        rating: item.goodRating
+      }))
+    }
+  } catch (error) {
+    console.error('加载精选服务数据失败:', error)
+  }
+}
+
+// 组件挂载时加载数据
+onMounted(() => {
+  loadDemandData()
+  loadFeaturedServices()
+})
 
 const forumList = ref([
   { id: 1, name: "海洋开发者中文社区" },
