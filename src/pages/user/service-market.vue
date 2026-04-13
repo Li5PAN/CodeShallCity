@@ -369,39 +369,55 @@ onMounted(() => {
   border-radius: 8px;
   overflow: hidden;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  height: 400px;
+  width:  400px;
+  display: flex;
+  flex-direction: column;
 }
 .card-cover {
-  height: 120px;
+  width: 100%;
+  height: 100px;
+  flex-shrink: 0;
   background-size: cover;
   background-position: center;
 }
 .card-content {
   padding: 12px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
 }
 .card-title {
   font-size: 16px;
   font-weight: 600;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex-shrink: 0;
+  line-height: 1.3;
+  max-height: 20.8px;
 }
 .card-desc {
   font-size: 12px;
   color: #666;
-  margin-bottom: 8px;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  line-clamp: 2;
-  -webkit-box-orient: vertical;
+  margin-bottom: 6px;
   overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   line-height: 1.4;
+  flex-shrink: 0;
+  max-height: 19.6px;
 }
 .card-tags {
-  margin-bottom: 10px;
+  margin-bottom: 6px;
   display: flex;
   gap: 4px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+  overflow: hidden;
+  min-height: 22px;
 }
 .card-footer {
   display: flex;
@@ -410,6 +426,8 @@ onMounted(() => {
   font-size: 12px;
   padding-top: 8px;
   border-top: 1px solid #f5f5f5;
+  margin-top: auto;
+  flex-shrink: 0;
 }
 .footer-left {
   display: flex;
