@@ -99,10 +99,11 @@
 </template>
 
 <script setup>
-import { ref, computed, inject } from 'vue'
+import { ref, computed, inject, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import { CheckCircleOutlined, ShoppingCartOutlined, HeartOutlined } from '@ant-design/icons-vue'
+import { getGoodsDetail } from '../../service/user/uservice.js'
 
 const props = defineProps({ id: { type: Number, default: 1 }, from: { type: String, default: '' } })
 const closeDetail = inject('closeDetail', () => {})
@@ -118,6 +119,69 @@ const quantity = ref(1)
 const buyModalVisible = ref(false)
 const buyLoading = ref(false)
 const buyRemark = ref('')
+const loading = ref(false)
+
+// 服务数据，映射 API 返回字段
+const service = ref({
+  title: '',
+  desc: '',
+  price: 0,
+  sales: 0,
+  rating: 100,
+  tags: [],
+  images: [],
+  seller: {
+    name: '',
+    orders: 0
+  },
+  detailIntro: '',
+  detailItems: [],
+  deliveryStandard: ''
+})
+
+// 加载商品详情
+const loadGoodsDetail = async () => {
+  loading.value = true
+  try {
+    const res = await getGoodsDetail(serviceId.value)
+    if (res && res.data) {
+      const data = res.data
+      // 映射 API 字段到页面使用的字段
+      service.value = {
+        title: data.goodsTitle || '未知商品',
+        desc: data.description || '',
+        price: data.price || 0,
+        sales: data.orderCount || 0,
+        rating: 100, // 接口没有返回好评率，默认 100
+        tags: ['平台保障', '商家认证', '7天无理由'], // 接口未提供，使用默认标签
+        images: data.images && data.images.length > 0 ? data.images : [data.coverImage].filter(Boolean),
+        seller: {
+          name: data.providerName || '未知商家',
+          orders: data.orderCount || 0
+        },
+        detailIntro: data.content || '',
+        detailItems: [], // 接口未提供详细列表，从 content 解析或使用默认
+        deliveryStandard: data.deliveryDays ? `交付天数：${data.deliveryDays}天` : ''
+      }
+      collected.value = data.isCollected || false
+    }
+  } catch (error) {
+    console.error('加载商品详情失败:', error)
+    message.error('加载商品详情失败')
+  } finally {
+    loading.value = false
+  }
+}
+
+// 监听 serviceId 变化，重新加载
+watch(serviceId, () => {
+  loadGoodsDetail()
+})
+
+// 组件挂载时加载
+onMounted(() => {
+  loadGoodsDetail()
+})
 
 const handleBuy = async () => {
   buyLoading.value = true
@@ -132,70 +196,6 @@ const handleBuy = async () => {
     buyLoading.value = false
   }
 }
-
-const serviceMap = {
-  1: {
-    title: 'Java大厂面试题 一套搞定offer',
-    desc: '覆盖Java基础、JVM、并发、分布式等核心考点，配套面试模拟，助你轻松拿下大厂offer',
-    price: 399, sales: 1200, rating: 98,
-    tags: ['平台保障', '商家认证', '7天无理由', '售后答疑','交付天数：60'],
-    images: [
-      'https://placehold.co/480x360/FFD700/000000?text=Java',
-      'https://placehold.co/480x360/FF8C00/FFFFFF?text=课程大纲',
-      'https://placehold.co/480x360/32CD32/FFFFFF?text=学员反馈',
-      'https://placehold.co/480x360/4169E1/FFFFFF?text=讲师介绍'
-    ],
-    seller: { name: '码上拿offer', orders: 3200 },
-    detailIntro: '本服务由资深Java架构师团队打造，覆盖Java基础、JVM调优、多线程并发、Spring全家桶、分布式架构、微服务、消息队列、数据库优化等大厂高频面试考点。',
-    detailItems: ['Java核心基础与JVM深度解析', 'Spring/SpringBoot/SpringCloud全套面试题', '分布式系统设计与微服务架构', 'MySQL索引优化与分库分表方案', 'Redis缓存策略与高可用方案', '消息队列(Kafka/RabbitMQ)实战', '一对一模拟面试(3次)', '简历优化与面试技巧指导'],
-    deliveryStandard: '购买后24小时内开通课程权限，模拟面试需提前预约。课程资料永久有效，模拟面试在购买后30天内完成。'
-  },
-  2: {
-    title: '10天精通MySQL 讲的特别深入的那种',
-    desc: '从底层原理到实战优化，涵盖索引、事务、锁机制、分库分表',
-    price: 399, originalPrice: 599, sales: 860, rating: 99,
-    tags: ['平台保障', '官方认证', '售后答疑', '终身更新'],
-    images: [
-      'https://placehold.co/480x360/FF6600/FFFFFF?text=MySQL',
-      'https://placehold.co/480x360/1E90FF/FFFFFF?text=索引原理',
-      'https://placehold.co/480x360/FF4500/FFFFFF?text=锁机制'
-    ],
-    seller: { name: 'DB技术专家',  orders: 1800 },
-    detailIntro: '深入MySQL底层原理，从B+树索引结构到MVCC多版本并发控制，从锁机制到分库分表方案，10天带你从入门到精通。',
-    detailItems: ['MySQL架构与存储引擎深度解析', 'B+树索引原理与优化实战', '事务隔离级别与MVCC机制', '锁机制：行锁、表锁、间隙锁', '慢SQL分析与执行计划优化', '分库分表方案设计与实战'],
-    deliveryStandard: '购买后立即开通，课程内容持续更新，配套练习题和实战项目。'
-  },
-  3: {
-    title: '颠覆你认知的八股盛宴',
-    desc: '打破传统八股文，结合实战场景讲解，让面试官眼前一亮',
-    price: 399, originalPrice: 799, sales: 650, rating: 97,
-    tags: ['平台保障', '一对一辅导', '终身更新'],
-    images: [
-      'https://placehold.co/480x360/FF4444/FFFFFF?text=八股盛宴',
-      'https://placehold.co/480x360/9932CC/FFFFFF?text=面试技巧'
-    ],
-    seller: { name: '面试达人', orders: 2100 },
-    detailIntro: '告别死记硬背，用实战场景理解八股文背后的原理。结合真实项目案例，让你在面试中答出深度。',
-    detailItems: ['操作系统核心原理与面试高频题', '计算机网络TCP/IP深度解析', 'JVM内存模型与GC调优', '并发编程与线程安全', '设计模式在实战中的应用'],
-    deliveryStandard: '购买后即时开通，一对一辅导需预约，课程终身有效。'
-  },
-  4: {
-    title: 'RabbitMQ 2天入门到实战',
-    desc: '从安装部署到高可用架构，结合电商场景实现消息队列实战',
-    price: 399, originalPrice: 499, sales: 430, rating: 96,
-    tags: ['平台保障', '项目实战', '源码解析'],
-    images: [
-      'https://placehold.co/480x360/0099FF/FFFFFF?text=RabbitMQ',
-      'https://placehold.co/480x360/00CED1/FFFFFF?text=消息队列'
-    ],
-    seller: { name: '中间件专家', orders: 960 },
-    detailIntro: '2天快速掌握RabbitMQ，从基础概念到高可用集群部署，结合电商秒杀、订单系统等真实场景进行实战演练。',
-    detailItems: ['RabbitMQ核心概念与安装部署', '交换机类型与路由策略', '消息确认与持久化机制', '死信队列与延迟队列', '电商秒杀场景实战', '高可用集群搭建'],
-    deliveryStandard: '购买后立即开通课程，配套源码和部署文档，永久有效。'
-  }
-}
-
-const service = computed(() => serviceMap[serviceId.value] || serviceMap[1])
 </script>
 
 <style scoped>

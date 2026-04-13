@@ -239,7 +239,7 @@
 </template>
 
 <script setup>
-import { ref, computed, inject, reactive } from "vue";
+import { ref, computed, inject, reactive, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { Modal, message } from "ant-design-vue";
 import {
@@ -253,6 +253,7 @@ import {
   PaperClipOutlined,
 } from "@ant-design/icons-vue";
 import DemandPublishModal from "../../components/DemandPublishModal.vue";
+import { getDemandDetail } from "../../service/user/udemand";
 
 const props = defineProps({
   id: { type: Number, default: 1 },
@@ -269,6 +270,64 @@ const userRole = ref(localStorage.getItem("userRole") || "user");
 const fromFavorites = computed(() => props.from === "favorites");
 
 const hasJoined = ref(false);
+
+// 详情数据
+const demand = ref({});
+const demandLoading = ref(false);
+
+const demandId = computed(() => props.id || parseInt(route.params.id) || 1);
+
+// 获取紧急程度文本
+const getUrgencyText = (urgency) => {
+  const textMap = {
+    LOW: '常规',
+    NORMAL: '一般',
+    HIGH: '紧急'
+  }
+  return textMap[urgency] || '常规'
+}
+
+// 获取详情数据
+const fetchDemandDetail = async () => {
+  demandLoading.value = true;
+  try {
+    const res = await getDemandDetail(demandId.value);
+    if (res.code === 0 || res.code === 200) {
+      const data = res.data;
+      // 字段映射：API字段 -> 组件字段
+      demand.value = {
+        orderNo: data.demandNo,
+        publisher: data.userName,
+        createTime: data.createTime,
+        deadline: data.deadline,
+        status: data.status,
+        title: data.demandTitle,
+        budgetMin: data.budgetMin,
+        budgetMax: data.budgetMax,
+        description: data.demandDescription,
+        type: data.categoryName,
+        urgency: getUrgencyText(data.urgency),
+        views: data.viewCount,
+        bids: data.bidCount,
+        auditStatus: data.auditStatus,
+        auditRemark: data.auditRemark || '-',
+      };
+      // 收藏状态
+      collected.value = data.isCollected || false;
+      // 是否已投标
+      hasJoined.value = data.isSelected || false;
+    }
+  } catch (error) {
+    console.error('获取需求详情失败:', error);
+    message.error('获取需求详情失败');
+  } finally {
+    demandLoading.value = false;
+  }
+};
+
+onMounted(() => {
+  fetchDemandDetail();
+});
 
 // 投标弹窗
 const bidModalVisible = ref(false);
@@ -344,14 +403,13 @@ const fromMyDemands = computed(() => {
   // 检查是否从"我的需求"进入：通过 route query 参数
   return route.query.from === "my-demands";
 });
-const demandId = computed(() => props.id || parseInt(route.params.id) || 1);
 
 // 获取紧急程度颜色
 const getUrgencyColor = (urgency) => {
   const colorMap = {
-    紧急: "orange",
-    一般: "blue",
-    常规: "default",
+    '紧急': "orange",
+    '一般': "blue",
+    '常规': "default",
   };
   return colorMap[urgency] || "default";
 };
@@ -379,83 +437,6 @@ const getStatusText = (status) => {
   }
   return textMap[status] || status
 }
-
-const demandMap = {
-  1: {
-    orderNo: "100234560",
-    publisher: "李明",
-    createTime: "2026-03-03 15:02:06",
-    deadline: "2026-03-18 23:59:59",
-    status: "PROCESSING",
-    title: "MiniMax-M2.1: MiniMax-AI开源大模型，赋能高效智能应用开发",
-    budgetMin: 3000,
-    budgetMax: 5000,
-    description:
-      "需要基于MiniMax大模型开发一套智能客服系统，支持多轮对话、意图识别、知识库问答等功能，需提供完整源码及部署文档。",
-    type: "人工智能",
-    urgency: "紧急",
-    views: 1256,
-    bids: 8,
-    auditStatus: "approved",
-    auditRemark: "-",
-  },
-  2: {
-    orderNo: "100234561",
-    publisher: "王芳",
-    createTime: "2026-03-02 10:30:00",
-    deadline: "2026-03-22 23:59:59",
-    status: "PENDING",
-    title: "PaddleOCR-VL: 开源视觉语言OCR工具，多模态识别提升文档处理效率",
-    budgetMin: 2500,
-    budgetMax: 4500,
-    description:
-      "基于PaddleOCR开发文档智能识别系统，支持表格、印章、手写体等多种场景识别，需要提供API接口及前端展示页面。",
-    type: "Python",
-    urgency: "一般",
-    views: 892,
-    bids: 5,
-    auditStatus: "approved",
-    auditRemark: "-",
-  },
-  3: {
-    orderNo: "100234562",
-    publisher: "张伟",
-    createTime: "2026-03-01 09:00:00",
-    deadline: "2026-03-31 23:59:59",
-    status: "PROCESSING",
-    title: "CHATERMAI：开启云资源氛围管理新篇章！",
-    budgetMin: 5000,
-    budgetMax: 8000,
-    description:
-      "开发一套云资源管理平台，支持多云环境统一管理、资源监控、费用分析、自动扩缩容等功能，技术栈不限。",
-    type: "人工智能",
-    urgency: "紧急",
-    views: 2103,
-    bids: 12,
-    auditStatus: "approved",
-    auditRemark: "-",
-  },
-  4: {
-    orderNo: "100234563",
-    publisher: "赵强",
-    createTime: "2026-02-28 14:20:00",
-    deadline: "2026-03-25 23:59:59",
-    status: "COMPLETED",
-    title: "欧拉操作系统内核开源，助力开发者获取源码与技术",
-    budgetMin: 8000,
-    budgetMax: 15000,
-    description:
-      "基于欧拉操作系统进行内核模块开发，需要熟悉Linux内核开发，提供完整的模块代码、测试报告及技术文档。",
-    type: "C",
-    urgency: "常规",
-    views: 3456,
-    bids: 15,
-    auditStatus: "rejected",
-    auditRemark: "需求描述不够详细，请补充具体的功能模块和技术要求",
-  },
-};
-
-const demand = computed(() => demandMap[demandId.value] || demandMap[1]);
 
 const providers = ref([
   {

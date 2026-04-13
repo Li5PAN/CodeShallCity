@@ -60,3 +60,14 @@ export function getGoodsPage(params = {}) {
     },
   })
 }
+
+/**
+ * 获取商品详情
+ * @param {string|number} id - 商品ID
+ * @returns {Promise}
+ */
+export function getGoodsDetail(id) {
+  return request(`/admin-api/admin/business/goods/detail/${id}`, {
+    method: 'GET',
+  })
+}

@@ -15,3 +15,14 @@ export function getDemandList(params = { pageNo: 1, pageSize: 6 }) {
     params: params
   })
 }
+
+/**
+ * 获取需求悬赏详情
+ * @param {string|number} id - 需求ID
+ * @returns {Promise} 返回需求详情数据
+ */
+export function getDemandDetail(id) {
+  return createRequest()(`/admin-api/admin/business/demand/detail/${id}`, {
+    method: 'GET'
+  })
+}
