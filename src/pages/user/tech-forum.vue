@@ -114,8 +114,9 @@
 </template>
 
 <script setup>
-import { ref, inject, computed, watch } from "vue";
+import { ref, inject, computed, watch, onMounted } from "vue";
 import { SearchOutlined, DownOutlined } from "@ant-design/icons-vue";
+import { getHomeForumCategories } from "@/service/user/uindex";
 
 const openDetail = inject("openDetail");
 
@@ -126,21 +127,39 @@ const handleSearch = (value) => {
   currentPage.value = 1;
 };
 
-const allCategories = [
-  { key: "all", name: "全部" },
-  { key: "news", name: "资讯" },
-  { key: "mcp", name: "MCP" },
-  { key: "deepseek", name: "DeepSeek" },
-  { key: "ai", name: "人工智能" },
-  { key: "os", name: "操作系统" },
-  { key: "java", name: "Java" },
-  { key: "python", name: "Python" },
-  { key: "database", name: "数据库" },
-];
+const allCategories = ref([
+  { key: "all", name: "全部", description: "", postCount: 0 },
+]);
 const MAX_VISIBLE = 8;
-const hasOverflow = computed(() => allCategories.length > MAX_VISIBLE);
-const visibleCategories = computed(() => allCategories.slice(0, MAX_VISIBLE));
-const hiddenCategories = computed(() => allCategories.slice(MAX_VISIBLE));
+const hasOverflow = computed(() => allCategories.value.length > MAX_VISIBLE);
+const visibleCategories = computed(() => allCategories.value.slice(0, MAX_VISIBLE));
+const hiddenCategories = computed(() => allCategories.value.slice(MAX_VISIBLE));
+
+// 获取论坛分类列表
+const fetchForumCategories = async () => {
+  try {
+    const res = await getHomeForumCategories();
+    if (res.code === 0 && res.data) {
+      // 保持"全部"分类在首位
+      const otherCategories = res.data.map((item) => ({
+        key: String(item.id),
+        name: item.categoryName,
+        description: item.description || "",
+        postCount: item.postCount || 0,
+      }));
+      allCategories.value = [
+        { key: "all", name: "全部", description: "", postCount: 0 },
+        ...otherCategories,
+      ];
+    }
+  } catch (error) {
+    console.error("获取论坛分类失败:", error);
+  }
+};
+
+onMounted(() => {
+  fetchForumCategories();
+});
 
 const activeCategory = ref("all");
 
@@ -158,18 +177,12 @@ const totalArticles = ref(35);
 const filteredArticleList = computed(() => {
   let list = articleList.value;
   if (activeCategory.value !== "all") {
-    const categoryNameMap = {
-      news: "科技资讯",
-      mcp: "MCP",
-      deepseek: "DeepSeek",
-      ai: "人工智能",
-      os: "操作系统",
-      java: "Java",
-      python: "Python",
-      database: "数据库",
-    };
-    const categoryName = categoryNameMap[activeCategory.value];
-    list = list.filter((item) => item.category === categoryName);
+    // 根据 activeCategory 找到对应的分类名称
+    const category = allCategories.value.find((c) => c.key === activeCategory.value);
+    const categoryName = category?.name;
+    if (categoryName) {
+      list = list.filter((item) => item.category === categoryName);
+    }
   }
   if (searchValue.value.trim()) {
     const keyword = searchValue.value.trim().toLowerCase();

@@ -41,3 +41,17 @@ export function getHomePosts(params = { pageNo: 1, pageSize: 10 }) {
     params: params
   })
 }
+
+/**
+ * 获取论坛分类列表
+ * @param {Object} params - 查询参数
+ * @param {string|number} params.pageNo - 页码，从1开始
+ * @param {string|number} params.pageSize - 每页条数，最大值200
+ * @returns {Promise} 返回论坛分类数据列表
+ */
+export function getHomeForumCategories(params = { pageNo: 1, pageSize: 10 }) {
+  return createRequest()('/admin-api/admin/business/home/forum-categories', {
+    method: 'GET',
+    params: params
+  })
+}
