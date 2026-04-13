@@ -44,7 +44,7 @@
 import { reactive, ref } from "vue";
 import { useRouter } from "vue-router";
 import { message } from "ant-design-vue";
-import { appLogin } from "@/service";
+import { login } from "@/service";
 
 const router = useRouter();
 const loading = ref(false);
@@ -58,7 +58,7 @@ const handleLogin = async () => {
   loading.value = true;
 
   try {
-    const res = await appLogin({
+    const res = await login({
       username: formState.username,
       password: formState.password,
     });
@@ -67,10 +67,10 @@ const handleLogin = async () => {
       // 保存 token 和用户信息
       localStorage.setItem("token", res.data?.accessToken);
       localStorage.setItem("refreshToken", res.data?.refreshToken);
+      localStorage.setItem("expiresTime", res.data?.expiresTime);
       localStorage.setItem("userId", res.data?.userId);
       localStorage.setItem("username", res.data?.nickname || formState.username);
       localStorage.setItem("userRole", res.data?.userRole || res.data?.role || "user");
-      localStorage.setItem("expiresTime", res.data?.expiresTime);
 
       message.success("登录成功");
       const userRole = res.data?.userRole || res.data?.role || "user";

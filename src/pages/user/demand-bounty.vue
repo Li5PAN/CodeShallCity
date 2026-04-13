@@ -89,106 +89,176 @@
 </template>
 
 <script setup>
-import { ref, computed, inject } from "vue";
+import { ref, computed, inject, onMounted, watch } from "vue";
 import { SearchOutlined, DownOutlined } from "@ant-design/icons-vue";
+import { getDemandList } from "@/service/user/udemand";
+import { getDemandCategoryList } from "@/service/user/uservice";
 
 const openDetail = inject("openDetail");
 
 const searchValue = ref("");
 
 const handleSearch = (value) => {
-  console.log("搜索需求:", value);
+  currentPage.value = 1;
+  fetchDemandList();
 };
 
 // 获取紧急程度颜色
 const getUrgencyColor = (urgency) => {
   const colorMap = {
-    紧急: "orange",
-    一般: "blue",
-    常规: "default",
+    HIGH: "orange",
+    NORMAL: "blue",
+    LOW: "default",
   };
   return colorMap[urgency] || "default";
 };
 
-// 分类标签数据
-const allCategories = [
-  { key: "recommend", name: "全部" },
-  { key: "website", name: "网站开发" },
-  { key: "wechat", name: "微信开发" },
-  { key: "mini-program", name: "小程序开发" },
-  { key: "app", name: "APP开发" },
-];
+// 分类标签数据 - 从接口获取
+const categoryList = ref([]);
 const MAX_VISIBLE = 8
-const hasOverflow = computed(() => allCategories.length > MAX_VISIBLE)
-const visibleCategories = computed(() => allCategories.slice(0, MAX_VISIBLE))
-const hiddenCategories = computed(() => allCategories.slice(MAX_VISIBLE))
+
+// 获取分类列表
+const fetchCategoryList = async () => {
+  try {
+    const res = await getDemandCategoryList();
+    console.log("需求分类列表响应:", res);
+    
+    let list = [];
+    if (res?.data) {
+      if (Array.isArray(res.data)) {
+        list = res.data;
+      } else if (typeof res.data === 'object') {
+        list = res.data.list || res.data.records || [];
+      }
+    }
+    
+    // 映射接口数据为组件需要的格式，添加"全部"选项
+    categoryList.value = [
+      { key: "recommend", name: "全部", categoryId: null },
+      ...list.map(item => ({
+        key: String(item.id),
+        name: item.categoryName,
+        categoryId: item.id,
+      })),
+    ];
+  } catch (error) {
+    console.error("获取需求分类列表失败:", error);
+    // 接口失败时使用默认数据
+    categoryList.value = [
+      { key: "recommend", name: "全部", categoryId: null },
+      { key: "website", name: "网站开发", categoryId: 1 },
+      { key: "wechat", name: "微信开发", categoryId: 2 },
+      { key: "mini-program", name: "小程序开发", categoryId: 3 },
+      { key: "app", name: "APP开发", categoryId: 4 },
+    ];
+  }
+};
+
+const hasOverflow = computed(() => categoryList.value.length > MAX_VISIBLE)
+const visibleCategories = computed(() => categoryList.value.slice(0, MAX_VISIBLE))
+const hiddenCategories = computed(() => categoryList.value.slice(MAX_VISIBLE))
 
 // 当前选中的分类
 const activeCategory = ref("recommend");
 
-// 模拟服务数据（和图片一致）
-const serviceList = ref([
-  {
-    id: 1,
-    title: "MiniMax-M2.1: MiniMax-AI开源大模型，赋能高效智能应用开发",
-    desc: "基于最新AI技术，提供高效的智能应用开发解决方案，支持多种场景应用，帮助企业快速构建智能化系统",
-    tag: "Python",
-    minPrice: 3000,
-    maxPrice: 5000,
-    urgency: "紧急",
-  },
-  {
-    id: 2,
-    title: "PaddleOCR-VL: 开源视觉语言OCR工具，多模态识别提升文档处理效率",
-    desc: "专业的OCR识别工具开发需求，需要支持多语言识别和文档智能处理，提升企业文档数字化效率",
-    tag: "Python",
-    minPrice: 2500,
-    maxPrice: 4500,
-    urgency: "一般",
-  },
-  {
-    id: 3,
-    title: "CHATERMAI：开启云资源氛围管理新篇章！",
-    desc: "云资源管理平台开发，需要实现资源监控、自动化部署、成本优化等功能，提升云资源使用效率",
-    tag: "人工智能",
-    minPrice: 5000,
-    maxPrice: 8000,
-    urgency: "紧急",
-  },
-  {
-    id: 4,
-    title: "欧拉操作系统内核开源，助力开发者获取源码与技术",
-    desc: "操作系统内核开发与优化项目，需要深入理解Linux内核机制，进行性能优化和功能扩展",
-    tag: "C",
-    minPrice: 8000,
-    maxPrice: 15000,
-    urgency: "一般",
-  },
-]);
-
-// 将服务列表按每行2个分组，重复展示模拟多行效果
-const serviceRows = computed(() => {
-  const rows = [];
-  const list = [...serviceList.value];
-  // 重复3次数据，和图片中展示的行数一致
-  const repeatList = [...list, ...list, ...list];
-
-  while (repeatList.length) {
-    rows.push(repeatList.splice(0, 2));
-  }
-  return rows;
+// 监听分类变化，重新获取数据
+watch(activeCategory, () => {
+  currentPage.value = 1;
+  fetchDemandList();
 });
+
+// 需求列表数据
+const serviceList = ref([]);
 
 // 分页相关
 const currentPage = ref(1);
 const pageSize = ref(6);
-const totalDemands = ref(48);
+const totalDemands = ref(0);
 
+// 将需求列表按每行2个分组
+const serviceRows = computed(() => {
+  const rows = [];
+  const list = [...serviceList.value];
+
+  while (list.length) {
+    rows.push(list.splice(0, 2));
+  }
+  return rows;
+});
+
+// 获取需求列表数据
+const fetchDemandList = async () => {
+  try {
+    const currentCat = categoryList.value.find(c => c.key === activeCategory.value);
+    const params = {
+      pageNo: currentPage.value,
+      pageSize: pageSize.value,
+    };
+    
+    if (currentCat?.categoryId) {
+      params.categoryId = currentCat.categoryId;
+    }
+    
+    if (searchValue.value) {
+      params.demandTitle = searchValue.value;
+    }
+
+    const res = await getDemandList(params);
+    console.log("需求列表响应:", res);
+    
+    // 兼容两种响应格式：{ data: { list, total } } 或 { data: [...] }
+    let list = [];
+    let total = 0;
+    
+    if (res?.data) {
+      if (Array.isArray(res.data)) {
+        // 格式1: data 是数组
+        list = res.data;
+        total = res.total || list.length;
+      } else if (typeof res.data === 'object') {
+        // 格式2: data 是分页对象 { list: [], total: N }
+        list = res.data.list || res.data.records || [];
+        total = res.data.total || res.data.count || 0;
+      }
+    }
+    
+    // 将API返回的数据映射到卡片需要的格式
+    serviceList.value = list.map(item => ({
+      id: item.id,
+      title: item.demandTitle,
+      desc: item.demandDescription,
+      tag: item.categoryName,
+      minPrice: item.budgetMin,
+      maxPrice: item.budgetMax,
+      urgency: item.urgency,
+      userId: item.userId,
+      userName: item.userName,
+      userAvatar: item.userAvatar,
+      createTime: item.createTime,
+      viewCount: item.viewCount,
+      bidCount: item.bidCount,
+    }));
+    
+    totalDemands.value = total;
+  } catch (error) {
+    console.error("获取需求列表失败:", error);
+    serviceList.value = [];
+    totalDemands.value = 0;
+  }
+};
+
+// 分页变化处理
 const handlePageChange = (page, size) => {
   currentPage.value = page;
   pageSize.value = size;
-  console.log("需求悬赏分页:", page, size);
+  fetchDemandList();
 };
+
+// 组件挂载时获取数据
+onMounted(async () => {
+  await fetchCategoryList();
+  fetchDemandList();
+});
 </script>
 
 <style scoped>

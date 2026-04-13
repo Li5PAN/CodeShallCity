@@ -20,6 +20,7 @@ export function createRequest() {
       method,
       headers: {
         'Content-Type': 'application/json',
+        'tenant-id': '1',
       },
     }
     
@@ -52,44 +53,15 @@ export function createRequest() {
  * @param {string} [data.socialCode] - 授权码（可选）
  * @param {string} [data.socialState] - state（可选）
  * @param {boolean} [data.socialCodeValid] - 授权码是否有效（可选）
- * @param {string} [tenantId] - 租户编号，默认 1
- * @param {string} [authorization] - 认证Token，默认 "Bearer test1"
  * @returns {Promise}
  */
-export function login(data, tenantId = '1', authorization = 'Bearer test1') {
+export function login(data) {
   return fetch(`${baseURL}/admin-api/system/auth/login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'tenant-id': tenantId,
-      'Authorization': authorization,
-    },
-    body: JSON.stringify(data),
-  }).then(response => {
-    if (!response.ok) {
-      return response.json().then(err => Promise.reject(err))
-    }
-    return response.json()
-  })
-}
-
-/**
- * 用户端 App 登录
- * @param {Object} data - 登录参数
- * @param {string} data.username - 用户名
- * @param {string} data.password - 密码
- * @param {string} [data.captchaVerification] - 验证码（可选）
- * @param {number} [data.socialType] - 社交平台类型（可选）
- * @param {string} [data.socialCode] - 授权码（可选）
- * @param {string} [data.socialState] - state（可选）
- * @param {boolean} [data.socialCodeValid] - 授权码是否有效（可选）
- * @returns {Promise}
- */
-export function appLogin(data) {
-  return fetch(`${baseURL}/app-api/system/auth/login`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+      'tenant-id': '1',
+      'Authorization': 'Bearer test1',
     },
     body: JSON.stringify(data),
   }).then(response => {

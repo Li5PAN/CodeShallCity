@@ -92,7 +92,7 @@
             :key="item.id"
             @click="openDetail('forum', { id: item.id })"
           >
-            <span class="forum-name">{{ item.name }}</span>
+            <span class="forum-name">{{ item.title }}</span>
             <RightOutlined class="forum-arrow" />
           </div>
         </div>
@@ -111,7 +111,7 @@ import {
   RightOutlined,
   StarFilled,
 } from "@ant-design/icons-vue";
-import { getHomeDemands, getHomeGoods } from "@/service/user/uindex";
+import { getHomeDemands, getHomeGoods, getHomePosts } from "@/service/user/uindex";
 
 const router = useRouter();
 const openDetail = inject("openDetail");
@@ -195,17 +195,29 @@ onMounted(() => {
   loadFeaturedServices()
 })
 
-const forumList = ref([
-  { id: 1, name: "海洋开发者中文社区" },
-  { id: 2, name: "Harmony OS开发者社区" },
-  { id: 3, name: "高飞AI开发者大赛论坛" },
-  { id: 4, name: "深度学习开发者大赛论坛" },
-  { id: 5, name: "NVIDIA AI智能开发论坛" },
-  { id: 6, name: "智能制造与物联网论坛" },
-  { id: 7, name: "DARPA开发者论坛" },
-  { id: 8, name: "清华社区" },
-  { id: 9, name: "JAVA社区" },
-]);
+const forumList = ref([])
+
+// 加载论坛文章推荐数据
+const loadForumPosts = async () => {
+  try {
+    const res = await getHomePosts({ pageNo: 1, pageSize: 10 })
+    if (res.code === 0 && res.data) {
+      forumList.value = res.data.map(item => ({
+        id: item.id,
+        title: item.postTitle
+      }))
+    }
+  } catch (error) {
+    console.error('加载论坛文章推荐数据失败:', error)
+  }
+}
+
+// 组件挂载时加载数据
+onMounted(() => {
+  loadDemandData()
+  loadFeaturedServices()
+  loadForumPosts()
+})
 </script>
 
 <style scoped>
