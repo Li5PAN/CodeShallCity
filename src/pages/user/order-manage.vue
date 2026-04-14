@@ -54,11 +54,14 @@
           </div>
 
           <div class="order-list">
-            <div v-if="filteredServiceOrders.length === 0" class="empty-state">
+            <div v-if="serviceLoading" class="loading-state">
+              <a-spin />
+            </div>
+            <div v-else-if="serviceOrders.length === 0" class="empty-state">
               <InboxOutlined class="empty-icon" />
               <p>暂无服务商品订单</p>
             </div>
-            <div class="order-card" v-for="order in filteredServiceOrders" :key="order.id" @click="viewDetail(order)">
+            <div class="order-card" v-for="order in serviceOrders" :key="order.id" @click="viewDetail(order)">
               <div class="order-card-header">
                 <span class="order-no">订单号：{{ order.orderNo }}</span>
                 <span class="order-time">{{ order.createTime }}</span>
@@ -110,14 +113,16 @@
             </div>
           </div>
 
-          <div class="pagination-wrapper" v-if="filteredServiceOrders.length > 0">
+          <div class="pagination-wrapper" v-if="serviceOrders.length > 0">
             <a-pagination
               v-model:current="servicePage"
               v-model:pageSize="servicePageSize"
-              :total="filteredServiceOrders.length"
+              :total="serviceTotal"
               show-size-changer
               show-quick-jumper
               :show-total="(total) => `共 ${total} 条`"
+              @change="handleServicePageChange"
+              @showSizeChange="handleServiceSizeChange"
             />
           </div>
         </a-tab-pane>
@@ -152,11 +157,14 @@
           </div>
 
           <div class="order-list">
-            <div v-if="filteredDemandOrders.length === 0" class="empty-state">
+            <div v-if="demandLoading" class="loading-state">
+              <a-spin />
+            </div>
+            <div v-else-if="demandOrders.length === 0" class="empty-state">
               <InboxOutlined class="empty-icon" />
               <p>暂无需求悬赏订单</p>
             </div>
-            <div class="order-card" v-for="order in filteredDemandOrders" :key="order.id" @click="viewDetail(order)">
+            <div class="order-card" v-for="order in demandOrders" :key="order.id" @click="viewDetail(order)">
               <div class="order-card-header">
                 <span class="order-no">订单号：{{ order.orderNo }}</span>
                 <span class="order-time">{{ order.createTime }}</span>
@@ -205,14 +213,16 @@
             </div>
           </div>
 
-          <div class="pagination-wrapper" v-if="filteredDemandOrders.length > 0">
+          <div class="pagination-wrapper" v-if="demandOrders.length > 0">
             <a-pagination
               v-model:current="demandPage"
               v-model:pageSize="demandPageSize"
-              :total="filteredDemandOrders.length"
+              :total="demandTotal"
               show-size-changer
               show-quick-jumper
               :show-total="(total) => `共 ${total} 条`"
+              @change="handleDemandPageChange"
+              @showSizeChange="handleDemandSizeChange"
             />
           </div>
         </a-tab-pane>
@@ -261,7 +271,7 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive } from "vue";
+import { ref, computed, reactive, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { message, Modal } from "ant-design-vue";
 import {
@@ -275,6 +285,7 @@ import {
   ClockCircleOutlined,
   CheckCircleOutlined,
 } from "@ant-design/icons-vue";
+import { getOrderOverview, getOrderPage, exportOrders } from "@/service/user/uorder.js";
 
 const router = useRouter();
 
@@ -334,222 +345,86 @@ const statusTextMap = {
 };
 
 // ========== 服务商品订单数据 ==========
-const serviceOrders = ref([
-  {
-    id: 1,
-    orderNo: "SVC20260310001",
-    buyerId: "user456",
-    sellerId: "user123",
-    demandId: null,
-    goodsId: 1,
-    amount: 399.00,
-    orderType: "SERVICE",
-    status: "PROCESSING",
-    deliverTime: null,
-    finishTime: null,
-    cancelReason: null,
-    createTime: "2026-03-10 14:30:00",
-    goodsName: "Java大厂面试课，一套搞定offer",
-    goodsDesc: "覆盖Java基础、JVM、并发、分布式等核心考点，配套面试模拟",
-    goodsCover: "https://placehold.co/80x60/FFD700/000000?text=Java",
-  },
-  {
-    id: 2,
-    orderNo: "SVC20260205002",
-    buyerId: "user123",
-    sellerId: "user789",
-    demandId: null,
-    goodsId: 2,
-    amount: 399.00,
-    orderType: "SERVICE",
-    status: "COMPLETED",
-    deliverTime: "2026-02-08 10:00:00",
-    finishTime: "2026-02-10 18:20:00",
-    cancelReason: null,
-    createTime: "2026-02-05 08:55:00",
-    goodsName: "10天精通MySQL",
-    goodsDesc: "从底层原理到实战优化，涵盖索引、事务、锁机制、分库分表",
-    goodsCover: "https://placehold.co/80x60/FF6600/FFFFFF?text=MySQL",
-  },
-  {
-    id: 3,
-    orderNo: "SVC20260228003",
-    buyerId: "user123",
-    sellerId: "user101",
-    demandId: null,
-    goodsId: 3,
-    amount: 299.00,
-    orderType: "SERVICE",
-    status: "DELIVERED",
-    deliverTime: "2026-03-01 16:00:00",
-    finishTime: null,
-    cancelReason: null,
-    createTime: "2026-02-28 15:30:00",
-    goodsName: "Vue3 + TypeScript 企业级实战",
-    goodsDesc: "从零搭建企业级前端项目，包含组件库、状态管理、路由等",
-    goodsCover: "https://placehold.co/80x60/42b883/FFFFFF?text=Vue3",
-  },
-  {
-    id: 6,
-    orderNo: "SVC20260312005",
-    buyerId: "user123",
-    sellerId: "user404",
-    demandId: null,
-    goodsId: 5,
-    amount: 359.00,
-    orderType: "SERVICE",
-    status: "PENDING",
-    deliverTime: null,
-    finishTime: null,
-    cancelReason: null,
-    createTime: "2026-03-12 14:20:00",
-    goodsName: "Python 数据分析与机器学习实战",
-    goodsDesc: "基于Pandas、Sklearn、Matplotlib完成完整数据分析项目",
-    goodsCover: "https://placehold.co/80x60/3776AB/FFFFFF?text=Python",
-  },
-  {
-    id: 7,
-    orderNo: "SVC20260315006",
-    buyerId: "user505",
-    sellerId: "user123",
-    demandId: null,
-    goodsId: 6,
-    amount: 599.00,
-    orderType: "SERVICE",
-    status: "PROCESSING",
-    deliverTime: null,
-    finishTime: null,
-    cancelReason: null,
-    createTime: "2026-03-15 10:30:00",
-    goodsName: "Spring Boot 微服务架构设计",
-    goodsDesc: "从单体到微服务，涵盖服务注册、网关、熔断、链路追踪",
-    goodsCover: "https://placehold.co/80x60/6DB33F/FFFFFF?text=Spring",
-  },
-  {
-    id: 10,
-    orderNo: "SVC20260316007",
-    buyerId: "user808",
-    sellerId: "user123",
-    demandId: null,
-    goodsId: 1,
-    amount: 399.00,
-    orderType: "SERVICE",
-    status: "CANCELLED",
-    deliverTime: null,
-    finishTime: null,
-    cancelReason: "买家主动取消",
-    createTime: "2026-03-16 08:00:00",
-    goodsName: "Java大厂面试课，一套搞定offer",
-    goodsDesc: "覆盖Java基础、JVM、并发、分布式等核心考点",
-    goodsCover: "https://placehold.co/80x60/FFD700/000000?text=Java",
-  },
-]);
+const serviceOrders = ref([]);
+const serviceLoading = ref(false);
+const serviceTotal = ref(0);
+
+// ========== 订单数据概览 ==========
+const overviewLoading = ref(false);
+const overviewData = ref({
+  totalCount: 0,
+  serviceOrderCount: 0,
+  demandOrderCount: 0,
+  totalAmount: 0
+});
+
+// 加载服务商品订单列表
+const loadServiceOrders = async () => {
+  serviceLoading.value = true;
+  try {
+    const roleMap = { buyer: 'BUYER', seller: 'SELLER', all: undefined };
+    const res = await getOrderPage({
+      orderType: 'SERVICE',
+      status: serviceStatusFilter.value !== 'ALL' ? serviceStatusFilter.value : undefined,
+      roleType: roleMap[serviceRoleFilter.value],
+      keyword: serviceKeyword.value.trim() || undefined,
+      pageNo: servicePage.value,
+      pageSize: servicePageSize.value
+    });
+    if (res && res.data) {
+      serviceOrders.value = res.data.records || [];
+      serviceTotal.value = res.data.total || 0;
+    }
+  } catch (error) {
+    console.error('获取服务订单失败:', error);
+  } finally {
+    serviceLoading.value = false;
+  }
+};
+
+// 加载订单概览数据
+const loadOrderOverview = async () => {
+  overviewLoading.value = true;
+  try {
+    const res = await getOrderOverview();
+    if (res && res.data) {
+      overviewData.value = res.data;
+    }
+  } catch (error) {
+    console.error('获取订单概览失败:', error);
+  } finally {
+    overviewLoading.value = false;
+  }
+};
 
 // ========== 需求悬赏订单数据 ==========
-const demandOrders = ref([
-  {
-    id: 4,
-    orderNo: "DMD20260303001",
-    buyerId: "user123",
-    sellerId: "user202",
-    demandId: 1,
-    goodsId: null,
-    amount: 5000.00,
-    orderType: "DEMAND",
-    status: "PROCESSING",
-    deliverTime: null,
-    finishTime: null,
-    cancelReason: null,
-    createTime: "2026-03-03 10:00:00",
-    demandTitle: "MiniMax-M2.1 智能客服系统开发",
-    demandDesc: "基于MiniMax大模型开发智能客服系统，需要支持多轮对话、知识库检索",
-  },
-  {
-    id: 5,
-    orderNo: "DMD20260225002",
-    buyerId: "user303",
-    sellerId: "user123",
-    demandId: 2,
-    goodsId: null,
-    amount: 15000.00,
-    orderType: "DEMAND",
-    status: "COMPLETED",
-    deliverTime: "2026-02-27 14:00:00",
-    finishTime: "2026-03-01 12:00:00",
-    cancelReason: null,
-    createTime: "2026-02-25 14:20:00",
-    demandTitle: "React Native 跨平台移动端应用",
-    demandDesc: "开发一款跨平台的移动应用，包含用户系统、支付功能、数据统计",
-  },
-  {
-    id: 8,
-    orderNo: "DMD20260308003",
-    buyerId: "user123",
-    sellerId: "user606",
-    demandId: 3,
-    goodsId: null,
-    amount: 12000.00,
-    orderType: "DEMAND",
-    status: "DELIVERED",
-    deliverTime: "2026-03-10 09:00:00",
-    finishTime: null,
-    cancelReason: null,
-    createTime: "2026-03-08 11:00:00",
-    demandTitle: "Vue3 后台管理系统开发",
-    demandDesc: "基于Vue3+Element Plus开发企业级后台管理系统，含权限管理",
-  },
-  {
-    id: 9,
-    orderNo: "DMD20260314004",
-    buyerId: "user707",
-    sellerId: "user123",
-    demandId: 4,
-    goodsId: null,
-    amount: 8000.00,
-    orderType: "DEMAND",
-    status: "PENDING",
-    deliverTime: null,
-    finishTime: null,
-    cancelReason: null,
-    createTime: "2026-03-14 16:00:00",
-    demandTitle: "小程序商城开发",
-    demandDesc: "微信小程序商城，含商品展示、购物车、订单、支付全流程",
-  },
-  {
-    id: 11,
-    orderNo: "DMD20260316005",
-    buyerId: "user909",
-    sellerId: "user123",
-    demandId: 5,
-    goodsId: null,
-    amount: 10000.00,
-    orderType: "DEMAND",
-    status: "PROCESSING",
-    deliverTime: null,
-    finishTime: null,
-    cancelReason: null,
-    createTime: "2026-03-16 09:30:00",
-    demandTitle: "Python 爬虫与数据采集系统",
-    demandDesc: "开发分布式爬虫系统，支持多平台数据采集、清洗、存储",
-  },
-  {
-    id: 12,
-    orderNo: "DMD20260301007",
-    buyerId: "user111",
-    sellerId: "user222",
-    demandId: 7,
-    goodsId: null,
-    amount: 12000.00,
-    orderType: "DEMAND",
-    status: "FAILED",
-    deliverTime: null,
-    finishTime: null,
-    cancelReason: "需求方资金不足",
-    createTime: "2026-03-01 14:00:00",
-    demandTitle: "Linux 服务器运维与监控搭建",
-    demandDesc: "搭建Prometheus+Grafana监控体系，制定运维规范",
-  },
-]);
+const demandOrders = ref([]);
+const demandLoading = ref(false);
+const demandTotal = ref(0);
+
+// 加载需求悬赏订单列表
+const loadDemandOrders = async () => {
+  demandLoading.value = true;
+  try {
+    const roleMap = { publisher: 'BUYER', bidder: 'SELLER', all: undefined };
+    const res = await getOrderPage({
+      orderType: 'DEMAND',
+      status: demandStatusFilter.value !== 'ALL' ? demandStatusFilter.value : undefined,
+      roleType: roleMap[demandRoleFilter.value],
+      keyword: demandKeyword.value.trim() || undefined,
+      pageNo: demandPage.value,
+      pageSize: demandPageSize.value
+    });
+    if (res && res.data) {
+      demandOrders.value = res.data.records || [];
+      demandTotal.value = res.data.total || 0;
+    }
+  } catch (error) {
+    console.error('获取需求悬赏订单失败:', error);
+  } finally {
+    demandLoading.value = false;
+  }
+};
 
 // ========== 服务商品订单角色 & 筛选 ==========
 const getMyRole = (order) => {
@@ -573,30 +448,6 @@ const getSellerName = (order) => {
   return order.sellerId === currentUserId.value ? "我" : `服务商${order.sellerId.slice(-4)}`;
 };
 
-const filteredServiceOrders = computed(() => {
-  let list = [...serviceOrders.value];
-
-  if (serviceRoleFilter.value === "buyer") {
-    list = list.filter(o => o.buyerId === currentUserId.value);
-  } else if (serviceRoleFilter.value === "seller") {
-    list = list.filter(o => o.sellerId === currentUserId.value);
-  }
-
-  if (serviceStatusFilter.value !== "ALL") {
-    list = list.filter(o => o.status === serviceStatusFilter.value);
-  }
-
-  if (serviceKeyword.value.trim()) {
-    const kw = serviceKeyword.value.toLowerCase();
-    list = list.filter(o =>
-      o.orderNo.toLowerCase().includes(kw) ||
-      (o.goodsName && o.goodsName.toLowerCase().includes(kw))
-    );
-  }
-
-  return list;
-});
-
 // ========== 需求悬赏订单角色 & 筛选 ==========
 const getDemandRole = (order) => {
   if (order.buyerId === currentUserId.value) return "publisher";
@@ -619,41 +470,15 @@ const getBidderName = (order) => {
   return order.sellerId === currentUserId.value ? "我" : `接单方${order.sellerId.slice(-4)}`;
 };
 
-const filteredDemandOrders = computed(() => {
-  let list = [...demandOrders.value];
-
-  if (demandRoleFilter.value === "publisher") {
-    list = list.filter(o => o.buyerId === currentUserId.value);
-  } else if (demandRoleFilter.value === "bidder") {
-    list = list.filter(o => o.sellerId === currentUserId.value);
-  }
-
-  if (demandStatusFilter.value !== "ALL") {
-    list = list.filter(o => o.status === demandStatusFilter.value);
-  }
-
-  if (demandKeyword.value.trim()) {
-    const kw = demandKeyword.value.toLowerCase();
-    list = list.filter(o =>
-      o.orderNo.toLowerCase().includes(kw) ||
-      (o.demandTitle && o.demandTitle.toLowerCase().includes(kw))
-    );
-  }
-
-  return list;
-});
-
 // ========== 数据概览 ==========
 const totalAmount = computed(() => {
-  return [...serviceOrders.value, ...demandOrders.value]
-    .reduce((sum, o) => sum + o.amount, 0)
-    .toFixed(2);
+  return overviewData.value.totalAmount?.toFixed(2) || "0.00";
 });
 
 const summaryItems = computed(() => [
-  { label: "订单总数", value: serviceOrders.value.length + demandOrders.value.length, icon: FileTextOutlined, color: "#1890ff" },
-  { label: "服务订单", value: serviceOrders.value.length, icon: ShopOutlined, color: "#fa8c16" },
-  { label: "悬赏订单", value: demandOrders.value.length, icon: TrophyOutlined, color: "#722ed1" },
+  { label: "订单总数", value: overviewData.value.totalCount || 0, icon: FileTextOutlined, color: "#1890ff" },
+  { label: "服务订单", value: overviewData.value.serviceOrderCount || 0, icon: ShopOutlined, color: "#fa8c16" },
+  { label: "悬赏订单", value: overviewData.value.demandOrderCount || 0, icon: TrophyOutlined, color: "#722ed1" },
   { label: "累计交易金额", value: `¥ ${totalAmount.value}`, icon: WalletOutlined, color: "#ff4d4f" },
 ]);
 
@@ -856,25 +681,105 @@ const downloadCsv = (filename, headers, rows) => {
   URL.revokeObjectURL(link.href);
 };
 
-const exportServiceOrders = () => {
-  const headers = ["订单号", "服务名称", "服务描述", "买家ID", "卖家ID", "订单金额", "状态", "创建时间", "交付时间", "完成时间", "取消原因"];
-  const rows = filteredServiceOrders.value.map((o) => [
-    o.orderNo, o.goodsName, o.goodsDesc, o.buyerId, o.sellerId,
-    o.amount, statusTextMap[o.status] || o.status, o.createTime,
-    o.deliverTime || "-", o.finishTime || "-", o.cancelReason || "-",
-  ]);
-  downloadCsv("服务商品订单.csv", headers, rows);
+// 下载 blob 文件
+const downloadBlob = (blobData, filename) => {
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blobData);
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(link.href);
 };
 
-const exportDemandOrders = () => {
-  const headers = ["订单号", "需求标题", "需求描述", "买家ID", "卖家ID", "订单金额", "状态", "创建时间", "交付时间", "完成时间", "取消原因"];
-  const rows = filteredDemandOrders.value.map((o) => [
-    o.orderNo, o.demandTitle, o.demandDesc, o.buyerId, o.sellerId,
-    o.amount, statusTextMap[o.status] || o.status, o.createTime,
-    o.deliverTime || "-", o.finishTime || "-", o.cancelReason || "-",
-  ]);
-  downloadCsv("需求悬赏订单.csv", headers, rows);
+const exportServiceOrders = async () => {
+  try {
+    message.loading({ content: '正在导出服务订单...', key: 'exportService' });
+    const roleMap = { buyer: 'BUYER', seller: 'SELLER', all: undefined };
+    const res = await exportOrders({
+      orderType: 'SERVICE',
+      status: serviceStatusFilter.value !== 'ALL' ? serviceStatusFilter.value : undefined,
+      roleType: roleMap[serviceRoleFilter.value],
+      keyword: serviceKeyword.value.trim() || undefined,
+    });
+    downloadBlob(res, `服务商品订单_${new Date().toLocaleDateString().replace(/\//g, '-')}.xlsx`);
+    message.success({ content: '导出成功', key: 'exportService' });
+  } catch (error) {
+    console.error('导出服务订单失败:', error);
+    message.error({ content: '导出失败，请重试', key: 'exportService' });
+  }
 };
+
+const exportDemandOrders = async () => {
+  try {
+    message.loading({ content: '正在导出悬赏订单...', key: 'exportDemand' });
+    const roleMap = { publisher: 'BUYER', bidder: 'SELLER', all: undefined };
+    const res = await exportOrders({
+      orderType: 'DEMAND',
+      status: demandStatusFilter.value !== 'ALL' ? demandStatusFilter.value : undefined,
+      roleType: roleMap[demandRoleFilter.value],
+      keyword: demandKeyword.value.trim() || undefined,
+    });
+    downloadBlob(res, `需求悬赏订单_${new Date().toLocaleDateString().replace(/\//g, '-')}.xlsx`);
+    message.success({ content: '导出成功', key: 'exportDemand' });
+  } catch (error) {
+    console.error('导出悬赏订单失败:', error);
+    message.error({ content: '导出失败，请重试', key: 'exportDemand' });
+  }
+};
+
+// ========== 分页和筛选事件处理 ==========
+const handleServicePageChange = (page, pageSize) => {
+  servicePage.value = page;
+  servicePageSize.value = pageSize;
+  loadServiceOrders();
+};
+
+const handleServiceSizeChange = (current, size) => {
+  servicePage.value = 1;
+  servicePageSize.value = size;
+  loadServiceOrders();
+};
+
+const handleDemandPageChange = (page, pageSize) => {
+  demandPage.value = page;
+  demandPageSize.value = pageSize;
+  loadDemandOrders();
+};
+
+const handleDemandSizeChange = (current, size) => {
+  demandPage.value = 1;
+  demandPageSize.value = size;
+  loadDemandOrders();
+};
+
+// 监听筛选条件变化，重新加载数据
+watch([serviceRoleFilter, serviceStatusFilter, serviceKeyword], () => {
+  servicePage.value = 1;
+  loadServiceOrders();
+});
+
+watch([demandRoleFilter, demandStatusFilter, demandKeyword], () => {
+  demandPage.value = 1;
+  loadDemandOrders();
+});
+
+// 监听标签页切换，加载对应数据
+watch(activeTab, (newTab) => {
+  if (newTab === 'service' && serviceOrders.value.length === 0) {
+    loadServiceOrders();
+  } else if (newTab === 'demand' && demandOrders.value.length === 0) {
+    loadDemandOrders();
+  }
+});
+
+// 组件挂载时加载概览数据和当前标签页订单
+onMounted(() => {
+  loadOrderOverview();
+  if (activeTab.value === 'service') {
+    loadServiceOrders();
+  } else {
+    loadDemandOrders();
+  }
+});
 </script>
 
 <style scoped>
@@ -1012,6 +917,13 @@ const exportDemandOrders = () => {
   color: #ccc;
 }
 .empty-icon { font-size: 48px; display: block; margin-bottom: 12px; }
+
+.loading-state {
+  background: #fafafa;
+  border-radius: 10px;
+  padding: 40px;
+  text-align: center;
+}
 
 /* 订单卡片 */
 .order-card {

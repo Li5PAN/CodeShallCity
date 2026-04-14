@@ -6,7 +6,7 @@ const baseURL = import.meta.env.VITE_PROXY_DOMAIN || '/api'
  */
 export function createRequest() {
   return (url, options = {}) => {
-    const { method = 'GET', params = {}, body = null } = options
+    const { method = 'GET', params = {}, body = null, responseType = 'json' } = options
     
     // 从 localStorage 获取 token（优先取 token，若无则取 refreshToken）
     const token = localStorage.getItem('token') || localStorage.getItem('refreshToken')
@@ -37,6 +37,9 @@ export function createRequest() {
     return fetch(fullUrl, config).then(response => {
       if (!response.ok) {
         return response.json().then(err => Promise.reject(err))
+      }
+      if (responseType === 'blob') {
+        return response.blob()
       }
       return response.json()
     })

@@ -181,9 +181,10 @@
                   class="status-tabs"
                 >
                   <a-tab-pane key="all" tab="全部" />
-                  <a-tab-pane key="on" tab="已上架" />
-                  <a-tab-pane key="off" tab="已下架" />
-                  <a-tab-pane key="review" tab="审核中" />
+                  <a-tab-pane key="published" tab="已上架" />
+                  <a-tab-pane key="offline" tab="已下架" />
+                  <a-tab-pane key="pending" tab="审核中" />
+                  <a-tab-pane key="draft" tab="草稿" />
                 </a-tabs>
                 <a-input-search
                   v-model:value="serviceSearchKeyword"
@@ -240,12 +241,12 @@
                         >
                         <a-button
                           size="small"
-                          :type="item.status === 'on' ? 'default' : 'primary'"
-                          :danger="item.status === 'on'"
-                          :disabled="item.status === 'review'"
+                          :type="item.status === 'published' ? 'default' : 'primary'"
+                          :danger="item.status === 'published'"
+                          :disabled="item.status === 'pending'"
                           @click="toggleServiceStatus(item)"
                         >
-                          {{ item.status === "on" ? "下架" : "上架" }}
+                          {{ item.status === "published" ? "下架" : "上架" }}
                         </a-button>
                         <a-button size="small" danger @click="openDeleteServiceModal(item)">删除</a-button>
                       </div>
@@ -764,7 +765,7 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive, watch } from "vue";
+import { ref, computed, reactive, watch, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { message } from "ant-design-vue";
 import {
@@ -790,6 +791,7 @@ import {
   ExclamationCircleFilled,
 } from "@ant-design/icons-vue";
 import DemandPublishModal from "../../components/DemandPublishModal.vue";
+import { getMyArticles, getMyServices, getMyDemands } from "@/service/user/ucenter";
 
 const router = useRouter();
 const applyVisible = ref(false);
@@ -824,9 +826,10 @@ const articleStatusMap = {
 const serviceStatusFilter = ref("all");
 const serviceSearchKeyword = ref("");
 const serviceStatusBadgeMap = {
-  on: { badge: "success", text: "已上架" },
-  off: { badge: "default", text: "已下架" },
-  review: { badge: "processing", text: "审核中" },
+  published: { badge: "success", text: "已上架" },
+  offline: { badge: "default", text: "已下架" },
+  pending: { badge: "processing", text: "审核中" },
+  draft: { badge: "default", text: "草稿" },
 };
 
 // 需求筛选
@@ -843,117 +846,87 @@ const demandStatusBadgeMap = {
 };
 
 // 文章数据
-const myArticles = ref([
-  {
-    id: 1,
-    title: "深入解析CPU调度：操作系统的核心资源分配机制",
-    desc: "本文系统解析了CPU调度机制，分析其必要性、核心目标和经典算法...",
-    category: "操作系统",
-    cover: "https://placehold.co/100x70/1890ff/FFFFFF?text=OS",
-    status: "published",
-    readCount: "1.5k",
-    likeCount: 34,
-    commentCount: 12,
-    publishTime: "2026-02-27",
-  },
-  {
-    id: 2,
-    title: "Vue3 Composition API 最佳实践总结",
-    desc: "深入讲解 Vue3 组合式 API 的使用技巧，包括 setup、响应式、生命周期等核心概念...",
-    category: "Vue",
-    cover: "https://placehold.co/100x70/42b883/FFFFFF?text=Vue3",
-    status: "published",
-    readCount: "2.3k",
-    likeCount: 67,
-    commentCount: 23,
-    publishTime: "2026-02-20",
-  },
-  {
-    id: 3,
-    title: "Docker容器化部署实战指南",
-    desc: "从Docker基础到生产环境部署，手把手带你完成容器化改造...",
-    category: "运维",
-    cover: "https://placehold.co/100x70/0db7ed/FFFFFF?text=Docker",
-    status: "draft",
-    readCount: 0,
-    likeCount: 0,
-    commentCount: 0,
-    publishTime: "2026-02-15",
-  },
-  {
-    id: 4,
-    title: "AI大模型大师秘籍：2025AI技术全景揭秘",
-    desc: "本文系统介绍了AI大模型的学习路径，分为四个阶段循序渐进...",
-    category: "人工智能",
-    cover: "https://placehold.co/100x70/52c41a/FFFFFF?text=AI",
-    status: "published",
-    readCount: "2.1k",
-    likeCount: 47,
-    commentCount: 18,
-    publishTime: "2026-02-10",
-  },
-  {
-    id: 5,
-    title: "Spring Boot 3.x 新特性全解析",
-    desc: "Spring Boot 3.x 带来了众多重磅更新，包括虚拟线程、原生镜像等...",
-    category: "Java",
-    cover: "https://placehold.co/100x70/ff4d4f/FFFFFF?text=Java",
-    status: "review",
-    readCount: 0,
-    likeCount: 0,
-    commentCount: 0,
-    publishTime: "2026-03-01",
-  },
-  {
-    id: 6,
-    title: "MySQL 索引优化实战：从慢查询到毫秒响应",
-    desc: "通过真实案例讲解MySQL索引设计原则，EXPLAIN分析，慢查询优化...",
-    category: "数据库",
-    cover: "https://placehold.co/100x70/FF6600/FFFFFF?text=MySQL",
-    status: "published",
-    readCount: "3.2k",
-    likeCount: 156,
-    commentCount: 42,
-    publishTime: "2026-01-25",
-  },
-]);
+const myArticles = ref([]);
+const articlesLoading = ref(false);
+
+// 加载文章列表
+const loadArticles = async () => {
+  articlesLoading.value = true;
+  try {
+    const res = await getMyArticles();
+    if (res.code === 0 && res.data) {
+      // 将 API 返回的数据映射为组件使用的格式
+      myArticles.value = res.data.map((item) => ({
+        id: item.id,
+        title: item.title,
+        desc: item.content ? (item.content.length > 50 ? item.content.substring(0, 50) + "..." : item.content) : "",
+        cover: item.coverImage,
+        category: item.categoryName || "未分类",
+        status: item.status,
+        readCount: formatNumber(item.viewCount),
+        likeCount: item.likeCount,
+        commentCount: item.commentCount,
+      }));
+    }
+  } catch (error) {
+    console.error("获取文章列表失败:", error);
+    message.error("获取文章列表失败");
+  } finally {
+    articlesLoading.value = false;
+  }
+};
+
+// 格式化数字（如 1500 -> 1.5k）
+const formatNumber = (num) => {
+  if (!num && num !== 0) return "0";
+  if (num >= 1000) {
+    return (num / 1000).toFixed(1).replace(/\.0$/, "") + "k";
+  }
+  return num.toString();
+};
+
+onMounted(() => {
+  loadArticles();
+});
 
 // 服务数据
-const myServices = ref([
-  {
-    id: 1,
-    title: "Java大厂面试课，一套搞定offer",
-    desc: "覆盖Java基础、JVM、并发、分布式等核心考点，配套面试模拟",
-    price: 399,
-    orders: 128,
-    cover: "https://placehold.co/120x80/FFD700/000000?text=Java",
-    tags: ["平台保障", "商家认证"],
-    category: "Java",
-    status: "on",
-  },
-  {
-    id: 2,
-    title: "Vue3 + TypeScript 企业级实战",
-    desc: "从零搭建企业级前端项目，涵盖架构设计、性能优化、工程化实践",
-    price: 299,
-    orders: 86,
-    cover: "https://placehold.co/120x80/42b883/FFFFFF?text=Vue3",
-    tags: ["平台保障"],
-    category: "Vue/React",
-    status: "on",
-  },
-  {
-    id: 3,
-    title: "Docker + K8s 容器化部署实战",
-    desc: "从Docker基础到Kubernetes集群管理，企业级DevOps实践",
-    price: 499,
-    orders: 0,
-    cover: "https://placehold.co/120x80/0db7ed/FFFFFF?text=Docker",
-    tags: ["平台保障", "源码解析"],
-    category: "运维部署",
-    status: "review",
-  },
-]);
+const myServices = ref([]);
+const servicesLoading = ref(false);
+
+// 加载服务列表
+const loadServices = async () => {
+  servicesLoading.value = true;
+  try {
+    const res = await getMyServices();
+    if (res.code === 0 && res.data) {
+      myServices.value = res.data.map((item) => ({
+        id: item.id,
+        title: item.goodsTitle,
+        desc: "优质服务，品质保障",
+        cover: item.coverImage,
+        category: "服务类别",
+        status: item.status.toLowerCase(),
+        price: item.price,
+        orders: item.orderCount,
+        tags: ["平台保障"],
+        detail: "",
+        deliveryDays: 7,
+      }));
+    }
+  } catch (error) {
+    console.error("获取服务列表失败:", error);
+    message.error("获取服务列表失败");
+  } finally {
+    servicesLoading.value = false;
+  }
+};
+
+onMounted(() => {
+  loadArticles();
+  if (isProvider.value) {
+    loadServices();
+  }
+});
 
 // 需求数据
 const myDemands = ref([
@@ -1588,11 +1561,11 @@ const editService = (item) => {
 };
 
 const toggleServiceStatus = (item) => {
-  if (item.status === "on") {
-    item.status = "off";
+  if (item.status === "published") {
+    item.status = "offline";
     message.success("已下架");
   } else {
-    item.status = "on";
+    item.status = "published";
     message.success("已上架");
   }
 };
@@ -1737,11 +1710,11 @@ const serviceCoverRef = ref(null);
 const goodsImgInputRef = ref(null);
 
 // 快捷发布统计数据
-const publishStats = ref({
-  articles: 6,
+const publishStats = computed(() => ({
+  articles: myArticles.value.length,
   demands: 40,
-  services: 3,
-});
+  services: myServices.value.filter((s) => s.status === "published").length,
+}));
 
 const onServiceCoverChange = (e) => {
   const file = e.target.files[0];
@@ -1815,7 +1788,7 @@ const submitService = () => {
         `https://placehold.co/120x80/52c41a/FFFFFF?text=新服务`,
       tags: serviceForm.tags,
       category: serviceForm.category,
-      status: "review",
+      status: "pending",
       orders: 0,
       detail: serviceForm.detail,
       deliveryDays: serviceForm.deliveryDays,
@@ -1843,31 +1816,31 @@ const submitService = () => {
 const statsData = ref([
   {
     label: "文章总数",
-    value: 6,
+    value: 0,
     icon: FileTextOutlined,
     gradient: "linear-gradient(135deg, #1890ff 0%, #69c0ff 100%)",
   },
   {
     label: "总阅读量",
-    value: "12.5k",
+    value: "0",
     icon: EyeOutlined,
     gradient: "linear-gradient(135deg, #52c41a 0%, #95de64 100%)",
   },
   {
     label: "总获赞",
-    value: "3.8k",
+    value: "0",
     icon: StarOutlined,
     gradient: "linear-gradient(135deg, #ff4d4f 0%, #ff7875 100%)",
   },
   {
     label: "上架服务",
-    value: 3,
+    value: 0,
     icon: ShopOutlined,
     gradient: "linear-gradient(135deg, #fa8c16 0%, #ffc069 100%)",
   },
   {
     label: "累计成交",
-    value: 214,
+    value: 0,
     icon: ShoppingCartOutlined,
     gradient: "linear-gradient(135deg, #722ed1 0%, #b37feb 100%)",
   },
@@ -1878,6 +1851,47 @@ const statsData = ref([
     gradient: "linear-gradient(135deg, #13c2c0 0%, #36cfc9 100%)",
   },
 ]);
+
+// 计算文章统计数据
+const calculateArticleStats = () => {
+  const totalArticles = myArticles.value.length;
+  const totalViews = myArticles.value.reduce((sum, item) => {
+    const num = parseInt(item.readCount) || 0;
+    return sum + num;
+  }, 0);
+  const totalLikes = myArticles.value.reduce((sum, item) => {
+    return sum + (item.likeCount || 0);
+  }, 0);
+
+  statsData.value[0].value = totalArticles;
+  statsData.value[1].value = formatNumber(totalViews);
+  statsData.value[2].value = formatNumber(totalLikes);
+};
+
+// 计算服务统计数据
+const calculateServiceStats = () => {
+  const publishedServices = myServices.value.filter((s) => s.status === "published");
+  const totalOrders = myServices.value.reduce((sum, item) => {
+    return sum + (item.orders || 0);
+  }, 0);
+
+  statsData.value[3].value = publishedServices.length;
+  statsData.value[4].value = totalOrders;
+};
+
+// 监听文章数据变化，更新统计数据
+watch(myArticles, () => {
+  calculateArticleStats();
+}, { deep: true });
+
+// 监听服务数据变化，更新统计数据
+watch(myServices, () => {
+  calculateServiceStats();
+}, { deep: true });
+
+// 初始化统计数据
+calculateArticleStats();
+calculateServiceStats();
 
 const filteredStatsData = computed(() => {
   if (isProvider.value) return statsData.value;

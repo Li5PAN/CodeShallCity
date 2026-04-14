@@ -4,6 +4,13 @@
     <div class="profile-hero">
       <div class="profile-hero-left">
         <a-avatar
+          v-if="avatarUrl"
+          :size="80"
+          :src="avatarUrl"
+          class="profile-avatar"
+        />
+        <a-avatar
+          v-else
           :size="80"
           style="background-color: #52c41a; font-size: 32px; flex-shrink: 0"
           >{{ username[0] }}</a-avatar
@@ -39,7 +46,7 @@
           <div class="overview-grid">
             <div
               class="overview-item"
-              v-for="item in overview"
+              v-for="item in displayOverview"
               :key="item.label"
             >
               <component
@@ -96,6 +103,9 @@
         <a-form-item label="昵称">
           <a-input v-model:value="editForm.username" placeholder="请输入昵称" />
         </a-form-item>
+        <a-form-item label="头像URL">
+          <a-input v-model:value="editForm.avatar" placeholder="请输入头像URL" />
+        </a-form-item>
         <a-form-item label="个人简介">
           <a-textarea
             v-model:value="editForm.bio"
@@ -111,7 +121,7 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive } from "vue";
+import { ref, computed, reactive, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { message } from "ant-design-vue";
 import {
@@ -129,14 +139,28 @@ import {
   StarOutlined,
   PlusOutlined,
 } from "@ant-design/icons-vue";
+import { getUserStats, updateProfile } from "@/service/user/uprofile.js";
 
 const router = useRouter();
 
 const username = ref(localStorage.getItem("username") || "用户");
 const userRole = ref(localStorage.getItem("userRole") || "user"); // 获取用户角色
 const bio = ref("热爱技术，专注于全栈开发与AI应用探索");
+const avatarUrl = ref(localStorage.getItem("avatar") || "");
 const editVisible = ref(false);
 const contentTab = ref("article");
+
+// 数据概览 - 使用 reactive 以便后续更新
+const overview = reactive([
+  { label: "总阅读量", value: 0, color: "#1890ff", icon: EyeOutlined },
+  { label: "总获赞", value: 0, color: "#ff4d4f", icon: LikeOutlined },
+  { label: "总评论", value: 0, color: "#52c41a", icon: MessageOutlined },
+  { label: "发布文章", value: 0, color: "#722ed1", icon: FileTextOutlined },
+  { label: "悬赏需求", value: 0, color: "#13c2c2", icon: TrophyOutlined },
+]);
+
+// 上架服务数（仅服务商）
+const goodsCount = ref(0);
 
 // 文章筛选
 const articleStatusFilter = ref("all");
@@ -186,30 +210,71 @@ const demandStatusMap = {
 const editForm = reactive({
   username: username.value,
   bio: bio.value,
+  avatar: localStorage.getItem("avatar") || "",
 });
 
-const saveProfile = () => {
-  username.value = editForm.username;
-  bio.value = editForm.bio;
-  editVisible.value = false;
+const saveProfile = async () => {
+  try {
+    await updateProfile(editForm);
+    // 更新本地存储和页面显示
+    username.value = editForm.username;
+    bio.value = editForm.bio;
+    if (editForm.avatar) {
+      localStorage.setItem("avatar", editForm.avatar);
+    }
+    editVisible.value = false;
+    message.success("资料修改成功");
+  } catch (error) {
+    console.error("修改资料失败:", error);
+    message.error("修改失败，请重试");
+  }
 };
+
+// 获取用户统计数据
+const fetchUserStats = async () => {
+  try {
+    const res = await getUserStats();
+    if (res && res.data) {
+      const data = res.data;
+      // 更新 overview 数据
+      overview[0].value = data.viewCount || 0;
+      overview[1].value = data.likeCount || 0;
+      overview[2].value = data.commentCount || 0;
+      overview[3].value = data.postCount || 0;
+      overview[4].value = data.demandCount || 0;
+      // 保存上架服务数
+      goodsCount.value = data.goodsCount || 0;
+    }
+  } catch (error) {
+    console.error("获取用户统计数据失败:", error);
+    message.error("获取数据失败");
+  }
+};
+
+// 组件挂载时获取数据
+onMounted(() => {
+  fetchUserStats();
+});
+
+// 动态计算需要显示的数据概览项
+const displayOverview = computed(() => {
+  const items = [...overview];
+  if (userRole.value === "provider") {
+    items.push({
+      label: "上架服务",
+      value: goodsCount.value,
+      color: "#fa8c16",
+      icon: ShopOutlined,
+    });
+  }
+  return items;
+});
 
 const stats = ref([
   { label: "粉丝", value: "1.2k" },
   { label: "关注", value: 141 },
   { label: "获赞", value: "3.8k" },
   { label: "文章", value: 28 },
-]);
-
-const overview = ref([
-  { label: "总阅读量", value: "12.5k", color: "#1890ff", icon: EyeOutlined },
-  { label: "总获赞", value: "3.8k", color: "#ff4d4f", icon: LikeOutlined },
-  { label: "总评论", value: 286, color: "#52c41a", icon: MessageOutlined },
-  { label: "发布文章", value: 28, color: "#722ed1", icon: FileTextOutlined },
-  ...(userRole.value === "provider"
-    ? [{ label: "上架服务", value: 5, color: "#fa8c16", icon: ShopOutlined }]
-    : []),
-  { label: "悬赏需求", value: 3, color: "#13c2c2", icon: TrophyOutlined },
 ]);
 
 const assets = ref([
@@ -462,6 +527,10 @@ const goDemandDetail = (id) =>
 <style scoped>
 .profile-page {
   width: 100%;
+}
+
+.profile-avatar {
+  flex-shrink: 0;
 }
 
 /* Hero */

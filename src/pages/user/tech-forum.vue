@@ -52,7 +52,11 @@
     <div class="main-content">
       <!-- 左侧文章列表 -->
       <div class="article-list">
-        <div v-if="paginatedArticleList.length === 0" class="empty-state">
+        <div v-if="loading" class="empty-state">
+          <a-spin size="large" />
+          <p>加载中...</p>
+        </div>
+        <div v-else-if="paginatedArticleList.length === 0" class="empty-state">
           <SearchOutlined style="font-size: 48px; color: #e0e0e0" />
           <p>暂无相关文章</p>
         </div>
@@ -104,7 +108,7 @@
       <a-pagination
         v-model:current="currentPage"
         v-model:pageSize="pageSize"
-        :total="filteredArticleList.length"
+        :total="totalArticles"
         show-size-changer
         show-quick-jumper
         :show-total="(total) => `共 ${total} 条`"
@@ -117,14 +121,99 @@
 import { ref, inject, computed, watch, onMounted } from "vue";
 import { SearchOutlined, DownOutlined } from "@ant-design/icons-vue";
 import { getHomeForumCategories } from "@/service/user/uindex";
+import { getPostPage } from "@/service/user/uforum";
+import { getHomePosts } from "@/service/user/uindex";
 
 const openDetail = inject("openDetail");
 
 const searchValue = ref("");
+const loading = ref(false);
+
+// 文章列表数据（从 API 获取）
+const articleList = ref([]);
+const totalArticles = ref(0);
+
+// 获取文章列表
+const fetchArticleList = async () => {
+  loading.value = true;
+  try {
+    const params = {
+      pageNo: currentPage.value,
+      pageSize: pageSize.value,
+    };
+    // 如果有分类选择且不是"全部"
+    if (activeCategory.value !== "all") {
+      params.categoryId = activeCategory.value;
+    }
+    // 如果有搜索关键词
+    if (searchValue.value.trim()) {
+      params.title = searchValue.value.trim();
+    }
+    const res = await getPostPage(params);
+    if (res.code === 0) {
+      // 处理返回的数据，转换为组件需要的格式
+      articleList.value = (res.data || []).map((item) => ({
+        id: item.id,
+        author: item.userName || "未知用户",
+        authorColor: stringToColor(item.userName || "未知用户"),
+        title: item.title,
+        desc: item.content ? item.content.replace(/<[^>]+>/g, "").substring(0, 100) : "",
+        category: item.categoryName,
+        tagColor: "blue",
+        publishTime: item.createTime ? formatDate(item.createTime) : "",
+        readCount: formatCount(item.viewCount),
+        likeCount: item.likeCount || 0,
+        collectCount: item.collectCount || 0,
+        cover: item.coverImage,
+      }));
+      totalArticles.value = res.total || res.data?.length || 0;
+    }
+  } catch (error) {
+    console.error("获取文章列表失败:", error);
+    articleList.value = [];
+    totalArticles.value = 0;
+  } finally {
+    loading.value = false;
+  }
+};
+
+// 字符串转颜色（用于头像背景色）
+const stringToColor = (str) => {
+  if (!str) return "#1890ff";
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const colors = ["#1890ff", "#52c41a", "#faad14", "#ff4d4f", "#722ed1", "#13c2c2", "#eb2f96", "#fa8c16"];
+  return colors[Math.abs(hash) % colors.length];
+};
+
+// 格式化日期
+const formatDate = (dateStr) => {
+  if (!dateStr) return "";
+  const date = new Date(dateStr);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
+// 格式化数量显示
+const formatCount = (count) => {
+  if (!count && count !== 0) return "0";
+  if (count >= 10000) {
+    return (count / 10000).toFixed(1) + "w";
+  }
+  if (count >= 1000) {
+    return (count / 1000).toFixed(1) + "k";
+  }
+  return String(count);
+};
 
 const handleSearch = (value) => {
   console.log("搜索文章:", value);
   currentPage.value = 1;
+  fetchArticleList();
 };
 
 const allCategories = ref([
@@ -157,8 +246,25 @@ const fetchForumCategories = async () => {
   }
 };
 
+// 获取推荐论坛列表
+const fetchCommunityList = async () => {
+  try {
+    const res = await getHomePosts({ pageNo: 1, pageSize: 10 });
+    if (res.code === 0 && res.data) {
+      communityList.value = res.data.map((item, index) => ({
+        key: item.id || index + 1,
+        name: item.postTitle || "未知论坛",
+      }));
+    }
+  } catch (error) {
+    console.error("获取推荐论坛失败:", error);
+  }
+};
+
 onMounted(() => {
   fetchForumCategories();
+  fetchArticleList();
+  fetchCommunityList();
 });
 
 const activeCategory = ref("all");
@@ -167,32 +273,15 @@ const handleCategoryClick = (item) => {
   if (!item) return;
   activeCategory.value = item.key;
   currentPage.value = 1;
+  fetchArticleList();
 };
 
 const currentPage = ref(1);
 const pageSize = ref(10);
-const totalArticles = ref(35);
 
-// 筛选后的数据
+// 筛选后的数据（这里只做前端额外筛选，API筛选已在 fetchArticleList 中处理）
 const filteredArticleList = computed(() => {
-  let list = articleList.value;
-  if (activeCategory.value !== "all") {
-    // 根据 activeCategory 找到对应的分类名称
-    const category = allCategories.value.find((c) => c.key === activeCategory.value);
-    const categoryName = category?.name;
-    if (categoryName) {
-      list = list.filter((item) => item.category === categoryName);
-    }
-  }
-  if (searchValue.value.trim()) {
-    const keyword = searchValue.value.trim().toLowerCase();
-    list = list.filter(
-      (item) =>
-        item.title.toLowerCase().includes(keyword) ||
-        item.desc.toLowerCase().includes(keyword)
-    );
-  }
-  return list;
+  return articleList.value;
 });
 
 // 分页后的数据
@@ -202,518 +291,20 @@ const paginatedArticleList = computed(() => {
   return filteredArticleList.value.slice(start, end);
 });
 
-// 监听筛选条件变化，重置分页
+// 监听筛选条件变化，重置分页并重新获取数据
 watch(activeCategory, () => {
   currentPage.value = 1;
 });
 watch(searchValue, () => {
   currentPage.value = 1;
 });
+// 监听分页变化，重新获取数据
+watch([currentPage, pageSize], () => {
+  fetchArticleList();
+});
 
-const articleList = ref([
-  {
-    id: 1,
-    author: "bkspiderx",
-    authorColor: "#1890ff",
-    title: "深入解析CPU调度：操作系统的核心资源分配机制",
-    desc: "本文系统解析了CPU调度机制，分析其必要性、核心目标和经典算法，包括FCFS、SJF、优先级调度和时间片轮转...",
-    category: "操作系统",
-    tagColor: "blue",
-    publishTime: "2026-02-20",
-    readCount: "1.5k",
-    likeCount: 34,
-    collectCount: 11,
-    cover: "https://placehold.co/100x80/1890ff/FFFFFF?text=OS",
-  },
-  {
-    id: 2,
-    author: "Agent学习路线",
-    authorColor: "#52c41a",
-    title: "AI大模型大师秘籍：2025AI技术全景揭秘，从入门到精通的完整学习指南",
-    desc: "本文系统介绍了AI大模型的学习路径，分为四个阶段：基础阶段重点学数学、统计和机器学习基础...",
-    category: "人工智能",
-    tagColor: "green",
-    publishTime: "2026-02-25",
-    readCount: "2.1k",
-    likeCount: 47,
-    collectCount: 14,
-    cover: "https://placehold.co/100x80/52c41a/FFFFFF?text=AI",
-  },
-  {
-    id: 3,
-    author: "NASA技术",
-    authorColor: "#faad14",
-    title: "NASA公布推进阿尔忒弥斯IV任务，计划在月球轨道建设首个空间站",
-    desc: 'NASA公布推进阿尔忒弥斯IV任务，计划在月球轨道建设首个空间站"门户"。该任务将采用升级版SLS火箭...',
-    category: "科技资讯",
-    tagColor: "orange",
-    publishTime: "2026-02-26",
-    readCount: "1.3k",
-    likeCount: 33,
-    collectCount: 9,
-    cover: "https://placehold.co/100x80/faad14/FFFFFF?text=NASA",
-  },
-  {
-    id: 4,
-    author: "Java架构师",
-    authorColor: "#ff4d4f",
-    title: "Spring Boot 3.x 新特性全解析：从虚拟线程到原生镜像",
-    desc: "Spring Boot 3.x 带来了众多重磅更新，包括对Java 21虚拟线程的支持、GraalVM原生镜像编译优化...",
-    category: "Java",
-    tagColor: "red",
-    publishTime: "2026-02-24",
-    readCount: "3.2k",
-    likeCount: 156,
-    collectCount: 42,
-    cover: "https://placehold.co/100x80/ff4d4f/FFFFFF?text=Java",
-  },
-  {
-    id: 5,
-    author: "Python达人",
-    authorColor: "#722ed1",
-    title: "Python异步编程完全指南：AIOHTTP异步HTTP客户端实战",
-    desc: "异步编程是现代Python开发的重要技能，本文详细介绍如何使用AIOHTTP进行高性能HTTP请求处理...",
-    category: "Python",
-    tagColor: "purple",
-    publishTime: "2026-02-23",
-    readCount: "2.8k",
-    likeCount: 89,
-    collectCount: 28,
-    cover: "https://placehold.co/100x80/722ed1/FFFFFF?text=Python",
-  },
-  {
-    id: 6,
-    author: "数据库老王",
-    authorColor: "#13c2c2",
-    title: "MySQL 8.0 新特性深度解析：CTE、窗口函数与JSON支持",
-    desc: "MySQL 8.0引入了众多强大的新特性，本文深度解析公用表表达式(CTE)、窗口函数和增强的JSON支持...",
-    category: "数据库",
-    tagColor: "cyan",
-    publishTime: "2026-02-22",
-    readCount: "1.9k",
-    likeCount: 67,
-    collectCount: 19,
-    cover: "https://placehold.co/100x80/13c2c2/FFFFFF?text=MySQL",
-  },
-  {
-    id: 7,
-    author: "前端观察",
-    authorColor: "#eb2f96",
-    title: "Vue3 Composition API 最佳实践：从入门到精通",
-    desc: "Vue3的Composition API彻底改变了我们组织组件逻辑的方式，本文分享在实际项目中使用Vue3的最佳实践...",
-    category: "Vue",
-    tagColor: "magenta",
-    publishTime: "2026-02-21",
-    readCount: "4.5k",
-    likeCount: 234,
-    collectCount: 67,
-    cover: "https://placehold.co/100x80/eb2f96/FFFFFF?text=Vue3",
-  },
-  {
-    id: 8,
-    author: "Go语言爱好者",
-    authorColor: "#1890ff",
-    title: "Go语言并发编程精讲：Goroutine与Channel深入理解",
-    desc: "Go语言的并发模型是其最强大的特性之一，本文深入讲解Goroutine调度原理、Channel使用技巧和并发安全...",
-    category: "Go语言",
-    tagColor: "blue",
-    publishTime: "2026-02-19",
-    readCount: "2.3k",
-    likeCount: 98,
-    collectCount: 31,
-    cover: "https://placehold.co/100x80/1890ff/FFFFFF?text=Go",
-  },
-  {
-    id: 9,
-    author: "MCP开发者",
-    authorColor: "#52c41a",
-    title: "MCP协议详解：让AI模型更智能地与外部工具交互",
-    desc: "Model Context Protocol (MCP) 是Anthropic推出的开放协议，本文详细解析MCP的工作原理和应用场景...",
-    category: "MCP",
-    tagColor: "green",
-    publishTime: "2026-02-18",
-    readCount: "3.1k",
-    likeCount: 145,
-    collectCount: 52,
-    cover: "https://placehold.co/100x80/52c41a/FFFFFF?text=MCP",
-  },
-  {
-    id: 10,
-    author: "DeepSeek官方",
-    authorColor: "#fa8c16",
-    title: "DeepSeek-R1技术报告：推理能力与训练方法揭秘",
-    desc: "DeepSeek团队发布R1模型技术报告，详细介绍了长思维链推理能力的训练方法和模型架构创新...",
-    category: "DeepSeek",
-    tagColor: "orange",
-    publishTime: "2026-02-17",
-    readCount: "8.7k",
-    likeCount: 567,
-    collectCount: 189,
-    cover: "https://placehold.co/100x80/fa8c16/FFFFFF?text=DeepSeek",
-  },
-  {
-    id: 11,
-    author: "Rust布道者",
-    authorColor: "#f5222d",
-    title: "Rust所有权系统深度解析：告别内存安全问题",
-    desc: "Rust的所有权系统是其核心创新，本文深入解析借用检查器、生命周期标注和内存安全保证...",
-    category: "Rust",
-    tagColor: "red",
-    publishTime: "2026-02-16",
-    readCount: "1.7k",
-    likeCount: 76,
-    collectCount: 24,
-    cover: "https://placehold.co/100x80/f5222d/FFFFFF?text=Rust",
-  },
-  {
-    id: 12,
-    author: "容器化专家",
-    authorColor: "#1890ff",
-    title: "Kubernetes生产级集群搭建完全指南：从0到1",
-    desc: "本文详细介绍如何在生产环境搭建高可用的Kubernetes集群，包括集群规划、组件选型和常见问题处理...",
-    category: "Kubernetes",
-    tagColor: "blue",
-    publishTime: "2026-02-15",
-    readCount: "2.6k",
-    likeCount: 112,
-    collectCount: 38,
-    cover: "https://placehold.co/100x80/1890ff/FFFFFF?text=K8s",
-  },
-  {
-    id: 13,
-    author: "React开发者",
-    authorColor: "#61dafb",
-    title: "React Server Components完全指南：下一代React开发范式",
-    desc: "React Server Components开启了React开发的新纪元，本文深入解析服务端组件的工作原理和使用场景...",
-    category: "React",
-    tagColor: "blue",
-    publishTime: "2026-02-14",
-    readCount: "3.8k",
-    likeCount: 198,
-    collectCount: 63,
-    cover: "https://placehold.co/100x80/61dafb/FFFFFF?text=React",
-  },
-  {
-    id: 14,
-    author: "区块链技术宅",
-    authorColor: "#722ed1",
-    title: "以太坊智能合约开发入门：从Solidity到部署",
-    desc: "本文手把手教你开发以太坊智能合约，从Solidity基础语法到合约部署和测试，带你进入Web3世界...",
-    category: "区块链",
-    tagColor: "purple",
-    publishTime: "2026-02-13",
-    readCount: "2.2k",
-    likeCount: 87,
-    collectCount: 29,
-    cover: "https://placehold.co/100x80/722ed1/FFFFFF?text=ETH",
-  },
-  {
-    id: 15,
-    author: "DevOps工程师",
-    authorColor: "#fa8c16",
-    title: "GitLab CI/CD 流水线实战：自动化部署全流程",
-    desc: "详细介绍如何使用GitLab CI/CD实现代码提交到生产环境部署的全流程自动化...",
-    category: "DevOps",
-    tagColor: "orange",
-    publishTime: "2026-02-12",
-    readCount: "1.8k",
-    likeCount: 65,
-    collectCount: 21,
-    cover: "https://placehold.co/100x80/fa8c16/FFFFFF?text=CI",
-  },
-  {
-    id: 16,
-    author: "TypeScript布道师",
-    authorColor: "#3178c6",
-    title: "TypeScript高级类型技巧：类型编程的艺术",
-    desc: "深入讲解TypeScript高级类型系统，包括条件类型、映射类型、模板字面量类型等复杂概念...",
-    category: "TypeScript",
-    tagColor: "blue",
-    publishTime: "2026-02-11",
-    readCount: "2.9k",
-    likeCount: 134,
-    collectCount: 45,
-    cover: "https://placehold.co/100x80/3178c6/FFFFFF?text=TS",
-  },
-  {
-    id: 17,
-    author: "大数据架构师",
-    authorColor: "#13c2c2",
-    title: "Apache Spark 3.0 性能优化实战：数据处理效率翻倍",
-    desc: "Spark 3.0引入了自适应查询执行和动态分区裁剪等优化，本文分享生产环境中的性能调优经验...",
-    category: "大数据",
-    tagColor: "cyan",
-    publishTime: "2026-02-10",
-    readCount: "2.1k",
-    likeCount: 78,
-    collectCount: 26,
-    cover: "https://placehold.co/100x80/13c2c2/FFFFFF?text=Spark",
-  },
-  {
-    id: 18,
-    author: "算法工程师",
-    authorColor: "#52c41a",
-    title: "Transformer架构深度解析：从注意力机制到BERT",
-    desc: "Transformer彻底改变了NLP领域，本文深入解析注意力机制、位置编码和BERT模型的实现原理...",
-    category: "深度学习",
-    tagColor: "green",
-    publishTime: "2026-02-09",
-    readCount: "5.3k",
-    likeCount: 289,
-    collectCount: 94,
-    cover: "https://placehold.co/100x80/52c41a/FFFFFF?text=AI",
-  },
-  {
-    id: 19,
-    author: "网络安全专家",
-    authorColor: "#ff4d4f",
-    title: "Web应用安全防护：OWASP Top 10漏洞与防御策略",
-    desc: "详细解析OWASP Top 10安全风险，包括SQL注入、XSS、CSRF等漏洞原理和防护措施...",
-    category: "安全",
-    tagColor: "red",
-    publishTime: "2026-02-08",
-    readCount: "3.4k",
-    likeCount: 167,
-    collectCount: 58,
-    cover: "https://placehold.co/100x80/ff4d4f/FFFFFF?text=Security",
-  },
-  {
-    id: 20,
-    author: "移动端开发者",
-    authorColor: "#1890ff",
-    title: "Flutter跨平台开发实战：从入门到项目落地",
-    desc: "使用Flutter实现iOS和Android双平台开发，本文分享实际项目中遇到的坑和最佳实践...",
-    category: "移动开发",
-    tagColor: "blue",
-    publishTime: "2026-02-07",
-    readCount: "2.7k",
-    likeCount: 109,
-    collectCount: 36,
-    cover: "https://placehold.co/100x80/1890ff/FFFFFF?text=Flutter",
-  },
-  {
-    id: 21,
-    author: "微服务架构师",
-    authorColor: "#722ed1",
-    title: "微服务架构设计模式：Saga、CQRS与事件溯源",
-    desc: "深入讲解分布式事务解决方案Saga模式、CQRS读写分离架构和事件溯源Event Sourcing...",
-    category: "架构设计",
-    tagColor: "purple",
-    publishTime: "2026-02-06",
-    readCount: "3.6k",
-    likeCount: 178,
-    collectCount: 61,
-    cover: "https://placehold.co/100x80/722ed1/FFFFFF?text=Micro",
-  },
-  {
-    id: 22,
-    author: "Linux内核爱好者",
-    authorColor: "#000000",
-    title: "Linux内核模块开发指南：编写你的第一个内核模块",
-    desc: "深入Linux内核世界，手把手教你编写字符设备驱动和内核模块，了解内核编程的基本概念...",
-    category: "Linux",
-    tagColor: "default",
-    publishTime: "2026-02-05",
-    readCount: "1.4k",
-    likeCount: 52,
-    collectCount: 17,
-    cover: "https://placehold.co/100x80/000000/FFFFFF?text=Linux",
-  },
-  {
-    id: 23,
-    author: "前端工程化",
-    authorColor: "#eb2f96",
-    title: "Webpack 5模块联邦：实现微前端的终极方案",
-    desc: "Webpack 5的Module Federation让微前端实现变得简单，本文详细解析联邦模块的工作原理...",
-    category: "前端工程化",
-    tagColor: "magenta",
-    publishTime: "2026-02-04",
-    readCount: "2.4k",
-    likeCount: 96,
-    collectCount: 32,
-    cover: "https://placehold.co/100x80/eb2f96/FFFFFF?text=Webpack",
-  },
-  {
-    id: 24,
-    author: "数据库内核研究",
-    authorColor: "#faad14",
-    title: "PostgreSQL高级特性：分区表、索引类型与查询优化",
-    desc: "深入解析PostgreSQL的高级特性，包括范围分区、列表分区、GIN索引和BRIN索引的使用场景...",
-    category: "数据库",
-    tagColor: "orange",
-    publishTime: "2026-02-03",
-    readCount: "1.6k",
-    likeCount: 59,
-    collectCount: 20,
-    cover: "https://placehold.co/100x80/faad14/FFFFFF?text=PG",
-  },
-  {
-    id: 25,
-    author: "云原生实践者",
-    authorColor: "#1890ff",
-    title: "Istio服务网格实战：流量管理与安全策略",
-    desc: "详细介绍Istio的流量管理能力，包括金丝雀发布、熔断、重试机制和安全策略配置...",
-    category: "云原生",
-    tagColor: "blue",
-    publishTime: "2026-02-02",
-    readCount: "2.0k",
-    likeCount: 74,
-    collectCount: 25,
-    cover: "https://placehold.co/100x80/1890ff/FFFFFF?text=Istio",
-  },
-  {
-    id: 26,
-    author: "JavaScript布道师",
-    authorColor: "#f7df1e",
-    title: "Node.js性能优化指南：从事件循环到内存管理",
-    desc: "深入Node.js底层，理解事件循环机制、内存管理和CPU性能分析，提升应用响应速度...",
-    category: "Node.js",
-    tagColor: "gold",
-    publishTime: "2026-02-01",
-    readCount: "2.5k",
-    likeCount: 103,
-    collectCount: 34,
-    cover: "https://placehold.co/100x80/f7df1e/000000?text=Node",
-  },
-  {
-    id: 27,
-    author: "机器学习工程师",
-    authorColor: "#52c41a",
-    title: "PyTorch Lightning实战：简化深度学习训练流程",
-    desc: "PyTorch Lightning简化了深度学习代码组织，本文通过实际项目演示如何使用LightningModules...",
-    category: "机器学习",
-    tagColor: "green",
-    publishTime: "2026-01-31",
-    readCount: "1.9k",
-    likeCount: 71,
-    collectCount: 23,
-    cover: "https://placehold.co/100x80/52c41a/FFFFFF?text=PyTorch",
-  },
-  {
-    id: 28,
-    author: "GraphQL开发者",
-    authorColor: "#e10098",
-    title: "GraphQL与REST对比：API设计的最佳实践",
-    desc: "深入对比GraphQL和REST的优缺点，讲解何时选择GraphQL以及如何设计高效的GraphQL Schema...",
-    category: "API设计",
-    tagColor: "pink",
-    publishTime: "2026-01-30",
-    readCount: "1.8k",
-    likeCount: 68,
-    collectCount: 22,
-    cover: "https://placehold.co/100x80/e10098/FFFFFF?text=GraphQL",
-  },
-  {
-    id: 29,
-    author: "监控系统专家",
-    authorColor: "#ff4d4f",
-    title: "Prometheus + Grafana监控体系搭建完全指南",
-    desc: "手把手教你搭建企业级监控体系，包括指标采集、可视化仪表盘和告警规则配置...",
-    category: "监控运维",
-    tagColor: "red",
-    publishTime: "2026-01-29",
-    readCount: "2.8k",
-    likeCount: 115,
-    collectCount: 39,
-    cover: "https://placehold.co/100x80/ff4d4f/FFFFFF?text=Monitor",
-  },
-  {
-    id: 30,
-    author: "AI应用开发者",
-    authorColor: "#722ed1",
-    title: "LangChain与LLM应用开发：大模型落地方案",
-    desc: "LangChain让基于大模型的应用开发变得简单，本文讲解 Chains、Agents 和 Memory 的使用...",
-    category: "AI应用",
-    tagColor: "purple",
-    publishTime: "2026-01-28",
-    readCount: "4.2k",
-    likeCount: 213,
-    collectCount: 72,
-    cover: "https://placehold.co/100x80/722ed1/FFFFFF?text=LangChain",
-  },
-  {
-    id: 31,
-    author: "Swift开发者",
-    authorColor: "#fa8c16",
-    title: "Swift并发编程：async/await与Actor模型",
-    desc: "Swift 5.5引入的并发特性彻底改变了iOS开发，本文深入讲解async/await和Actor模型的使用...",
-    category: "Swift",
-    tagColor: "orange",
-    publishTime: "2026-01-27",
-    readCount: "1.5k",
-    likeCount: 56,
-    collectCount: 18,
-    cover: "https://placehold.co/100x80/fa8c16/FFFFFF?text=Swift",
-  },
-  {
-    id: 32,
-    author: "测试工程师",
-    authorColor: "#13c2c2",
-    title: "Playwright端到端测试实战：现代化Web测试方案",
-    desc: "Playwright是新一代Web自动化测试工具，本文讲解如何编写可靠的E2E测试和CI集成...",
-    category: "测试",
-    tagColor: "cyan",
-    publishTime: "2026-01-26",
-    readCount: "1.7k",
-    likeCount: 63,
-    collectCount: 21,
-    cover: "https://placehold.co/100x80/13c2c2/FFFFFF?text=Playwright",
-  },
-  {
-    id: 33,
-    author: "消息队列专家",
-    authorColor: "#52c41a",
-    title: "Kafka实时数据流处理：Flink与Kafka集成实战",
-    desc: "讲解如何使用Apache Flink处理Kafka数据流，实现实时数据分析和流处理应用...",
-    category: "流处理",
-    tagColor: "green",
-    publishTime: "2026-01-25",
-    readCount: "2.3k",
-    likeCount: 92,
-    collectCount: 31,
-    cover: "https://placehold.co/100x80/52c41a/FFFFFF?text=Flink",
-  },
-  {
-    id: 34,
-    author: "低代码开发者",
-    authorColor: "#1890ff",
-    title: "低代码平台架构设计：可扩展性与灵活性平衡",
-    desc: "深入分析低代码平台的技术架构，如何在提供易用性的同时保持系统可扩展性...",
-    category: "低代码",
-    tagColor: "blue",
-    publishTime: "2026-01-24",
-    readCount: "1.4k",
-    likeCount: 48,
-    collectCount: 15,
-    cover: "https://placehold.co/100x80/1890ff/FFFFFF?text=LowCode",
-  },
-  {
-    id: 35,
-    author: "AI安全研究员",
-    authorColor: "#ff4d4f",
-    title: "大模型安全与伦理：Prompt注入与AI治理",
-    desc: "探讨大模型应用的安全风险，包括Prompt注入、幻觉问题和AI伦理治理的最佳实践...",
-    category: "AI安全",
-    tagColor: "red",
-    publishTime: "2026-01-23",
-    readCount: "3.1k",
-    likeCount: 142,
-    collectCount: 48,
-    cover: "https://placehold.co/100x80/ff4d4f/FFFFFF?text=AISafety",
-  },
-]);
-
-const communityList = ref([
-  { key: 1, name: "高通开发者中文社区" },
-  { key: 2, name: "HarmonyOS开发者社区" },
-  { key: 3, name: "讯飞AI开发者社区" },
-  { key: 4, name: "英特尔开发人员专区" },
-  { key: 5, name: "NVIDIA技术专区" },
-  { key: 6, name: "葡萄城开发者空间" },
-  { key: 7, name: "DAMO开发者矩阵" },
-  { key: 8, name: "魔乐社区" },
-  { key: 9, name: "LAVAL社区" },
-]);
+// 社区推荐列表
+const communityList = ref([]);
 </script>
 
 <style scoped>

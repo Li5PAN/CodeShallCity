@@ -22,32 +22,19 @@
           </div>
           <div class="article-forum-info">
             <span class="forum-label">论坛分类</span>
-            <span class="forum-detail">{{ article.forumName }} {{ article.forumArticleCount }}篇文章</span>
+            <span class="forum-detail">{{ article.categoryName }} {{ article.categoryPostCount }}篇文章</span>
           </div>
         </div>
 
         <!-- 文章正文 -->
-        <div class="article-body">
-          <div v-for="(block, idx) in article.content" :key="idx">
-            <h2 v-if="block.type === 'h2'">{{ block.text }}</h2>
-            <h3 v-else-if="block.type === 'h3'">{{ block.text }}</h3>
-            <p v-else-if="block.type === 'p'">{{ block.text }}</p>
-            <pre v-else-if="block.type === 'code'" class="code-block"><code>{{ block.text }}</code></pre>
-            <ul v-else-if="block.type === 'ul'">
-              <li v-for="(li, i) in block.items" :key="i">{{ li }}</li>
-            </ul>
-            <div v-else-if="block.type === 'img'" class="article-img-wrap">
-              <img :src="block.src" :alt="block.alt" />
-            </div>
-          </div>
-        </div>
+        <div class="article-body" v-html="article.content"></div>
 
         <!-- 底部操作栏 -->
         <div class="article-actions">
-          <a-button :type="liked ? 'primary' : 'default'" size="large" @click="liked = !liked; article.likeCount += liked ? 1 : -1">
+          <a-button :type="liked ? 'primary' : 'default'" size="large" @click="handleLike">
             <LikeOutlined /> {{ liked ? '已点赞' : '点赞' }} {{ article.likeCount }}
           </a-button>
-          <a-button v-if="!fromFavorites" :type="collected ? 'primary' : 'default'" size="large" @click="collected = !collected; article.collectCount += collected ? 1 : -1">
+          <a-button v-if="!fromFavorites" :type="collected ? 'primary' : 'default'" size="large" @click="handleCollect">
             <StarOutlined /> {{ collected ? '已收藏' : '收藏' }} {{ article.collectCount }}
           </a-button>
         </div>
@@ -62,7 +49,7 @@
           </div>
           <div class="comment-list">
             <div class="comment-item" v-for="c in comments" :key="c.id">
-              <a-avatar :size="36" :style="{ backgroundColor: c.color }">{{ c.user[0] }}</a-avatar>
+              <a-avatar :size="36" :src="c.avatar" :style="{ backgroundColor: c.color }">{{ c.user[0] }}</a-avatar>
               <div class="comment-body">
                 <div class="comment-header">
                   <span class="comment-user">{{ c.user }}</span>
@@ -71,7 +58,35 @@
                 <p class="comment-content">{{ c.content }}</p>
                 <div class="comment-footer">
                   <span class="comment-like" @click="c.likes++"><LikeOutlined /> {{ c.likes }}</span>
-                  <span class="comment-reply">回复</span>
+                  <span class="comment-reply" @click="handleReply(c)">回复</span>
+                </div>
+                <!-- 回复输入框 -->
+                <div v-if="replyTarget && replyTarget.id === c.id" class="reply-input-area">
+                  <div class="reply-to-info">回复 @{{ c.user }}</div>
+                  <a-textarea v-model:value="replyText" placeholder="写下你的回复..." :rows="2" class="reply-input" />
+                  <div class="reply-actions">
+                    <a-button size="small" @click="cancelReply">取消</a-button>
+                    <a-button type="primary" size="small" @click="submitReply">发布</a-button>
+                  </div>
+                </div>
+                <!-- 子评论（二级评论） -->
+                <div v-if="c.children && c.children.length > 0" class="child-comments">
+                  <div class="child-comment-item" v-for="child in c.children" :key="child.id">
+                    <a-avatar :size="28" :src="child.userAvatar" :style="{ backgroundColor: '#52c41a' }">{{ child.userName ? child.userName[0] : '' }}</a-avatar>
+                    <div class="child-comment-body">
+                      <div class="child-comment-header">
+                        <span class="child-comment-user">{{ child.userName }}</span>
+                        <span v-if="child.replyToUser" class="reply-arrow">回复</span>
+                        <span v-if="child.replyToUser" class="child-comment-user child-reply-user">@{{ child.replyToUser }}</span>
+                        <span class="comment-time">{{ child.createTime ? new Date(child.createTime).toLocaleString('zh-CN') : '' }}</span>
+                      </div>
+                      <p class="child-comment-content">{{ child.content }}</p>
+                      <div class="comment-footer">
+                        <span class="comment-like" @click="child.likeCount = (child.likeCount || 0) + 1"><LikeOutlined /> {{ child.likeCount || 0 }}</span>
+                        <span class="comment-reply" @click="handleReply(c)">回复</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -83,9 +98,9 @@
       <div class="article-sidebar">
         <!-- 作者信息 -->
         <div class="sidebar-card author-card">
-          <a-avatar :size="56" style="background-color: #1890ff; display: block; margin: 0 auto 12px">{{ article.author[0] }}</a-avatar>
+          <a-avatar :size="56" :src="article.authorAvatar" :style="{ backgroundColor: '#1890ff', display: 'block', margin: '0 auto 12px' }">{{ article.author ? article.author[0] : '' }}</a-avatar>
           <div class="author-name-center">{{ article.author }}</div>
-          <div class="author-bio">{{ article.authorBio }}</div>
+          <div class="author-bio">{{ article.authorBio || '' }}</div>
           <div class="author-stats">
             <div class="author-stat-item">
               <div class="stat-num">{{ article.authorArticles }}</div>
@@ -110,8 +125,9 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { EyeOutlined, LikeOutlined, StarOutlined, MessageOutlined, ShareAltOutlined } from '@ant-design/icons-vue'
+import { getPostDetail, likePost, unlikePost, collectPost, uncollectPost, getCommentPage, createComment } from '@/service/user/uforum'
 
 const props = defineProps({ id: { type: Number, default: 1 }, from: { type: String, default: '' } })
 
@@ -122,87 +138,191 @@ const commentText = ref('')
 const isFollowing = ref(props.from === 'following')
 const fromFavorites = computed(() => props.from === 'favorites')
 
-const articleMap = {
-  1: {
-    title: '深入解析CPU调度：操作系统的核心资源分配机制',
-    author: 'bkspiderx', authorArticles: 42, authorFans: 1280, authorLikes: 3600,
-    publishTime: '2026-02-20 10:30', category: '操作系统',
-    readCount: 1500, likeCount: 34, collectCount: 11, commentCount: 8,
-    forumName: '操作系统技术交流', forumArticleCount: 8,
-    content: [
-      { type: 'h2', text: '一、什么是CPU调度？' },
-      { type: 'p', text: 'CPU调度是操作系统的核心功能之一，负责决定哪个进程在何时使用CPU资源。在多任务操作系统中，多个进程同时竞争CPU，调度器需要在它们之间合理分配CPU时间，以达到最优的系统性能。' },
-      { type: 'h2', text: '二、为什么需要CPU调度？' },
-      { type: 'p', text: '现代计算机系统中，CPU是最宝贵的资源之一。如果没有合理的调度机制，某些进程可能会长期占用CPU，导致其他进程无法得到执行，系统响应变慢甚至死锁。' },
-      { type: 'ul', items: ['提高CPU利用率', '保证系统响应时间', '实现多任务并发', '防止进程饥饿'] },
-      { type: 'h2', text: '三、经典调度算法' },
-      { type: 'h3', text: '3.1 先来先服务（FCFS）' },
-      { type: 'p', text: '最简单的调度算法，按照进程到达的顺序依次执行。优点是实现简单，缺点是可能导致"护航效应"——短进程等待长进程执行完毕。' },
-      { type: 'h3', text: '3.2 短作业优先（SJF）' },
-      { type: 'p', text: '优先执行预计执行时间最短的进程，能最小化平均等待时间。但需要预知进程执行时间，实际中难以精确获取。' },
-      { type: 'h3', text: '3.3 时间片轮转（RR）' },
-      { type: 'p', text: '每个进程分配固定的时间片，时间片用完后切换到下一个进程。是现代操作系统最常用的调度算法之一。' },
-      { type: 'code', text: `// 时间片轮转伪代码示例
-while (ready_queue not empty) {
-  process = dequeue(ready_queue)
-  run(process, TIME_QUANTUM)
-  if (process not finished) {
-    enqueue(ready_queue, process)
-  }
-}` },
-      { type: 'h2', text: '四、Linux的CFS调度器' },
-      { type: 'p', text: 'Linux内核使用完全公平调度器（CFS），基于红黑树实现，通过虚拟运行时间（vruntime）来保证每个进程获得公平的CPU时间。CFS是目前最先进的调度算法之一，兼顾了公平性和性能。' },
-      { type: 'h2', text: '五、总结' },
-      { type: 'p', text: 'CPU调度是操作系统设计中的核心问题，不同的调度算法适用于不同的场景。理解调度机制有助于我们编写更高效的程序，也是面试中的高频考点。' }
-    ]
-  },
-  3: {
-    title: 'AI大模型大师秘籍：2025AI技术全景揭秘，从入门到精通的完整学习指南！',
-    author: 'Agent学习路线', authorBio: 'AI技术布道者，专注大模型应用开发', authorArticles: 88, authorFans: 5600, authorLikes: 12000,
-    publishTime: '2026-02-25 14:00', category: '人工智能',
-    readCount: 1500, likeCount: 47, collectCount: 14, commentCount: 12,
-    forumName: 'AI大模型技术论坛', forumArticleCount: 15,
-    content: [
-      { type: 'h2', text: '一、为什么要学习AI大模型？' },
-      { type: 'p', text: '2025年，AI大模型已经渗透到各行各业。无论是软件开发、内容创作还是数据分析，掌握大模型技术都将成为核心竞争力。' },
-      { type: 'h2', text: '二、学习路线规划' },
-      { type: 'h3', text: '第一阶段：基础准备（1-2个月）' },
-      { type: 'ul', items: ['Python编程基础', '数学基础：线性代数、概率论、微积分', '机器学习基础概念', 'PyTorch/TensorFlow框架入门'] },
-      { type: 'h3', text: '第二阶段：深度学习进阶（2-3个月）' },
-      { type: 'ul', items: ['神经网络原理与实现', 'Transformer架构深度解析', 'BERT、GPT系列模型原理', '微调技术：LoRA、QLoRA'] },
-      { type: 'h3', text: '第三阶段：大模型应用开发（2-3个月）' },
-      { type: 'ul', items: ['LangChain框架实战', 'RAG检索增强生成', 'Agent智能体开发', 'Prompt工程技巧'] },
-      { type: 'h2', text: '三、推荐学习资源' },
-      { type: 'p', text: '学习大模型需要理论与实践并重。建议从官方文档入手，结合实际项目练习，同时关注Hugging Face、Papers With Code等平台的最新进展。' },
-      { type: 'h2', text: '四、总结' },
-      { type: 'p', text: 'AI大模型的学习是一个持续的过程，技术更新很快。保持学习热情，多动手实践，才能在这个领域持续成长。' }
-    ]
+// 文章详情数据
+const article = ref({
+  id: null,
+  title: '',
+  author: '',
+  authorAvatar: '',
+  authorBio: '',
+  authorArticles: 0,
+  authorFans: 0,
+  authorLikes: 0,
+  publishTime: '',
+  category: '',
+  categoryId: null,
+  categoryName: '',
+  categoryPostCount: 0,
+  readCount: 0,
+  likeCount: 0,
+  collectCount: 0,
+  commentCount: 0,
+  content: '',
+  tags: [],
+  createTime: ''
+})
+
+// 加载文章详情
+const loadPostDetail = async () => {
+  try {
+    const res = await getPostDetail(articleId.value)
+    if (res.code === 0 && res.data) {
+      const data = res.data
+      article.value = {
+        id: data.id,
+        title: data.title || '',
+        author: data.userName || '',
+        authorAvatar: data.userAvatar || '',
+        authorBio: '',
+        authorArticles: 0,
+        authorFans: 0,
+        authorLikes: 0,
+        publishTime: data.createTime ? new Date(data.createTime).toLocaleString('zh-CN') : '',
+        category: data.categoryName || '',
+        categoryId: data.categoryId,
+        categoryName: data.categoryName || '',
+        categoryPostCount: data.categoryPostCount || 0,
+        readCount: data.viewCount || 0,
+        likeCount: data.likeCount || 0,
+        collectCount: data.collectCount || 0,
+        commentCount: data.commentCount || 0,
+        content: data.content || '',
+        tags: data.tags || [],
+        createTime: data.createTime || ''
+      }
+      liked.value = data.isLiked || false
+      collected.value = data.isCollected || false
+    }
+  } catch (error) {
+    console.error('获取文章详情失败:', error)
   }
 }
 
-const article = computed(() => articleMap[articleId.value] || articleMap[1])
-
-const toc = computed(() => {
-  return (article.value.content || [])
-    .filter(b => b.type === 'h2' || b.type === 'h3')
-    .map(b => ({ text: b.text, level: b.type === 'h2' ? 2 : 3 }))
+onMounted(() => {
+  loadPostDetail()
+  loadComments()
 })
 
-const comments = ref([
-  { id: 1, user: '张同学', color: '#1890ff', time: '2026-02-21 09:15', content: '写得非常好！对CPU调度的讲解很清晰，特别是CFS那部分，之前一直没搞懂，看完豁然开朗。', likes: 12 },
-  { id: 2, user: '李工程师', color: '#52c41a', time: '2026-02-21 11:30', content: '时间片轮转那个伪代码很直观，建议再补充一下多级反馈队列的内容，那个在面试中也很常见。', likes: 8 },
-  { id: 3, user: '王开发', color: '#faad14', time: '2026-02-22 14:20', content: '收藏了！准备面试中，这篇文章帮了大忙。', likes: 5 }
-])
+const toc = computed(() => {
+  // 如果content是HTML字符串，暂不处理；后续可考虑解析生成目录
+  return []
+})
 
-const submitComment = () => {
+// 评论列表数据
+const comments = ref([])
+// 回复目标（当前正在回复的评论）
+const replyTarget = ref(null)
+// 回复输入框内容
+const replyText = ref('')
+
+// 加载评论列表
+const loadComments = async () => {
+  try {
+    const res = await getCommentPage({
+      postId: articleId.value,
+      pageNum: 1,
+      pageSize: 50
+    })
+    if (res.code === 0 && res.data) {
+      comments.value = res.data.map(item => ({
+        id: item.id,
+        user: item.userName || '',
+        userId: item.userId,
+        avatar: item.userAvatar || '',
+        color: '#1890ff',
+        time: item.createTime ? new Date(item.createTime).toLocaleString('zh-CN') : '',
+        content: item.content || '',
+        likes: item.likeCount || 0,
+        parentId: item.parentId,
+        children: item.children || []
+      }))
+    }
+  } catch (error) {
+    console.error('获取评论列表失败:', error)
+  }
+}
+
+// 提交一级评论
+const submitComment = async () => {
   if (!commentText.value.trim()) return
-  comments.value.unshift({
-    id: Date.now(), user: '我', color: '#87d068',
-    time: new Date().toLocaleString('zh-CN'),
-    content: commentText.value, likes: 0
-  })
-  commentText.value = ''
-  article.value.commentCount++
+  try {
+    const res = await createComment({
+      postId: articleId.value,
+      parentId: null,
+      content: commentText.value.trim()
+    })
+    if (res.code === 0) {
+      commentText.value = ''
+      await loadComments()
+    }
+  } catch (error) {
+    console.error('发布评论失败:', error)
+  }
+}
+
+// 点击回复按钮
+const handleReply = (comment) => {
+  replyTarget.value = comment
+  replyText.value = ''
+}
+
+// 取消回复
+const cancelReply = () => {
+  replyTarget.value = null
+  replyText.value = ''
+}
+
+// 提交回复
+const submitReply = async () => {
+  if (!replyText.value.trim() || !replyTarget.value) return
+  try {
+    const res = await createComment({
+      postId: articleId.value,
+      parentId: replyTarget.value.id,
+      content: replyText.value.trim()
+    })
+    if (res.code === 0) {
+      replyText.value = ''
+      replyTarget.value = null
+      await loadComments()
+    }
+  } catch (error) {
+    console.error('发布回复失败:', error)
+  }
+}
+
+// 点赞/取消点赞
+const handleLike = async () => {
+  try {
+    if (liked.value) {
+      await unlikePost(articleId.value)
+      liked.value = false
+      article.value.likeCount--
+    } else {
+      await likePost(articleId.value)
+      liked.value = true
+      article.value.likeCount++
+    }
+  } catch (error) {
+    console.error('点赞操作失败:', error)
+  }
+}
+
+// 收藏/取消收藏
+const handleCollect = async () => {
+  try {
+    if (collected.value) {
+      await uncollectPost(articleId.value)
+      collected.value = false
+      article.value.collectCount--
+    } else {
+      await collectPost(articleId.value)
+      collected.value = true
+      article.value.collectCount++
+    }
+  } catch (error) {
+    console.error('收藏操作失败:', error)
+  }
 }
 </script>
 
@@ -255,6 +375,23 @@ const submitComment = () => {
 .comment-footer { display: flex; gap: 16px; font-size: 12px; color: #999; }
 .comment-like, .comment-reply { cursor: pointer; display: flex; align-items: center; gap: 4px; }
 .comment-like:hover, .comment-reply:hover { color: #1890ff; }
+
+/* 回复输入框 */
+.reply-input-area { margin-top: 12px; padding: 12px; background: #f5f5f5; border-radius: 6px; }
+.reply-to-info { font-size: 12px; color: #1890ff; margin-bottom: 8px; }
+.reply-input { margin-bottom: 8px; }
+.reply-actions { display: flex; justify-content: flex-end; gap: 8px; }
+
+/* 子评论 */
+.child-comments { margin-top: 12px; padding: 12px; background: #fafafa; border-radius: 6px; }
+.child-comment-item { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid #f0f0f0; }
+.child-comment-item:last-child { border-bottom: none; padding-bottom: 0; }
+.child-comment-body { flex: 1; }
+.child-comment-header { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; flex-wrap: wrap; }
+.child-comment-user { font-size: 13px; font-weight: 600; color: #333; }
+.child-reply-user { color: #1890ff; }
+.reply-arrow { font-size: 12px; color: #999; }
+.child-comment-content { font-size: 13px; color: #555; line-height: 1.5; margin: 0 0 6px; }
 
 /* 右侧边栏 */
 .article-sidebar { width: 260px; flex-shrink: 0; display: flex; flex-direction: column; gap: 16px; position: sticky; top: 16px; }
